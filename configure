@@ -1,3 +1,3 @@
 #!/bin/sh
-rm -f CMakeCache.txt
-cmake . $@ && echo "Configuring compeleted. Now run \"make\"."
+qmake $@ && echo "Configuring compeleted. Now run \"make\"."
+
