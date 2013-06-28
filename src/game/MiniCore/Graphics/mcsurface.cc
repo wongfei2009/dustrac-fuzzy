@@ -158,6 +158,8 @@ MCSurface::MCSurface(
 
 void MCSurface::init(GLuint handle1, GLuint handle2, GLuint handle3, MCFloat width, MCFloat height)
 {
+    initializeOpenGLFunctions();
+
     m_handle1        = handle1;
     m_handle2        = handle2;
     m_handle3        = handle3;
@@ -189,9 +191,20 @@ void MCSurface::initVBOs(
 {
     int offset = 0;
 
-    glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_vbo);
-    glBindVertexArray(m_vao);
+
+    // Wrapped inside QOpenGLVertexArrayObject:
+    // glGenVertexArrays(1, &m_vao);
+    // glBindVertexArray(m_vao);
+
+    m_vao.create();
+    if (!m_vao.isCreated())
+    {
+        MCException VAOFailed("Cannot create a VAO!");
+        throw VAOFailed;
+    }
+
+    m_vao.bind();
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBufferData(GL_ARRAY_BUFFER,
@@ -224,12 +237,16 @@ void MCSurface::initVBOs(
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_Normal);
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_TexCoords);
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_Color);
+
+    m_vao.release();
 }
 
 MCSurface::~MCSurface()
 {
     glDeleteBuffers(1, &m_vbo);
-    glDeleteVertexArrays(1, &m_vao);
+
+    // Wrapped inside QOpenGLVertexArrayObject:
+    //glDeleteVertexArrays(1, &m_vao);
 }
 
 void MCSurface::setCenter(MCVector2dFR center)
@@ -420,19 +437,23 @@ void MCSurface::renderShadow(MCCamera * camera, MCVector2dFR pos, MCFloat angle,
     }
 }
 
-void MCSurface::bind() const
+void MCSurface::bind()
 {
-    glBindVertexArray(m_vao);
+    // Wrapped inside QOpenGLVertexArrayObject:
+    //glBindVertexArray(m_vao);
+    m_vao.bind();
     bindTexture();
 }
 
-void MCSurface::bindShadow() const
+void MCSurface::bindShadow()
 {
-    glBindVertexArray(m_vao);
+    // Wrapped inside QOpenGLVertexArrayObject:
+    // glBindVertexArray(m_vao);
+    m_vao.bind();
     bindTexture(true);
 }
 
-void MCSurface::bindTexture(bool bindOnlyFirstTexture) const
+void MCSurface::bindTexture(bool bindOnlyFirstTexture)
 {
     assert(m_program);
 

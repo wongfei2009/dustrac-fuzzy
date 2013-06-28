@@ -22,16 +22,17 @@
 
 #include "mcparticle.hh"
 #include "mcglcolor.hh"
+#include "mcrenderobjectbase.hh"
 
-#include <MCGLEW>
+#include <QOpenGLFunctions>
+#include <QOpenGLVertexArrayObject>
 
 class MCCamera;
 class MCGLShaderProgram;
 
 /*! \class MCGLRectParticle
- *  \brief A particle that renders as a simple OpenGL rectangle. Final class.
- */
-class MCGLRectParticle : public MCParticle
+ *  \brief A particle that renders as a simple OpenGL rectangle. Final class. */
+class MCGLRectParticle : public MCParticle, protected QOpenGLFunctions
 {
 public:
 
@@ -63,10 +64,11 @@ private:
 
     DISABLE_COPY(MCGLRectParticle);
     DISABLE_ASSI(MCGLRectParticle);
-    MCGLColor m_color;
-    static GLuint m_vbo;
-    static GLuint m_vao;
-    MCGLShaderProgram * m_program;
+
+    MCGLColor                       m_color;
+    static GLuint                   m_vbo;
+    static QOpenGLVertexArrayObject m_vao;
+    MCGLShaderProgram             * m_program;
 };
 
 #endif // MCGLRECTPARTICLE_HH

@@ -1,2 +1,3 @@
 // This is just wrapper header for glew
-#include "glew/glew.h"
+//#include "glew/glew.h"
+#include "GL/gl.h"

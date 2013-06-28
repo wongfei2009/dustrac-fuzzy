@@ -20,8 +20,6 @@
 #ifndef MCMESH_HH
 #define MCMESH_HH
 
-#include <MCGLEW>
-
 #include "mctypes.hh"
 #include "mcmacros.hh"
 #include "mcbbox.hh"
@@ -33,6 +31,9 @@
 #include <string>
 #include <vector>
 
+#include <QOpenGLFunctions>
+#include <QOpenGLVertexArrayObject>
+
 using std::string;
 
 class MCCamera;
@@ -41,7 +42,7 @@ class MCGLTexCoord;
 class MCGLVertex;
 
 /** Renderable 3d mesh object. */
-class MCMesh
+class MCMesh : protected QOpenGLFunctions
 {
 public:
 
@@ -95,17 +96,17 @@ public:
      *  This can be used to save some function calls when rendering the same
      *  mesh multiple times.
      *  \see render() */
-    void bind(bool enable) const;
+    void bind(bool enable);
 
     /*! Manually enable/disable OpenGL client states and texturing environment.
      *  This can be used to save some function calls when rendering the same
      *  mesh multiple times.
      *  \see renderShadow()
      */
-    void bindShadow(bool enable) const;
+    void bindShadow(bool enable);
 
     //! Bind the current texture.
-    void bindTexture(bool bindOnlyFirstTexture = false) const;
+    void bindTexture(bool bindOnlyFirstTexture = false);
 
     //! Set the shader program to be used.
     void setShaderProgram(MCGLShaderProgram * program);
@@ -138,16 +139,16 @@ private:
     void doRender(bool autoBind);
     void doRenderShadow(bool autoBind);
 
-    int                 m_numVertices;
-    GLuint              m_handle1;
-    GLuint              m_handle2;
-    MCFloat             m_w, m_h;
-    GLuint              m_vbo;
-    GLuint              m_vao;
-    MCGLColor           m_color;
-    MCFloat             m_sx, m_sy, m_sz;
-    MCGLShaderProgram * m_program;
-    MCGLShaderProgram * m_shadowProgram;
+    int                      m_numVertices;
+    GLuint                   m_handle1;
+    GLuint                   m_handle2;
+    MCFloat                  m_w, m_h;
+    GLuint                   m_vbo;
+    QOpenGLVertexArrayObject m_vao;
+    MCGLColor                m_color;
+    MCFloat                  m_sx, m_sy, m_sz;
+    MCGLShaderProgram      * m_program;
+    MCGLShaderProgram      * m_shadowProgram;
 };
 
 #endif // MCMESH_HH

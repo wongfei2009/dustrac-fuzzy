@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Dust Racing 2D. If not, see <http://www.gnu.org/licenses/>.
 
-#include <QApplication>
+#include <QGuiApplication>
 #include <QGLFormat>
 #include <QDir>
 #include <QHBoxLayout>
@@ -63,7 +63,7 @@ int main(int argc, char ** argv)
 {
     try
     {
-        QApplication app(argc, argv);
+        QGuiApplication app(argc, argv);
         std::vector<std::string> args(argv, argv + argc);
 
         if (std::find(args.begin(), args.end(), "--help") != args.end())

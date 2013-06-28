@@ -18,19 +18,20 @@
 
 #include <MCGLShaderProgram>
 #include <MCGLScene>
-#include <QGLShaderProgram>
-#include <QGLShader>
-#include <QGLContext>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLShader>
+#include <QOpenGLContext>
+#include <QOpenGLFunctions>
 #include <QObject>
 
 /*! Implements the MCGLShaderProgram interface by wrapping
  *  a QGLShaderProgram. */
-class ShaderProgram : public MCGLShaderProgram
+class ShaderProgram : public MCGLShaderProgram, protected QOpenGLFunctions
 {
 public:
 
     //! Constructor.
-    ShaderProgram(const QGLContext * context, MCGLScene & scene);
+    ShaderProgram(QOpenGLContext * context, MCGLScene & scene);
 
     //! Destructor.
     virtual ~ShaderProgram();
@@ -95,9 +96,9 @@ public:
 
 private:
 
-    QGLShaderProgram m_program;
-    QGLShader        m_fragmentShader;
-    QGLShader        m_vertexShader;
+    QOpenGLShaderProgram m_program;
+    QOpenGLShader        m_fragmentShader;
+    QOpenGLShader        m_vertexShader;
 };
 
 #endif // SHADERPROGRAM_HPP

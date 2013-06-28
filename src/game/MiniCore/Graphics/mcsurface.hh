@@ -20,8 +20,6 @@
 #ifndef MCSURFACE_HH
 #define MCSURFACE_HH
 
-#include <MCGLEW>
-
 #include "mctypes.hh"
 #include "mcmacros.hh"
 #include "mcbbox.hh"
@@ -32,15 +30,17 @@
 #include <cmath>
 #include <string>
 
+#include <QOpenGLFunctions>
+#include <QOpenGLVertexArrayObject>
+
 class MCCamera;
 class MCGLShaderProgram;
 class MCGLTexCoord;
 class MCGLVertex;
 
 /*! MCSurface is a renderable object bound to an OpenGL texture handle.
- *  MCSurface can be rendered straightly as a standalone object.
- */
-class MCSurface
+ *  MCSurface can be rendered straightly as a standalone object. */
+class MCSurface : protected QOpenGLFunctions
 {
 public:
 
@@ -117,20 +117,16 @@ public:
     //! Render the vertex buffer only. bind() must be called separately.
     void render();
 
-    /*! Manually enable/disable OpenGL client states and texturing environment.
-     *  This can be used to save some function calls when rendering the same
-     *  surface multiple times.
+    /*! Manually bind the internal VAO.
      *  \see render() */
-    void bind() const;
+    void bind();
 
-    /*! Manually enable/disable OpenGL client states and texturing environment.
-     *  This can be used to save some function calls when rendering the same
-     *  surface multiple times.
+    /*! Manually bind the internal VAO when rendering the "shadow".
      *  \see renderShadow() */
-    void bindShadow() const;
+    void bindShadow();
 
     //! Bind the current texture.
-    void bindTexture(bool bindOnlyFirstTexture = false) const;
+    void bindTexture(bool bindOnlyFirstTexture = false);
 
     //! Set the shader program to be used.
     void setShaderProgram(MCGLShaderProgram * program);
@@ -179,27 +175,27 @@ private:
 
     void doRenderShadow(bool autoBind);
 
-    GLuint m_handle1;
-    GLuint m_handle2;
-    GLuint m_handle3;
-    MCFloat m_w;
-    MCFloat m_w2;
-    MCFloat m_h;
-    MCFloat m_h2;
-    MCVector2dF m_center;
-    bool m_centerSet;
-    bool m_useAlphaTest;
-    GLenum m_alphaFunc;
-    GLclampf m_alphaThreshold;
-    bool m_useAlphaBlend;
-    GLenum m_src;
-    GLenum m_dst;
-    GLuint m_vbo;
-    GLuint m_vao;
-    MCGLColor m_color;
-    MCFloat m_sx, m_sy, m_sz;
-    MCGLShaderProgram * m_program;
-    MCGLShaderProgram * m_shadowProgram;
+    GLuint                   m_handle1;
+    GLuint                   m_handle2;
+    GLuint                   m_handle3;
+    MCFloat                  m_w;
+    MCFloat                  m_w2;
+    MCFloat                  m_h;
+    MCFloat                  m_h2;
+    MCVector2dF              m_center;
+    bool                     m_centerSet;
+    bool                     m_useAlphaTest;
+    GLenum                   m_alphaFunc;
+    GLclampf                 m_alphaThreshold;
+    bool                     m_useAlphaBlend;
+    GLenum                   m_src;
+    GLenum                   m_dst;
+    GLuint                   m_vbo;
+    QOpenGLVertexArrayObject m_vao;
+    MCGLColor                m_color;
+    MCFloat                  m_sx, m_sy, m_sz;
+    MCGLShaderProgram      * m_program;
+    MCGLShaderProgram      * m_shadowProgram;
 };
 
 #endif // MCSURFACE_HH

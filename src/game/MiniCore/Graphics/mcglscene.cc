@@ -17,11 +17,9 @@
 // MA  02110-1301, USA.
 //
 
-#include <MCGLEW>
-#include <MCLogger>
-
 #include "mcglscene.hh"
 #include "mcglshaderprogram.hh"
+#include "mclogger.hh"
 #include "mctrigonom.hh"
 
 #include <algorithm>
@@ -48,14 +46,9 @@ void MCGLScene::addShaderProgram(MCGLShaderProgram & shader)
 
 void MCGLScene::initialize()
 {
-    glewExperimental = GL_TRUE; // Needed with CoreProfile 3.3
-    GLenum err = glewInit();
-    if (GLEW_OK != err)
-    {
-        MCLogger().fatal() << "Initing GLEW failed: " << glewGetErrorString(err);
-    }
+    MCLogger().info() << "Initializing MCGLScene..";
 
-    MCLogger().info() << "Using GLEW " << glewGetString(GLEW_VERSION);
+    initializeOpenGLFunctions();
 
     glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);

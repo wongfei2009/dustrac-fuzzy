@@ -21,13 +21,12 @@
 #include "mcglshaderprogram.hh"
 #include "mcglvertex.hh"
 #include "mccamera.hh"
-
-#include <MCGLEW>
+#include "mcexception.hh"
 
 #include <cassert>
 
 GLuint MCGLRectParticle::m_vbo = 0;
-GLuint MCGLRectParticle::m_vao = 0;
+QOpenGLVertexArrayObject MCGLRectParticle::m_vao;
 
 static const int NUM_VERTICES     = 6;
 static const int VERTEX_DATA_SIZE = sizeof(MCGLVertex) * NUM_VERTICES;
@@ -40,7 +39,9 @@ MCGLRectParticle::MCGLRectParticle(const std::string & typeID)
 , m_color(1.0, 1.0, 1.0, 1.0)
 , m_program(nullptr)
 {
-    if (m_vbo == 0 && m_vao == 0)
+    initializeOpenGLFunctions();
+
+    if (m_vbo == 0)
     {
         // Init vertice data for a quad
         const MCGLVertex vertices[NUM_VERTICES] =
@@ -75,9 +76,20 @@ MCGLRectParticle::MCGLRectParticle(const std::string & typeID)
 
         int offset = 0;
 
-        glGenVertexArrays(1, &m_vao);
         glGenBuffers(1, &m_vbo);
-        glBindVertexArray(m_vao);
+
+        // Wrapped inside QOpenGLVertexArrayObject:
+        // glGenVertexArrays(1, &m_vao);
+        // glBindVertexArray(m_vao);
+
+        m_vao.create();
+        if (!m_vao.isCreated())
+        {
+            MCException VAOFailed("Cannot create a VAO!");
+            throw VAOFailed;
+        }
+
+        m_vao.bind();
 
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
         glBufferData(GL_ARRAY_BUFFER, TOTAL_DATA_SIZE, nullptr, GL_STATIC_DRAW);
@@ -102,6 +114,8 @@ MCGLRectParticle::MCGLRectParticle(const std::string & typeID)
         glEnableVertexAttribArray(MCGLShaderProgram::VAL_Vertex);
         glEnableVertexAttribArray(MCGLShaderProgram::VAL_Normal);
         glEnableVertexAttribArray(MCGLShaderProgram::VAL_Color);
+
+        m_vao.release();
     }
 }
 
@@ -111,12 +125,6 @@ MCGLRectParticle::~MCGLRectParticle()
     {
         glDeleteBuffers(1, &m_vbo);
         m_vbo = 0;
-    }
-
-    if (m_vao != 0)
-    {
-        glDeleteVertexArrays(1, &m_vao);
-        m_vao = 0;
     }
 }
 
@@ -137,11 +145,12 @@ void MCGLRectParticle::beginBatch()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     m_program->bind();
-    glBindVertexArray(m_vao);
+    m_vao.bind();
 }
 
 void MCGLRectParticle::endBatch()
 {
+    m_vao.release();
     glDisable(GL_BLEND);
 }
 

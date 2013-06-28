@@ -24,6 +24,7 @@
 #include "mcglshaderprogram.hh"
 #include "mcglvertex.hh"
 #include "mcgltexcoord.hh"
+#include "mcexception.hh"
 #include "mctrigonom.hh"
 #include "mcassetmanager.hh"
 
@@ -45,6 +46,7 @@ MCMesh::MCMesh(const FaceVector & faces, GLuint handle1, GLuint handle2)
 , m_program(nullptr)
 , m_shadowProgram(nullptr)
 {
+    initializeOpenGLFunctions();
     init(faces);
 }
 
@@ -133,9 +135,20 @@ void MCMesh::initVBOs(
 
     int offset = 0;
 
-    glGenVertexArrays(1, &m_vao);
     glGenBuffers(1, &m_vbo);
-    glBindVertexArray(m_vao);
+
+    // Wrapped inside QOpenGLVertexArrayObject:
+    // glGenVertexArrays(1, &m_vao);
+    // glBindVertexArray(m_vao);
+
+    m_vao.create();
+    if (!m_vao.isCreated())
+    {
+        MCException VAOFailed("Cannot create a VAO!");
+        throw VAOFailed;
+    }
+
+    m_vao.bind();
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBufferData(GL_ARRAY_BUFFER,
@@ -168,6 +181,8 @@ void MCMesh::initVBOs(
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_Normal);
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_TexCoords);
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_Color);
+
+    m_vao.release();
 }
 
 void MCMesh::render()
@@ -286,16 +301,20 @@ void MCMesh::renderShadow(MCCamera * camera, MCVector2dFR pos, MCFloat angle, bo
     }
 }
 
-void MCMesh::bind(bool enable) const
+void MCMesh::bind(bool enable)
 {
     if (enable)
     {
-        glBindVertexArray(m_vao);
+        // Wrapped inside QOpenGLVertexArrayObject:
+        // glBindVertexArray(m_vao);
+        m_vao.bind();
         bindTexture();
     }
     else
     {
-        glBindVertexArray(0);
+        // Wrapped inside QOpenGLVertexArrayObject:
+        // glBindVertexArray(0);
+        m_vao.release();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -309,20 +328,24 @@ void MCMesh::bind(bool enable) const
     }
 }
 
-void MCMesh::bindShadow(bool enable) const
+void MCMesh::bindShadow(bool enable)
 {
     if (enable)
     {
-        glBindVertexArray(m_vao);
+        // Wrapped inside QOpenGLVertexArrayObject:
+        // glBindVertexArray(m_vao);
+        m_vao.bind();
         bindTexture(true);
     }
     else
     {
-        glBindVertexArray(0);
+        // Wrapped inside QOpenGLVertexArrayObject:
+        //glBindVertexArray(0);
+        m_vao.release();
     }
 }
 
-void MCMesh::bindTexture(bool bindOnlyFirstTexture) const
+void MCMesh::bindTexture(bool bindOnlyFirstTexture)
 {
     assert(m_program);
 
@@ -355,5 +378,7 @@ MCFloat MCMesh::height() const
 MCMesh::~MCMesh()
 {
     glDeleteBuffers(1, &m_vbo);
-    glDeleteVertexArrays(1, &m_vao);
+
+    // Wrapped inside QOpenGLVertexArrayObject:
+    // glDeleteVertexArrays(1, &m_vao);
 }

@@ -33,7 +33,6 @@ src/common/route.hpp \
 src/common/targetnodebase.hpp \
 src/common/trackdatabase.hpp \
 src/common/tracktilebase.hpp \
-src/game/aboutdlg.hpp \
 src/game/ai.hpp \
 src/game/car.hpp \
 src/game/carparticleeffectmanager.hpp \
@@ -87,7 +86,8 @@ src/game/trackobject.hpp \
 src/game/trackselectionmenu.hpp \
 src/game/tracktile.hpp \
 src/game/treeview.hpp \
-src/game/updateableif.hpp
+src/game/updateableif.hpp \
+    src/game/MiniCore/Graphics/mcrenderobjectbase.hh
 
 SOURCES += src/common/config.cpp \
 src/common/mapbase.cpp \
@@ -97,7 +97,6 @@ src/common/route.cpp \
 src/common/targetnodebase.cpp \
 src/common/trackdatabase.cpp \
 src/common/tracktilebase.cpp \
-src/game/aboutdlg.cpp \
 src/game/ai.cpp \
 src/game/car.cpp \
 src/game/carparticleeffectmanager.cpp \
@@ -203,7 +202,8 @@ src/game/MiniCore/Text/mctexturefontdata.cc \
 src/game/MiniCore/Text/mctexturefontmanager.cc \
 src/game/MiniCore/Text/mctextureglyph.cc \
 src/game/MiniCore/Text/mctexturetext.cc \
-src/game/MiniCore/Graphics/glew/glew.c
+src/game/MiniCore/Graphics/glew/glew.c \
+    src/game/MiniCore/Graphics/mcrenderobjectbase.cc
 
 RESOURCES += data/icons/icons.qrc
 
@@ -235,5 +235,4 @@ android/res/values-fr/strings.xml \
 android/src/org/kde/necessitas/ministro/IMinistroCallback.aidl \
 android/src/org/kde/necessitas/ministro/IMinistro.aidl \
 android/src/org/qtproject/qt5/android/bindings/QtActivity.java \
-android/src/org/qtproject/qt5/android/bindings/QtApplication.java
-
+android/src/org/qtproject/qt5/android/bindings/QtApplication.java \

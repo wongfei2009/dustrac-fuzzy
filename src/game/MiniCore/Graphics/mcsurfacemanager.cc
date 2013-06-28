@@ -23,9 +23,8 @@
 #include "mcsurfacemanager.hh"
 
 #include <QDir>
-#include <QGLWidget>
 #include <MCGLEW>
-
+#include <QGLWidget>
 #include <cassert>
 #include <cmath>
 

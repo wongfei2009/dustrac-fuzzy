@@ -62,12 +62,13 @@ private:
 };
 }
 
-ShaderProgram::ShaderProgram(const QGLContext * context, MCGLScene & scene)
+ShaderProgram::ShaderProgram(QOpenGLContext * context, MCGLScene & scene)
 : MCGLShaderProgram(scene)
 , m_program(context)
-, m_fragmentShader(QGLShader::Fragment, context)
-, m_vertexShader(QGLShader::Vertex, context)
+, m_fragmentShader(QOpenGLShader::Fragment, context)
+, m_vertexShader(QOpenGLShader::Vertex, context)
 {
+    initializeOpenGLFunctions();
 }
 
 void ShaderProgram::bind()
