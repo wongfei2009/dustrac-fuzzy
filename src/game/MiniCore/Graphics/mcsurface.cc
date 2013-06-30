@@ -158,25 +158,21 @@ MCSurface::MCSurface(
 
 void MCSurface::init(GLuint handle1, GLuint handle2, GLuint handle3, MCFloat width, MCFloat height)
 {
-    initializeOpenGLFunctions();
+    setTexture1(handle1);
+    setTexture2(handle2);
+    setTexture3(handle3);
 
-    m_handle1        = handle1;
-    m_handle2        = handle2;
-    m_handle3        = handle3;
     m_w              = width;
     m_w2             = width / 2;
     m_h              = height;
     m_h2             = height / 2;
     m_center         = MCVector2dF(m_w2, m_h2);
     m_centerSet      = false;
-    m_useAlphaTest   = false;
     m_alphaFunc      = GL_ALWAYS;
     m_alphaThreshold = 0.0;
     m_useAlphaBlend  = false;
     m_src            = GL_SRC_ALPHA;
     m_dst            = GL_ONE_MINUS_SRC_ALPHA;
-    m_program        = nullptr;
-    m_shadowProgram  = nullptr;
     m_color          = MCGLColor(1.0, 1.0, 1.0, 1.0);
     m_sx             = 1.0;
     m_sy             = 1.0;
@@ -193,18 +189,7 @@ void MCSurface::initVBOs(
 
     glGenBuffers(1, &m_vbo);
 
-    // Wrapped inside QOpenGLVertexArrayObject:
-    // glGenVertexArrays(1, &m_vao);
-    // glBindVertexArray(m_vao);
-
-    m_vao.create();
-    if (!m_vao.isCreated())
-    {
-        MCException VAOFailed("Cannot create a VAO!");
-        throw VAOFailed;
-    }
-
-    m_vao.bind();
+    bindVAO();
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBufferData(GL_ARRAY_BUFFER,
@@ -238,15 +223,12 @@ void MCSurface::initVBOs(
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_TexCoords);
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_Color);
 
-    m_vao.release();
+    releaseVAO();
 }
 
 MCSurface::~MCSurface()
 {
     glDeleteBuffers(1, &m_vbo);
-
-    // Wrapped inside QOpenGLVertexArrayObject:
-    //glDeleteVertexArrays(1, &m_vao);
 }
 
 void MCSurface::setCenter(MCVector2dFR center)
@@ -321,7 +303,6 @@ void MCSurface::doRender(bool autoBind)
     }
 
     glDrawArrays(GL_TRIANGLES, 0, NUM_VERTICES);
-
 }
 
 void MCSurface::doRenderShadow(bool autoBind)
@@ -334,29 +315,9 @@ void MCSurface::doRenderShadow(bool autoBind)
     glDrawArrays(GL_TRIANGLES, 0, NUM_VERTICES);
 }
 
-void MCSurface::setShaderProgram(MCGLShaderProgram * program)
-{
-    m_program = program;
-}
-
-void MCSurface::setShadowShaderProgram(MCGLShaderProgram * program)
-{
-    m_shadowProgram = program;
-}
-
-MCGLShaderProgram * MCSurface::shaderProgram() const
-{
-    return m_program;
-}
-
-MCGLShaderProgram * MCSurface::shadowShaderProgram() const
-{
-    return m_shadowProgram;
-}
-
 void MCSurface::render(MCCamera * camera, MCVector3dFR pos, MCFloat angle, bool autoBind)
 {
-    if (m_program)
+    if (shaderProgram())
     {
         MCFloat x = pos.i();
         MCFloat y = pos.j();
@@ -369,20 +330,20 @@ void MCSurface::render(MCCamera * camera, MCVector3dFR pos, MCFloat angle, bool 
 
         doAlphaBlend();
 
-        m_program->bind();
-        m_program->setScale(m_sx, m_sy, m_sz);
-        m_program->setColor(m_color);
+        shaderProgram()->bind();
+        shaderProgram()->setScale(m_sx, m_sy, m_sz);
+        shaderProgram()->setColor(m_color);
 
         if (m_centerSet)
         {
-            m_program->translate(MCVector3dF(x + m_w2 - m_center.i(), y + m_h2 - m_center.j(), z));
+            shaderProgram()->translate(MCVector3dF(x + m_w2 - m_center.i(), y + m_h2 - m_center.j(), z));
         }
         else
         {
-            m_program->translate(MCVector3dF(x, y, z));
+            shaderProgram()->translate(MCVector3dF(x, y, z));
         }
 
-        m_program->rotate(angle);
+        shaderProgram()->rotate(angle);
 
         doRender(autoBind);
 
@@ -402,7 +363,7 @@ void MCSurface::render(MCCamera * camera, MCVector3dFR pos, MCFloat angle, bool 
 void MCSurface::renderShadow(MCCamera * camera, MCVector2dFR pos, MCFloat angle,
     bool autoBind)
 {
-    if (m_shadowProgram)
+    if (shadowShaderProgram())
     {
         MCFloat x = pos.i();
         MCFloat y = pos.j();
@@ -413,20 +374,20 @@ void MCSurface::renderShadow(MCCamera * camera, MCVector2dFR pos, MCFloat angle,
             camera->mapToCamera(x, y);
         }
 
-        m_shadowProgram->bind();
-        m_shadowProgram->setScale(m_sx, m_sy, m_sz);
+        shadowShaderProgram()->bind();
+        shadowShaderProgram()->setScale(m_sx, m_sy, m_sz);
 
         if (m_centerSet)
         {
-            m_shadowProgram->translate(
+            shadowShaderProgram()->translate(
                 MCVector3dF(x + m_w2 - m_center.i(), y + m_h2 - m_center.j(), z));
         }
         else
         {
-            m_shadowProgram->translate(MCVector3dF(x, y, z));
+            shadowShaderProgram()->translate(MCVector3dF(x, y, z));
         }
 
-        m_shadowProgram->rotate(angle);
+        shadowShaderProgram()->rotate(angle);
 
         doRenderShadow(autoBind);
     }
@@ -439,65 +400,14 @@ void MCSurface::renderShadow(MCCamera * camera, MCVector2dFR pos, MCFloat angle,
 
 void MCSurface::bind()
 {
-    // Wrapped inside QOpenGLVertexArrayObject:
-    //glBindVertexArray(m_vao);
-    m_vao.bind();
-    bindTexture();
+    bindVAO();
+    bindTextures();
 }
 
 void MCSurface::bindShadow()
 {
-    // Wrapped inside QOpenGLVertexArrayObject:
-    // glBindVertexArray(m_vao);
-    m_vao.bind();
-    bindTexture(true);
-}
-
-void MCSurface::bindTexture(bool bindOnlyFirstTexture)
-{
-    assert(m_program);
-
-    if (bindOnlyFirstTexture || (!m_handle2 && !m_handle3))
-    {
-        glBindTexture(GL_TEXTURE_2D, m_handle1);
-    }
-    else
-    {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_handle1);
-        m_program->bindTextureUnit0(0);
-
-        if (m_handle2)
-        {
-            glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, m_handle2);
-            m_program->bindTextureUnit1(1);
-
-            if (m_handle3)
-            {
-                glActiveTexture(GL_TEXTURE2);
-                glBindTexture(GL_TEXTURE_2D, m_handle3);
-                m_program->bindTextureUnit2(2);
-            }
-        }
-
-        glActiveTexture(GL_TEXTURE0);
-    }
-}
-
-GLuint MCSurface::handle1() const
-{
-    return m_handle1;
-}
-
-GLuint MCSurface::handle2() const
-{
-    return m_handle2;
-}
-
-GLuint MCSurface::handle3() const
-{
-    return m_handle3;
+    bindVAO();
+    bindTextures(true);
 }
 
 MCFloat MCSurface::width() const

@@ -33,9 +33,7 @@
 static const int NUM_COLOR_COMPONENTS = 4;
 
 MCGLPointParticleRenderer::MCGLPointParticleRenderer(int maxBatchSize)
-: m_texture(0)
-, m_program(nullptr)
-, m_batchSize(0)
+: m_batchSize(0)
 , m_maxBatchSize(maxBatchSize)
 , m_vertices(new MCGLVertex[maxBatchSize])
 , m_normals(new MCGLVertex[maxBatchSize])
@@ -43,8 +41,6 @@ MCGLPointParticleRenderer::MCGLPointParticleRenderer(int maxBatchSize)
 , m_pointSize(8)
 , m_useAlphaBlend(false)
 {
-    initializeOpenGLFunctions();
-
     const int NUM_VERTICES     = maxBatchSize;
     const int VERTEX_DATA_SIZE = sizeof(MCGLVertex) * NUM_VERTICES;
     const int NORMAL_DATA_SIZE = sizeof(MCGLVertex) * NUM_VERTICES;
@@ -53,18 +49,7 @@ MCGLPointParticleRenderer::MCGLPointParticleRenderer(int maxBatchSize)
 
     glGenBuffers(1, &m_vbo);
 
-    // Wrapped inside QOpenGLVertexArrayObject:
-    // glGenVertexArrays(1, &m_vao);
-    // glBindVertexArray(m_vao);
-
-    m_vao.create();
-    if (!m_vao.isCreated())
-    {
-        MCException VAOFailed("Cannot create a VAO!");
-        throw VAOFailed;
-    }
-
-    m_vao.bind();
+    bindVAO();
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glBufferData(GL_ARRAY_BUFFER, TOTAL_DATA_SIZE, nullptr, GL_DYNAMIC_DRAW);
@@ -79,17 +64,7 @@ MCGLPointParticleRenderer::MCGLPointParticleRenderer(int maxBatchSize)
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_Normal);
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_Color);
 
-    m_vao.release();
-}
-
-void MCGLPointParticleRenderer::setShaderProgram(MCGLShaderProgram * program)
-{
-    m_program = program;
-}
-
-void MCGLPointParticleRenderer::setTexture(GLuint handle)
-{
-    m_texture = handle;
+    releaseVAO();
 }
 
 void MCGLPointParticleRenderer::setPointSize(int pointSize)
@@ -107,9 +82,7 @@ void MCGLPointParticleRenderer::setAlphaBlend(bool useAlphaBlend, GLenum src, GL
 void MCGLPointParticleRenderer::setBatch(
     const MCGLPointParticleRenderer::ParticleVector & particles, MCCamera * camera)
 {
-    // Wrapped inside QOpenGLVertexArrayObject:
-    //glBindVertexArray(m_vao);
-    m_vao.bind();
+    bindVAO();
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 
     int offset = 0;
@@ -165,8 +138,8 @@ void MCGLPointParticleRenderer::setBatch(
 
 void MCGLPointParticleRenderer::render()
 {
-    assert(m_program);
-    m_program->bind();
+    assert(shaderProgram());
+    shaderProgram()->bind();
 
     // Note: This is not needed from OpenGL 3.3 onwards
     glEnable(GL_POINT_SPRITE);
@@ -177,11 +150,9 @@ void MCGLPointParticleRenderer::render()
         glBlendFunc(m_src, m_dst);
     }
 
-    if (m_texture)
+    if (texture1())
     {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, m_texture);
-        m_program->bindTextureUnit0(0);
+        bindTextures(true);
     }
 
     glPointSize(m_pointSize);
@@ -192,16 +163,9 @@ void MCGLPointParticleRenderer::render()
         glDisable(GL_BLEND);
     }
 
-    if (m_texture)
-    {
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-
     glDisable(GL_POINT_SPRITE);
 
-    // Wrapped inside QOpenGLVertexArrayObject:
-    //glBindVertexArray(0);
-    m_vao.release();
+    releaseVAO();
 }
 
 MCGLPointParticleRenderer::~MCGLPointParticleRenderer()
@@ -215,12 +179,5 @@ MCGLPointParticleRenderer::~MCGLPointParticleRenderer()
         glDeleteBuffers(1, &m_vbo);
         m_vbo = 0;
     }
-
-    // Wrapped inside QOpenGLVertexArrayObject:
-    // if (m_vao != 0)
-    // {
-    //     glDeleteVertexArrays(1, &m_vao);
-    //     m_vao = 0;
-    // }
 }
 

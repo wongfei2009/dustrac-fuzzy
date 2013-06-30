@@ -23,10 +23,8 @@
 #include "mcmacros.hh"
 #include "mcglvertex.hh"
 #include "mcglcolor.hh"
+#include "mcglobjectbase.hh"
 #include "mcworldrenderer.hh"
-
-#include <QOpenGLFunctions>
-#include <QOpenGLVertexArrayObject>
 
 #include <vector>
 
@@ -38,7 +36,7 @@ class MCObject;
 /*! Each MCGLPointParticle id should have a corresponding MCGLPointParticleRenderer
  *  registered to MCWorldRenderer. As for rendering, point particles are special cases, because
  *  they need to be as efficient as possible. This is why a dedicated renderer is needed. */
-class MCGLPointParticleRenderer : protected QOpenGLFunctions
+class MCGLPointParticleRenderer : public MCGLObjectBase
 {
 public:
 
@@ -47,12 +45,6 @@ public:
 
     //! Destructor.
     virtual ~MCGLPointParticleRenderer();
-
-    //! Set the shader program to be used.
-    virtual void setShaderProgram(MCGLShaderProgram * program);
-
-    //! Set texture to be used.
-    virtual void setTexture(GLuint handle);
 
     //! Set default size of the points.
     virtual void setPointSize(int pointSize);
@@ -75,19 +67,16 @@ private:
     //! Render the current particle batch.
     virtual void render();
 
-    GLuint                   m_vbo;
-    QOpenGLVertexArrayObject m_vao;
-    GLuint                   m_texture;
-    MCGLShaderProgram      * m_program;
-    int                      m_batchSize;
-    int                      m_maxBatchSize;
-    MCGLVertex             * m_vertices;
-    MCGLVertex             * m_normals;
-    MCGLColor              * m_colors;
-    int                      m_pointSize;
-    bool                     m_useAlphaBlend;
-    GLenum                   m_src;
-    GLenum                   m_dst;
+    GLuint       m_vbo;
+    int          m_batchSize;
+    int          m_maxBatchSize;
+    MCGLVertex * m_vertices;
+    MCGLVertex * m_normals;
+    MCGLColor  * m_colors;
+    int          m_pointSize;
+    bool         m_useAlphaBlend;
+    GLenum       m_src;
+    GLenum       m_dst;
 
     friend class MCWorldRenderer;
 };

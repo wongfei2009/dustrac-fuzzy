@@ -22,7 +22,6 @@
 
 #include "mcparticle.hh"
 #include "mcglcolor.hh"
-#include "mcrenderobjectbase.hh"
 
 #include <QOpenGLFunctions>
 #include <QOpenGLVertexArrayObject>

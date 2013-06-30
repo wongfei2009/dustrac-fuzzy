@@ -86,8 +86,7 @@ src/game/trackobject.hpp \
 src/game/trackselectionmenu.hpp \
 src/game/tracktile.hpp \
 src/game/treeview.hpp \
-src/game/updateableif.hpp \
-    src/game/MiniCore/Graphics/mcrenderobjectbase.hh
+src/game/updateableif.hpp
 
 SOURCES += src/common/config.cpp \
 src/common/mapbase.cpp \
@@ -162,6 +161,7 @@ src/game/MiniCore/Core/mcworld.cc \
 src/game/MiniCore/Graphics/mccamera.cc \
 src/game/MiniCore/Graphics/mcglambientlight.cc \
 src/game/MiniCore/Graphics/mcgldiffuselight.cc \
+src/game/MiniCore/Graphics/mcglobjectbase.cc \
 src/game/MiniCore/Graphics/mcglpointparticlerenderer.cc \
 src/game/MiniCore/Graphics/mcglscene.cc \
 src/game/MiniCore/Graphics/mcglshaderprogram.cc \
@@ -203,7 +203,6 @@ src/game/MiniCore/Text/mctexturefontmanager.cc \
 src/game/MiniCore/Text/mctextureglyph.cc \
 src/game/MiniCore/Text/mctexturetext.cc \
 src/game/MiniCore/Graphics/glew/glew.c \
-    src/game/MiniCore/Graphics/mcrenderobjectbase.cc
 
 RESOURCES += data/icons/icons.qrc
 

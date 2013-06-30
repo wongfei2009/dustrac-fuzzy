@@ -24,6 +24,7 @@
 #include "mcmacros.hh"
 #include "mcbbox.hh"
 #include "mcglcolor.hh"
+#include "mcglobjectbase.hh"
 #include "mcvector2d.hh"
 #include "mcvector3d.hh"
 
@@ -42,7 +43,7 @@ class MCGLTexCoord;
 class MCGLVertex;
 
 /** Renderable 3d mesh object. */
-class MCMesh : protected QOpenGLFunctions
+class MCMesh : public MCGLObjectBase
 {
 public:
 
@@ -105,21 +106,6 @@ public:
      */
     void bindShadow(bool enable);
 
-    //! Bind the current texture.
-    void bindTexture(bool bindOnlyFirstTexture = false);
-
-    //! Set the shader program to be used.
-    void setShaderProgram(MCGLShaderProgram * program);
-
-    //! Set the shader program to be used for 2d shadows.
-    void setShadowShaderProgram(MCGLShaderProgram * program);
-
-    //! Get the shader program to be used.
-    MCGLShaderProgram * shaderProgram() const;
-
-    //! Get the shader program to be used for 2d shadows.
-    MCGLShaderProgram * shadowShaderProgram() const;
-
     //! Get width
     MCFloat width() const;
 
@@ -139,16 +125,11 @@ private:
     void doRender(bool autoBind);
     void doRenderShadow(bool autoBind);
 
-    int                      m_numVertices;
-    GLuint                   m_handle1;
-    GLuint                   m_handle2;
-    MCFloat                  m_w, m_h;
-    GLuint                   m_vbo;
-    QOpenGLVertexArrayObject m_vao;
-    MCGLColor                m_color;
-    MCFloat                  m_sx, m_sy, m_sz;
-    MCGLShaderProgram      * m_program;
-    MCGLShaderProgram      * m_shadowProgram;
+    int       m_numVertices;
+    MCFloat   m_w, m_h;
+    GLuint    m_vbo;
+    MCGLColor m_color;
+    MCFloat   m_sx, m_sy, m_sz;
 };
 
 #endif // MCMESH_HH
