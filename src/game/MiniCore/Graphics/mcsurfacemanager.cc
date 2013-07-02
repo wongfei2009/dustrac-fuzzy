@@ -24,7 +24,7 @@
 
 #include <QDir>
 #include <MCGLEW>
-#include <QGLWidget>
+//#include <QGLWidget>
 #include <cassert>
 #include <cmath>
 
@@ -108,7 +108,7 @@ GLuint MCSurfaceManager::create2DTextureFromImage(
     }
 
     // Convert to GL_RGBA
-    textureImage = QGLWidget::convertToGLFormat(textureImage);
+//    textureImage = QGLWidget::convertToGLFormat(textureImage);
 
     // Let OpenGL generate a texture handle
     GLuint textureHandle;

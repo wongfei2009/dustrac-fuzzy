@@ -50,14 +50,13 @@ void MCGLScene::initialize()
 
     initializeOpenGLFunctions();
 
-    glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glDepthFunc(GL_LEQUAL);
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
     glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClearDepth(1.0);
+    glClearDepthf(1.0);
 }
 
 void MCGLScene::resize(

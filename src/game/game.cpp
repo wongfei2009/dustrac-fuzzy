@@ -118,15 +118,15 @@ void Game::createRenderer()
         << "Resolution: " << hRes << " " << vRes << " " << nativeResolution << " " << fullScreen;
 
     QSurfaceFormat format;
-
-    // Availability of 3.0 is currently tested in main.cpp.
-    format.setMajorVersion(3);
-    format.setMinorVersion(0);
-    format.setProfile(QSurfaceFormat::CoreProfile);
     format.setSamples(1);
 
     MCLogger().info() << "Creating the renderer..";
     m_renderer = new Renderer(format, hRes, vRes, nativeResolution, fullScreen);
+
+    // Note that this must be called before loading textures in order
+    // to load textures to correct OpenGL context.
+    m_renderer->initialize();
+    m_renderer->setEventHandler(*m_eventHandler);
 
     if (fullScreen)
     {
@@ -136,11 +136,6 @@ void Game::createRenderer()
     {
         m_renderer->show();
     }
-
-    // Note that this must be called before loading textures in order
-    // to load textures to correct OpenGL context.
-    m_renderer->initialize();
-    m_renderer->setEventHandler(*m_eventHandler);
 
     connect(m_stateMachine, SIGNAL(renderingEnabled(bool)), m_renderer, SLOT(setEnabled(bool)));
 }

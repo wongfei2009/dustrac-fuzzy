@@ -18,7 +18,13 @@
 #include "eventhandler.hpp"
 #include "scene.hpp"
 #include "shaderprogram.hpp"
+
+#ifdef __ANDROID__
+#include "shadersGLES.h"
+#else
 #include "shaders.h"
+#endif
+
 #include "../common/config.hpp"
 
 #include <MCGLScene>
@@ -65,6 +71,7 @@ Renderer::Renderer(
 {
     setSurfaceType(QWindow::OpenGLSurface);
     setFormat(format);
+    create();
 
     assert(!Renderer::m_instance);
     Renderer::m_instance = this;

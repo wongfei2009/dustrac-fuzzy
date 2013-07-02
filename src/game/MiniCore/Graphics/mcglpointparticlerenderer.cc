@@ -142,7 +142,7 @@ void MCGLPointParticleRenderer::render()
     shaderProgram()->bind();
 
     // Note: This is not needed from OpenGL 3.3 onwards
-    glEnable(GL_POINT_SPRITE);
+    //glEnable(GL_POINT_SPRITE);
 
     if (m_useAlphaBlend)
     {
@@ -155,7 +155,7 @@ void MCGLPointParticleRenderer::render()
         bindTextures(true);
     }
 
-    glPointSize(m_pointSize);
+//    glPointSize(m_pointSize);
     glDrawArrays(GL_POINTS, 0, m_batchSize);
 
     if (m_useAlphaBlend)
@@ -163,7 +163,7 @@ void MCGLPointParticleRenderer::render()
         glDisable(GL_BLEND);
     }
 
-    glDisable(GL_POINT_SPRITE);
+    //glDisable(GL_POINT_SPRITE);
 
     releaseVAO();
 }

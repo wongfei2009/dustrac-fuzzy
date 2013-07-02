@@ -14,10 +14,10 @@
 // along with Dust Racing 2D. If not, see <http://www.gnu.org/licenses/>.
 
 #include <QGuiApplication>
-#include <QGLFormat>
+//#include <QGLFormat>
 #include <QDir>
-#include <QHBoxLayout>
-#include <QMessageBox>
+//#include <QHBoxLayout>
+//#include <QMessageBox>
 
 #include "game.hpp"
 
@@ -41,11 +41,11 @@ static void initLogger()
 
 static void checkOpenGLVersion()
 {
-    if (QGLFormat::openGLVersionFlags() < QGLFormat::OpenGL_Version_3_0)
+    //if (QGLFormat::openGLVersionFlags() < QGLFormat::OpenGL_Version_3_0)
     {
         QString versionError = QObject::tr("At least OpenGL 3.0 is required!");
-        QMessageBox::critical(nullptr, QObject::tr("Cannot start Dust Racing 2D"), versionError);
-        throw MCException(versionError.toStdString());
+        //QMessageBox::critical(nullptr, QObject::tr("Cannot start Dust Racing 2D"), versionError);
+        //throw MCException(versionError.toStdString());
     }
 }
 
