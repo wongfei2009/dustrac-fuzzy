@@ -86,22 +86,22 @@ MCGLShaderProgram * MCGLObjectBase::shadowShaderProgram() const
 
 void MCGLObjectBase::bindVAO()
 {
-    m_vao.bind();
+//    m_vao.bind();
 }
 
 void MCGLObjectBase::releaseVAO()
 {
-    m_vao.release();
+//    m_vao.release();
 }
 
 void MCGLObjectBase::createVAO()
 {
-    m_vao.create();
-    if (!m_vao.isCreated())
-    {
-        MCException VAOFailed("Cannot create a VAO!");
-        throw VAOFailed;
-    }
+//    m_vao.create();
+//    if (!m_vao.isCreated())
+//    {
+//        MCException VAOFailed("Cannot create a VAO!");
+//        throw VAOFailed;
+//    }
 }
 
 void MCGLObjectBase::bindTextures(bool bindOnlyFirstTexture)

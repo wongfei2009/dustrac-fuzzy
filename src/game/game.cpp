@@ -112,15 +112,14 @@ void Game::createRenderer()
         vRes = QGuiApplication::primaryScreen()->geometry().height();
     }
 
+    fullScreen = true;
     adjustSceneSize(hRes, vRes, fullScreen);
 
     MCLogger().info()
         << "Resolution: " << hRes << " " << vRes << " " << nativeResolution << " " << fullScreen;
 
-    QSurfaceFormat format;
-    format.setSamples(1);
-
     MCLogger().info() << "Creating the renderer..";
+    QSurfaceFormat format;
     m_renderer = new Renderer(format, hRes, vRes, nativeResolution, fullScreen);
 
     // Note that this must be called before loading textures in order
@@ -128,14 +127,14 @@ void Game::createRenderer()
     m_renderer->initialize();
     m_renderer->setEventHandler(*m_eventHandler);
 
-    if (fullScreen)
-    {
+//    if (fullScreen)
+//    {
+//        m_renderer->showFullScreen();
+//    }
+//    else
+//    {
         m_renderer->showFullScreen();
-    }
-    else
-    {
-        m_renderer->show();
-    }
+//    }
 
     connect(m_stateMachine, SIGNAL(renderingEnabled(bool)), m_renderer, SLOT(setEnabled(bool)));
 }

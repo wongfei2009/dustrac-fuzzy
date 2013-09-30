@@ -210,6 +210,11 @@ void MCSurface::initVBOs(
     // Vertex color data
     glBufferSubData(GL_ARRAY_BUFFER, offset, COLOR_DATA_SIZE, colors);
 
+    glEnableVertexAttribArray(MCGLShaderProgram::VAL_Vertex);
+    glEnableVertexAttribArray(MCGLShaderProgram::VAL_Normal);
+    glEnableVertexAttribArray(MCGLShaderProgram::VAL_TexCoords);
+    glEnableVertexAttribArray(MCGLShaderProgram::VAL_Color);
+
     glVertexAttribPointer(MCGLShaderProgram::VAL_Vertex,    3, GL_FLOAT, GL_FALSE, 0, 0);
     glVertexAttribPointer(MCGLShaderProgram::VAL_Normal,    3, GL_FLOAT, GL_FALSE, 0,
         reinterpret_cast<GLvoid *>(VERTEX_DATA_SIZE));
@@ -217,11 +222,6 @@ void MCSurface::initVBOs(
         reinterpret_cast<GLvoid *>(VERTEX_DATA_SIZE + NORMAL_DATA_SIZE));
     glVertexAttribPointer(MCGLShaderProgram::VAL_Color,     4, GL_FLOAT, GL_FALSE, 0,
         reinterpret_cast<GLvoid *>(VERTEX_DATA_SIZE + NORMAL_DATA_SIZE + TEXCOORD_DATA_SIZE));
-
-    glEnableVertexAttribArray(MCGLShaderProgram::VAL_Vertex);
-    glEnableVertexAttribArray(MCGLShaderProgram::VAL_Normal);
-    glEnableVertexAttribArray(MCGLShaderProgram::VAL_TexCoords);
-    glEnableVertexAttribArray(MCGLShaderProgram::VAL_Color);
 
     releaseVAO();
 }
@@ -400,12 +400,42 @@ void MCSurface::renderShadow(MCCamera * camera, MCVector2dFR pos, MCFloat angle,
 
 void MCSurface::bind()
 {
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+
+    glEnableVertexAttribArray(MCGLShaderProgram::VAL_Vertex);
+    glEnableVertexAttribArray(MCGLShaderProgram::VAL_Normal);
+    glEnableVertexAttribArray(MCGLShaderProgram::VAL_TexCoords);
+    glEnableVertexAttribArray(MCGLShaderProgram::VAL_Color);
+
+    glVertexAttribPointer(MCGLShaderProgram::VAL_Vertex,    3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(MCGLShaderProgram::VAL_Normal,    3, GL_FLOAT, GL_FALSE, 0,
+        reinterpret_cast<GLvoid *>(VERTEX_DATA_SIZE));
+    glVertexAttribPointer(MCGLShaderProgram::VAL_TexCoords, 2, GL_FLOAT, GL_FALSE, 0,
+        reinterpret_cast<GLvoid *>(VERTEX_DATA_SIZE + NORMAL_DATA_SIZE));
+    glVertexAttribPointer(MCGLShaderProgram::VAL_Color,     4, GL_FLOAT, GL_FALSE, 0,
+        reinterpret_cast<GLvoid *>(VERTEX_DATA_SIZE + NORMAL_DATA_SIZE + TEXCOORD_DATA_SIZE));
+
     bindVAO();
     bindTextures();
 }
 
 void MCSurface::bindShadow()
 {
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+
+    glEnableVertexAttribArray(MCGLShaderProgram::VAL_Vertex);
+    glEnableVertexAttribArray(MCGLShaderProgram::VAL_Normal);
+    glEnableVertexAttribArray(MCGLShaderProgram::VAL_TexCoords);
+    glEnableVertexAttribArray(MCGLShaderProgram::VAL_Color);
+
+    glVertexAttribPointer(MCGLShaderProgram::VAL_Vertex,    3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(MCGLShaderProgram::VAL_Normal,    3, GL_FLOAT, GL_FALSE, 0,
+        reinterpret_cast<GLvoid *>(VERTEX_DATA_SIZE));
+    glVertexAttribPointer(MCGLShaderProgram::VAL_TexCoords, 2, GL_FLOAT, GL_FALSE, 0,
+        reinterpret_cast<GLvoid *>(VERTEX_DATA_SIZE + NORMAL_DATA_SIZE));
+    glVertexAttribPointer(MCGLShaderProgram::VAL_Color,     4, GL_FLOAT, GL_FALSE, 0,
+        reinterpret_cast<GLvoid *>(VERTEX_DATA_SIZE + NORMAL_DATA_SIZE + TEXCOORD_DATA_SIZE));
+
     bindVAO();
     bindTextures(true);
 }

@@ -19,7 +19,7 @@
 
 #include "mclogger.hh"
 #include <ctime>
-#include <cstdio>
+#include <QDebug>
 
 bool   MCLogger::m_echoMode = false;
 bool   MCLogger::m_dateTime = true;
@@ -45,7 +45,7 @@ bool MCLogger::init(const char * fileName, bool append)
 
         if (!m_file)
         {
-            fprintf(stderr, "ERROR!!: Couldn't open '%s' for write.\n", fileName);
+            qDebug() << "ERROR!!: Couldn't open '" << fileName << "' for write.";
             return false;
         }
     }
@@ -114,8 +114,6 @@ MCLogger::~MCLogger()
 
     if (MCLogger::m_echoMode)
     {
-        fprintf(stdout, "%s", m_oss.str().c_str());
-        fprintf(stdout, "\n");
-        fflush(stdout);
+        qDebug() << m_oss.str().c_str();
     }
 }

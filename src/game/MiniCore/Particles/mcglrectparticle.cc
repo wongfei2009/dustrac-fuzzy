@@ -82,14 +82,14 @@ MCGLRectParticle::MCGLRectParticle(const std::string & typeID)
         // glGenVertexArrays(1, &m_vao);
         // glBindVertexArray(m_vao);
 
-        m_vao.create();
-        if (!m_vao.isCreated())
-        {
-            MCException VAOFailed("Cannot create a VAO!");
-            throw VAOFailed;
-        }
+//        m_vao.create();
+//        if (!m_vao.isCreated())
+//        {
+//            MCException VAOFailed("Cannot create a VAO!");
+//            throw VAOFailed;
+//        }
 
-        m_vao.bind();
+//        m_vao.bind();
 
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
         glBufferData(GL_ARRAY_BUFFER, TOTAL_DATA_SIZE, nullptr, GL_STATIC_DRAW);
@@ -115,7 +115,7 @@ MCGLRectParticle::MCGLRectParticle(const std::string & typeID)
         glEnableVertexAttribArray(MCGLShaderProgram::VAL_Normal);
         glEnableVertexAttribArray(MCGLShaderProgram::VAL_Color);
 
-        m_vao.release();
+        //m_vao.release();
     }
 }
 

@@ -85,18 +85,18 @@ Renderer & Renderer::instance()
 
 void Renderer::initialize()
 {
-    if (!m_fullScreen)
-    {
-        // Set window size & disable resize
-        resize(m_hRes, m_vRes);
-        setMinimumSize(QSize(m_hRes, m_vRes));
-        setMaximumSize(QSize(m_hRes, m_vRes));
+//    if (!m_fullScreen)
+//    {
+//        // Set window size & disable resize
+//        resize(m_hRes, m_vRes);
+//        setMinimumSize(QSize(m_hRes, m_vRes));
+//        setMaximumSize(QSize(m_hRes, m_vRes));
 
-        // Try to center the window
-        const int fullVRes = QGuiApplication::primaryScreen()->geometry().height();
-        const int fullHRes = QGuiApplication::primaryScreen()->geometry().width();
-        setPosition(fullHRes / 2 - m_hRes / 2, fullVRes / 2 - m_vRes / 2);
-    }
+//        // Try to center the window
+//        const int fullVRes = QGuiApplication::primaryScreen()->geometry().height();
+//        const int fullHRes = QGuiApplication::primaryScreen()->geometry().width();
+//        setPosition(fullHRes / 2 - m_hRes / 2, fullVRes / 2 - m_vRes / 2);
+//    }
 
     m_context = new QOpenGLContext(this);
     m_context->setFormat(requestedFormat());
@@ -198,8 +198,9 @@ float Renderer::fadeValue() const
 
 void Renderer::renderNativeResolutionOrWindowed()
 {
-    if (m_enabled)
+//    if (m_enabled)
     {
+        glClearColor(1,1,1,1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (m_scene)
@@ -212,7 +213,7 @@ void Renderer::renderNativeResolutionOrWindowed()
 void Renderer::renderCustomResolution()
 {
     // Render the game scene to the frame buffer object
-    if (m_enabled)
+//    if (m_enabled)
     {
         resizeGL(m_hRes, m_vRes);
 
@@ -245,7 +246,7 @@ void Renderer::renderCustomResolution()
 
 void Renderer::render()
 {
-    if (m_enabled)
+//    if (m_enabled)
     {
         if (!m_fullScreen || m_nativeResolution)
         {
