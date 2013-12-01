@@ -106,6 +106,14 @@ void Renderer::initialize()
     m_context->create();
     m_context->makeCurrent(this);
 
+    if (!m_context->isValid())
+    {
+        std::stringstream ss;
+        ss << "Cannot create context for OpenGL version " <<
+              requestedFormat().majorVersion() << "." << requestedFormat().minorVersion();
+        throw MCException(ss.str());
+    }
+
     // This has to be called after we have a current context!
     initializeOpenGLFunctions();
 
@@ -220,10 +228,10 @@ void Renderer::renderCustomResolution()
 
     fbo.release();
 
-        // Render the frame buffer object onto the screen
+    // Render the frame buffer object onto the screen
 
-        const int fullVRes = QGuiApplication::primaryScreen()->geometry().height();
-        const int fullHRes = QGuiApplication::primaryScreen()->geometry().width();
+    const int fullVRes = QGuiApplication::primaryScreen()->geometry().height();
+    const int fullHRes = QGuiApplication::primaryScreen()->geometry().width();
 
     resizeGL(fullHRes, fullVRes);
 

@@ -14,10 +14,8 @@
 // along with Dust Racing 2D. If not, see <http://www.gnu.org/licenses/>.
 
 #include <QGuiApplication>
-#include <QGLFormat>
 #include <QDir>
 #include <QLocale>
-#include <QMessageBox>
 #include <QTranslator>
 
 #include "game.hpp"
@@ -38,32 +36,6 @@ static void initLogger()
     MCLogger::setEchoMode(true);
     MCLogger::setDateTime(true);
     MCLogger().info() << "Dust Racing 2D version " << VERSION;
-}
-
-static void checkOpenGLVersion()
-{
-#ifdef __MC_GLES__
-    if (QGLFormat::openGLVersionFlags() < QGLFormat::OpenGL_ES_Version_2_0)
-    {
-        QString versionError = QObject::tr("At least OpenGL ES 2.0 is required!");
-        QMessageBox::critical(nullptr, QObject::tr("Cannot start Dust Racing 2D"), versionError);
-        throw MCException(versionError.toStdString());
-    }
-#elif defined (__MC_GL30__)
-    if (QGLFormat::openGLVersionFlags() < QGLFormat::OpenGL_Version_3_0)
-    {
-        QString versionError = QObject::tr("At least OpenGL 3.0 is required!");
-        QMessageBox::critical(nullptr, QObject::tr("Cannot start Dust Racing 2D"), versionError);
-        throw MCException(versionError.toStdString());
-    }
-#else
-    if (QGLFormat::openGLVersionFlags() < QGLFormat::OpenGL_Version_2_1)
-    {
-        QString versionError = QObject::tr("At least OpenGL 2.1 is required!");
-        QMessageBox::critical(nullptr, QObject::tr("Cannot start Dust Racing 2D"), versionError);
-        throw MCException(versionError.toStdString());
-    }
-#endif
 }
 
 static void printHelp()
@@ -103,7 +75,6 @@ int main(int argc, char ** argv)
 
         initLogger();
         initTranslations(appTranslator, app);
-        checkOpenGLVersion();
 
         // Create the game object and set the renderer
         MCLogger().info() << "Creating game object..";

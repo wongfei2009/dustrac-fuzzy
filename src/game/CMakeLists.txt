@@ -166,7 +166,9 @@ set(COMMON_LIBS
     ${VORBISFILE_LIBRARIES})
 
 if(UseQt5)
-    qt5_use_modules(${GAME_BINARY_NAME} OpenGL Widgets Xml)
+    # Note that in Qt5 the OpenGL stuff is now in QtGui module,
+    # which is enabled by default. QtOpenGL is deprecated.
+    qt5_use_modules(${GAME_BINARY_NAME} Xml)
     target_link_libraries(${COMMON_LIBS})
 else()
     target_link_libraries(${COMMON_LIBS} ${QT_LIBRARIES})
