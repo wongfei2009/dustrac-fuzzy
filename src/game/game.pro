@@ -4,7 +4,7 @@ TEMPLATE = app
 TARGET   = dustrac-game
 
 DEFINES += DATA_PATH=\\\"./data\\\" VERSION=\\\"1.5.4\\\"
-QMAKE_CXXFLAGS += -std=gnu++11
+QMAKE_CXXFLAGS += -O3 -std=gnu++11 -fomit-frame-pointer -finline-functions -ffast-math
 
 # Note that in Qt5 the OpenGL stuff is now in QtGui module,
 # which is enabled by default. QtOpenGL is deprecated.
