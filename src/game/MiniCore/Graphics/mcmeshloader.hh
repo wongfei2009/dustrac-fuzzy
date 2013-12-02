@@ -64,6 +64,8 @@ private:
 public:
 #endif
 
+    bool QTextStreamMXECrashWorkaround(std::string path);
+
     bool readStream(QTextStream & stream);
 
     void processLine(QString line);

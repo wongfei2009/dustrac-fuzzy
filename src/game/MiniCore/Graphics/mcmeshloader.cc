@@ -24,6 +24,8 @@
 #include <QStringList>
 #include <cassert>
 
+#include <fstream>
+
 MCMeshLoader::MCMeshLoader()
 {
     m_keyToFunctionMap["v"]  = std::bind(&MCMeshLoader::parseV,  this, std::placeholders::_1);
@@ -40,8 +42,12 @@ bool MCMeshLoader::load(QString filePath)
         return false;
     }
 
-    QTextStream in(&file);
-    return readStream(in);
+    // For some reason QTextStream::readLine() crashed when building
+    // Windows binaries with MXE using Qt 5.2.0-rc1
+    return QTextStreamMXECrashWorkaround(filePath.toStdString());
+
+//    QTextStream in(&file);
+//    return readStream(in);
 }
 
 bool MCMeshLoader::readStream(QTextStream & stream)
@@ -57,6 +63,24 @@ bool MCMeshLoader::readStream(QTextStream & stream)
     {
         processLine(line);
         line = stream.readLine();
+    }
+
+    return true;
+}
+
+bool MCMeshLoader::QTextStreamMXECrashWorkaround(std::string path)
+{
+    m_v.clear();
+    m_vn.clear();
+    m_vt.clear();
+
+    m_faces.clear();
+
+    std::ifstream in(path);
+    std::string line;
+    while (std::getline(in, line))
+    {
+        processLine(QString(line.c_str()));
     }
 
     return true;
@@ -101,6 +125,7 @@ void MCMeshLoader::parseF(QString line)
 {
     MCMesh::Face face;
     QStringList vertices = line.split(QRegExp("\\s+"));
+
     vertices.removeFirst();
     for (QString vertex : vertices)
     {
