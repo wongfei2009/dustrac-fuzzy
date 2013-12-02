@@ -68,7 +68,6 @@
 #include <MCWorld>
 
 #include <QObject>
-#include <QApplication>
 
 #include <algorithm>
 #include <cassert>
