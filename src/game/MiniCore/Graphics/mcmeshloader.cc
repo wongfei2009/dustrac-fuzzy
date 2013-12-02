@@ -88,7 +88,7 @@ bool MCMeshLoader::QTextStreamMXECrashWorkaround(std::string path)
 
 void MCMeshLoader::processLine(QString line)
 {
-    line.remove(QRegExp("^\\s+"));
+    line = line.simplified();
     if (!line.startsWith('#'))
     {
         const QString key = line.split(QRegExp("\\s+")).at(0);
