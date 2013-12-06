@@ -10,7 +10,7 @@ QMAKE_CXXFLAGS += -O3 -std=gnu++11 -fomit-frame-pointer -finline-functions -ffas
 # which is enabled by default. QtOpenGL is deprecated.
 QT += xml
 DEFINES += USE_QT5
-DEFINES += __MC_NO_GLEW__
+DEFINES += __MC_NO_GLEW__ __MC_GL30__
 DEFINES += GLEW_STATIC GLEW_NO_GLU
 
 # Sound libraries
