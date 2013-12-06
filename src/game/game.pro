@@ -318,6 +318,7 @@ SOURCES += \
     STFH/source.cpp \
 
 RESOURCES += ../../data/icons/icons.qrc ../../data/images/editor.qrc
+RC_FILE = ../../data/icons/WindowsGame.rc
 TRANSLATIONS += \
     translations/dustrac-game_fi.ts \
     translations/dustrac-game_it.ts \
