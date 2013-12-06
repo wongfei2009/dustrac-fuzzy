@@ -17,6 +17,8 @@ DEFINES += GLEW_STATIC GLEW_NO_GLU
 CONFIG += link_pkgconfig
 PKGCONFIG += openal vorbisfile
 
+CONFIG += console
+
 INCLUDEPATH += . \
     MiniCore/Core \
     MiniCore/Physics \
