@@ -6,7 +6,7 @@ These are build & install instructions for Dust Racing 2D.
 Build systems
 =============
 
-The "official" build system for Linux is CMake.
+The "official" build system is CMake.
 
 There are also qmake project files for easier cross-compilation for Windows and Android.
 Qmake project files requires Qt5 at the moment, but CMake can build for Qt4 and Qt5.
