@@ -36,6 +36,7 @@
 #include <MCObjectFactory>
 
 #include <QGuiApplication>
+#include <QFontDatabase>
 #include <QScreen>
 #include <QDir>
 #include <QTime>
@@ -89,7 +90,7 @@ Game::Game()
     connect(&m_updateTimer, SIGNAL(timeout()), this, SLOT(updateFrame()));
     m_updateTimer.setInterval(m_updateDelay);
 
-    connect(&m_renderTimer, SIGNAL(timeout()), m_renderer, SLOT(updateGL()));
+    connect(&m_renderTimer, SIGNAL(timeout()), m_renderer, SLOT(render()));
     m_renderTimer.setInterval(m_renderDelay);
 
     connect(m_stateMachine, SIGNAL(exitGameRequested()), this, SLOT(exitGame()));

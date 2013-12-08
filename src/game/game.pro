@@ -3,14 +3,14 @@
 TEMPLATE = app
 TARGET   = dustrac-game
 
-DEFINES += DATA_PATH=\\\"./data\\\" VERSION=\\\"1.5.4\\\"
+DEFINES += DATA_PATH=\\\"./data\\\" VERSION=\\\"1.5.5\\\"
 QMAKE_CXXFLAGS += -O3 -std=gnu++11 -fomit-frame-pointer -finline-functions -ffast-math
 
 # Note that in Qt5 the OpenGL stuff is now in QtGui module,
 # which is enabled by default. QtOpenGL is deprecated.
 QT += xml
 DEFINES += USE_QT5
-DEFINES += __MC_NO_GLEW__ __MC_GL30__
+DEFINES += __MC_NO_GLEW__
 DEFINES += GLEW_STATIC GLEW_NO_GLU
 
 # Sound libraries

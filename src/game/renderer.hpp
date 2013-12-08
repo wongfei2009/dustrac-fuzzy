@@ -93,6 +93,8 @@ signals:
 
 public slots:
 
+    void render();
+
     void setEnabled(bool enable);
 
     void setFadeValue(float value);

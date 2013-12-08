@@ -256,6 +256,8 @@ void Renderer::render()
 
         m_context->swapBuffers(this);
     }
+}
+
 void Renderer::keyPressEvent(QKeyEvent * event)
 {
     assert(m_eventHandler);
