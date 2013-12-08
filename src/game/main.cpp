@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Dust Racing 2D. If not, see <http://www.gnu.org/licenses/>.
 
-#include <QApplication>
+#include <QGuiApplication>
 #include <QGLFormat>
 #include <QDir>
 #include <QLocale>
@@ -75,7 +75,7 @@ static void printHelp()
     std::cout << std::endl;
 }
 
-static void initTranslations(QTranslator & appTranslator, QApplication & app)
+static void initTranslations(QTranslator & appTranslator, QGuiApplication & app)
 {
     if (appTranslator.load(QString(DATA_PATH) + "/translations/dustrac-game_" + QLocale::system().name()))
     {
@@ -91,7 +91,7 @@ int main(int argc, char ** argv)
 {
     try
     {
-        QApplication app(argc, argv);
+        QGuiApplication app(argc, argv);
         QTranslator appTranslator;
         std::vector<std::string> args(argv, argv + argc);
 

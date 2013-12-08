@@ -20,11 +20,12 @@
 #include "mcglpointparticlerenderer.hh"
 
 #include "mccamera.hh"
+#include "mcexception.hh"
 #include "mcglpointparticle.hh"
 #include "mcglshaderprogram.hh"
 #include "mcglcolor.hh"
-#include "mctrigonom.hh"
 #include "mcglvertex.hh"
+#include "mctrigonom.hh"
 
 #include <algorithm>
 #include <cassert>
@@ -40,6 +41,8 @@ MCGLPointParticleRenderer::MCGLPointParticleRenderer(int maxBatchSize)
 , m_pointSize(8)
 , m_useAlphaBlend(false)
 {
+    initializeOpenGLFunctions();
+
     const int NUM_VERTICES     = maxBatchSize;
     const int VERTEX_DATA_SIZE = sizeof(MCGLVertex) * NUM_VERTICES;
     const int NORMAL_DATA_SIZE = sizeof(MCGLVertex) * NUM_VERTICES;
@@ -63,6 +66,8 @@ MCGLPointParticleRenderer::MCGLPointParticleRenderer(int maxBatchSize)
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_Vertex);
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_Normal);
     glEnableVertexAttribArray(MCGLShaderProgram::VAL_Color);
+
+    releaseVAO();
 }
 
 void MCGLPointParticleRenderer::setPointSize(int pointSize)

@@ -20,8 +20,6 @@
 #ifndef MCMESH_HH
 #define MCMESH_HH
 
-#include <MCGLEW>
-
 #include "mctypes.hh"
 #include "mcmacros.hh"
 #include "mcbbox.hh"
@@ -66,7 +64,7 @@ public:
     explicit MCMesh(const FaceVector & faces, GLuint handle1 = 0, GLuint handle2 = 0);
 
     //! Destructor.
-    virtual ~MCMesh() {};
+    virtual ~MCMesh();
 
     //! Set color.
     void setColor(const MCGLColor & color);

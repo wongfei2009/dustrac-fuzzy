@@ -24,13 +24,16 @@
 #include "mcglcolor.hh"
 #include "mcglobjectbase.hh"
 
+#include <QOpenGLFunctions>
+#include <QOpenGLVertexArrayObject>
+
 class MCCamera;
 class MCGLShaderProgram;
 
 /*! \class MCGLRectParticle
  *  \brief A particle that renders as a simple OpenGL rectangle. Final class.
  */
-class MCGLRectParticle : public MCParticle
+class MCGLRectParticle : public MCParticle, protected QOpenGLFunctions
 {
 public:
 

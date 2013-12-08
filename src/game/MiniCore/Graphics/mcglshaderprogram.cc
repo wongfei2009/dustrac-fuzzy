@@ -52,10 +52,16 @@ MCGLShaderProgram * MCGLShaderProgram::m_activeProgram = nullptr;
 MCGLShaderProgram::MCGLShaderProgram(MCGLScene & scene)
 : m_scene(scene)
 , m_isBound(false)
-, m_program(glCreateProgram())
-, m_fragmentShader(glCreateShader(GL_FRAGMENT_SHADER))
-, m_vertexShader(glCreateShader(GL_VERTEX_SHADER))
+, m_program(0)
+, m_fragmentShader(0)
+, m_vertexShader(0)
 {
+    initializeOpenGLFunctions();
+
+    m_program        = glCreateProgram();
+    m_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    m_vertexShader   = glCreateShader(GL_VERTEX_SHADER);
+
     m_scene.addShaderProgram(*this);
 }
 
@@ -107,7 +113,7 @@ void MCGLShaderProgram::link()
     assert(isLinked());
 }
 
-bool MCGLShaderProgram::isLinked() const
+bool MCGLShaderProgram::isLinked()
 {
     GLint status = GL_FALSE;
     glGetProgramiv(m_program, GL_LINK_STATUS, &status);
@@ -116,16 +122,19 @@ bool MCGLShaderProgram::isLinked() const
 
 std::string getShaderLog(GLuint obj)
 {
+    QOpenGLFunctions functions;
+    functions.initializeOpenGLFunctions();
+
     int logLength = 0;
     int charsWritten = 0;
     char *rawLog;
 
-    glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &logLength);
+    functions.glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &logLength);
 
     if (logLength > 0)
     {
         rawLog = (char *)malloc(logLength);
-        glGetShaderInfoLog(obj, logLength, &charsWritten, rawLog);
+        functions.glGetShaderInfoLog(obj, logLength, &charsWritten, rawLog);
         std::string log = rawLog;
         free(rawLog);
         return log;

@@ -20,8 +20,6 @@
 #ifndef MCSURFACE_HH
 #define MCSURFACE_HH
 
-#include <MCGLEW>
-
 #include "mctypes.hh"
 #include "mcmacros.hh"
 #include "mcbbox.hh"

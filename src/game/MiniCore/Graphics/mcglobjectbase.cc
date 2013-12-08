@@ -23,15 +23,23 @@
 
 #include <cassert>
 
-MCGLObjectBase::MCGLObjectBase()
+MCGLObjectBase::MCGLObjectBase(bool isStatic)
 : m_texture1(0)
 , m_texture2(0)
 , m_texture3(0)
-, m_vao(0)
 , m_vbo(0)
 , m_program(nullptr)
 , m_shadowProgram(nullptr)
 {
+    if (!isStatic)
+    {
+        initialize();
+    }
+}
+
+void MCGLObjectBase::initialize()
+{
+    initializeOpenGLFunctions();
 }
 
 void MCGLObjectBase::setTexture1(GLuint handle)
@@ -86,19 +94,21 @@ MCGLShaderProgram * MCGLObjectBase::shadowShaderProgram() const
 
 void MCGLObjectBase::bindVAO()
 {
-    glBindVertexArray(m_vao);
+    m_vao.bind();
 }
 
 void MCGLObjectBase::releaseVAO()
 {
-    glBindVertexArray(0);
+    m_vao.release();
 }
 
 void MCGLObjectBase::createVAO()
 {
-    if (m_vao == 0)
+    m_vao.create();
+    if (!m_vao.isCreated())
     {
-        glGenVertexArrays(1, &m_vao);
+        MCException VAOFailed("Cannot create a VAO!");
+        throw VAOFailed;
     }
 }
 
@@ -170,15 +180,5 @@ void MCGLObjectBase::bindShadow()
 
 MCGLObjectBase::~MCGLObjectBase()
 {
-    if (m_vbo != 0)
-    {
-        glDeleteBuffers(1, &m_vbo);
-        m_vbo = 0;
-    }
-
-    if (m_vao != 0)
-    {
-        glDeleteVertexArrays(1, &m_vao);
-        m_vao = 0;
-    }
+    releaseVAO();
 }

@@ -20,8 +20,6 @@
 #ifndef MCGLPOINTPARTICLERENDERER_HH
 #define MCGLPOINTPARTICLERENDERER_HH
 
-#include <MCGLEW>
-
 #include "mcmacros.hh"
 #include "mcglvertex.hh"
 #include "mcglcolor.hh"

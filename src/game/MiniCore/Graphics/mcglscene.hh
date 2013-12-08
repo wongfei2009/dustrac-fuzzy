@@ -23,12 +23,13 @@
 #include <MCGLM>
 #include "mctypes.hh"
 #include <vector>
+#include <QOpenGLFunctions>
 
 class MCGLShaderProgram;
 
 /*! Basic initializations of an OpenGL scene suitable for
  *  2D/2.5D games. Internally MCGLScene uses glm and glew libraries. */
-class MCGLScene
+class MCGLScene : protected QOpenGLFunctions
 {
 public:
 

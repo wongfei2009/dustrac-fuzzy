@@ -31,13 +31,15 @@
 
 #include <string>
 
+#include <QOpenGLFunctions>
+
 class MCGLScene;
 
 /*! Base class for GLSL shader programs compatible with MiniCore.
  *  The user needs to inherit from this class and re-implement the
  *  desired features so that they are forwarded to the actual
  *  shaders as uniforms. */
-class MCGLShaderProgram
+class MCGLShaderProgram : protected QOpenGLFunctions
 {
 public:
 
@@ -71,7 +73,7 @@ public:
     virtual void link();
 
     //! \return true if linked.
-    virtual bool isLinked() const;
+    virtual bool isLinked();
 
     /*! Add a vertex shader.
      *  \return true if succeeded. */

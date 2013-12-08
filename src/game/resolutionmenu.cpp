@@ -26,8 +26,8 @@
 
 #include <MCLogger>
 
-#include <QApplication>
-#include <QDesktopWidget>
+#include <QGuiApplication>
+#include <QScreen>
 #include <QObject> // for tr()
 
 #include <sstream>
@@ -135,7 +135,9 @@ ResolutionMenu::ResolutionMenu(
 : SurfaceMenu("settingsBack", id, width, height)
 , m_confirmationMenu(confirmationMenu)
 {
-    const int resolutions = sizeof(RESOLUTIONS) / sizeof(Resolution);
+    const int resolutions   = sizeof(RESOLUTIONS) / sizeof(Resolution);
+    const int desktopWidth  = QGuiApplication::primaryScreen()->geometry().width();
+    const int desktopHeight = QGuiApplication::primaryScreen()->geometry().height();
 
     int availableResolutions = 0;
     for (int i = 0; i < resolutions; i++)
@@ -143,7 +145,7 @@ ResolutionMenu::ResolutionMenu(
         const int hRes = RESOLUTIONS[i].hRes;
         const int vRes = RESOLUTIONS[i].vRes;
 
-        if (hRes <= QApplication::desktop()->width() && vRes <= QApplication::desktop()->height())
+        if (hRes <= desktopWidth && vRes <= desktopHeight)
         {
             availableResolutions++;
         }
@@ -156,7 +158,7 @@ ResolutionMenu::ResolutionMenu(
         const int hRes = RESOLUTIONS[i].hRes;
         const int vRes = RESOLUTIONS[i].vRes;
 
-        if (hRes < QApplication::desktop()->width() && vRes < QApplication::desktop()->height())
+        if (hRes < desktopWidth && vRes < desktopHeight)
         {
             std::wstringstream resString;
             resString << hRes << "x" << vRes;

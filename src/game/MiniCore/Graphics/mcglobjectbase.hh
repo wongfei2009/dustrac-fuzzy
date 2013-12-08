@@ -20,26 +20,33 @@
 #ifndef MCGLOBJECTBASE_HH
 #define MCGLOBJECTBASE_HH
 
-#include <MCGLEW>
+#include <QOpenGLFunctions>
+#include <QOpenGLVertexArrayObject>
 
 class MCGLShaderProgram;
 
 /*! Base class for GL objects in MiniCore. Automatically creates VBO, VAO and
  *  basic texturing support. */
-class MCGLObjectBase
+class MCGLObjectBase : protected QOpenGLFunctions
 {
 public:
 
-    //! Constructor.
-    MCGLObjectBase();
+    /*! Constructor.
+     * \param isStatic if set to true, automatic initialization is not done.
+     * If the class is static, we'd very likely end up initializing (Qt's) GL
+     * stuff before context is ready. */
+    MCGLObjectBase(bool isStatic = false);
 
     //! Destructor.
     virtual ~MCGLObjectBase();
 
+    //! Initialize. This is automatically called unless isStatic == true.
+    void initialize();
+
     //! Create the VAO.
     void createVAO();
 
-    //! Bind the VAO. VAO will be created when constructed.
+    //! Bind the VAO.
     void bindVAO();
 
     //! Release the VAO.
@@ -95,13 +102,13 @@ public:
 
 private:
 
-    GLuint              m_texture1;
-    GLuint              m_texture2;
-    GLuint              m_texture3;
-    GLuint              m_vao;
-    GLuint              m_vbo;
-    MCGLShaderProgram * m_program;
-    MCGLShaderProgram * m_shadowProgram;
+    QOpenGLVertexArrayObject m_vao;
+    GLuint                   m_texture1;
+    GLuint                   m_texture2;
+    GLuint                   m_texture3;
+    GLuint              	 m_vbo;
+	MCGLShaderProgram      * m_program;
+    MCGLShaderProgram      * m_shadowProgram;
 };
 
 #endif // MCGLOBJECTBASE_HH

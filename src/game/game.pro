@@ -8,6 +8,7 @@ QMAKE_CXXFLAGS += -std=gnu++11
 
 QT += opengl widgets xml
 DEFINES += USE_QT5
+DEFINES += __MC_NO_GLEW__
 DEFINES += GLEW_STATIC GLEW_NO_GLU
 
 # Sound libraries

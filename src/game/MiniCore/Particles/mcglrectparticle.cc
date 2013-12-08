@@ -24,7 +24,7 @@
 
 #include <cassert>
 
-MCGLObjectBase MCGLRectParticle::m_glObjectBase;
+MCGLObjectBase MCGLRectParticle::m_glObjectBase(true);
 bool MCGLRectParticle::m_inited = false;
 
 static const int NUM_VERTICES     = 6;
@@ -38,8 +38,11 @@ MCGLRectParticle::MCGLRectParticle(const std::string & typeID)
 , m_color(1.0, 1.0, 1.0, 1.0)
 , m_program(nullptr)
 {
+    initializeOpenGLFunctions();
+
     if (!m_inited)
     {
+        m_glObjectBase.initialize();
         m_glObjectBase.createVAO();
         m_glObjectBase.createVBO();
 

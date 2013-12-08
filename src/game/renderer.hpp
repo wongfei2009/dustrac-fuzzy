@@ -20,21 +20,24 @@
 
 #include "eventhandler.hpp"
 
-#include <QGLWidget>
-
 #include <memory>
 #include <string>
 #include <unordered_map>
+
+#include <QWindow>
+#include <QOpenGLFunctions>
 
 class InputHandler;
 class MCGLScene;
 class MCGLShaderProgram;
 class QKeyEvent;
 class QPaintEvent;
+class QOpenGLContext;
+class QOpenGLFormat;
 class Scene;
 
-//! The singleton renderer widget and the main "window".
-class Renderer : public QGLWidget
+//! The singleton renderer window using the new Qt5 graphics stack.
+class Renderer : public QWindow, protected QOpenGLFunctions
 {
     Q_OBJECT
 
@@ -42,12 +45,12 @@ public:
 
     //! Constructor.
     Renderer(
-        const QGLFormat & qglFormat,
+        const QSurfaceFormat & format,
         int hRes,
         int vRes,
         bool nativeResolution,
         bool fullScreen,
-        QWidget * parent = nullptr);
+        QWindow * parent = nullptr);
 
     //! Destructor.
     virtual ~Renderer();
@@ -69,6 +72,8 @@ public:
 
     //! \return scene face factor 0.0..1.0.
     float fadeValue() const;
+
+    void initialize();
 
     //! \return horizontal resolution.
     int hRes() const
@@ -94,14 +99,7 @@ public slots:
 
 protected:
 
-    //! \reimp
-    virtual void initializeGL();
-
-    //! \reimp
-    virtual void resizeGL(int viewWidth, int viewHeight);
-
-    //! \reimp
-    virtual void paintGL();
+    void resizeGL(int viewWidth, int viewHeight);
 
     //! \reimp
     virtual void keyPressEvent(QKeyEvent * event);
@@ -136,6 +134,7 @@ private:
     typedef std::shared_ptr<MCGLShaderProgram> MCGLShaderProgramPtr;
     typedef std::unordered_map<std::string, MCGLShaderProgramPtr > ShaderHash;
 
+    QOpenGLContext  * m_context;
     Scene           * m_scene;
     MCGLScene       * m_glScene;
     EventHandler    * m_eventHandler;

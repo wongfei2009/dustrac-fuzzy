@@ -6,7 +6,7 @@ set(VERSION_MINOR "5")
 set(VERSION_PATCH "4")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-option(UseQt5 "Build for Qt5." OFF)
+option(UseQt5 "Build for Qt5." ON)
 
 option(ReleaseBuild "This should be used when creating DEB and RPM packages." OFF)
 
@@ -16,7 +16,7 @@ option(USC "Enable install layout required by Ubuntu Software Center i.e. instal
 
 option(GLES "Build for OpenGL ES 2.0" OFF)
 
-option(NO_GLEW "Don't use GLEW to resolve OpenGL extensions if enabled." OFF)
+option(NO_GLEW "Don't use GLEW to resolve OpenGL extensions if enabled." ON)
 
 option(GL30 "Build for OpenGL 3.0 shaders (default is 2.1)" OFF)
 
@@ -73,7 +73,7 @@ if(UseQt5)
     add_definitions(-DUSE_QT5)
     set(CMAKE_AUTOMOC ON)
     set(CMAKE_INCLUDE_CURRENT_DIR ON)
-    find_package(Qt5Core REQUIRED)
+    find_package(Qt5Core 5.1.0 REQUIRED)
     find_package(Qt5OpenGL REQUIRED)
     find_package(Qt5Xml REQUIRED)
     find_package(Qt5Widgets REQUIRED)

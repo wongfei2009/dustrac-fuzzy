@@ -24,6 +24,7 @@
 #include "mcglshaderprogram.hh"
 #include "mcglvertex.hh"
 #include "mcgltexcoord.hh"
+#include "mcexception.hh"
 #include "mctrigonom.hh"
 #include "mcassetmanager.hh"
 
@@ -273,4 +274,8 @@ MCFloat MCMesh::width() const
 MCFloat MCMesh::height() const
 {
     return m_h;
+}
+
+MCMesh::~MCMesh()
+{
 }

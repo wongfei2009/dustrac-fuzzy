@@ -1,6 +1,6 @@
 # Top-level Qt project file
 
-!contains(QT_VERSION, ^5\\.[0-9]\\..*) {
+!contains(QT_VERSION, ^5\\.[1-9]\\..*) {
     message("Cannot build Qt Creator with Qt version $${QT_VERSION}.")
     error("Use at least Qt 5.1.")
 } else {

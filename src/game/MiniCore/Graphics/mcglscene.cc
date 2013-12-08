@@ -55,7 +55,10 @@ void MCGLScene::initialize()
     {
         MCLogger().fatal() << "Initing GLEW failed: " << glewGetErrorString(err);
     }
+
     MCLogger().info() << "Using GLEW " << glewGetString(GLEW_VERSION);
+#else
+	initializeOpenGLFunctions();
 #endif
     glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);

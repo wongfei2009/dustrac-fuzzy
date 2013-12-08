@@ -40,22 +40,25 @@
 #include <cmath>
 #include <cassert>
 
-#include <QApplication>
 #include <QIcon>
-#include <QDesktopWidget>
-#include <QGLFramebufferObject>
+#include <QGuiApplication>
 #include <QKeyEvent>
+#include <QOpenGLContext>
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLPaintDevice>
+#include <QScreen>
 
 Renderer * Renderer::m_instance = nullptr;
 
 Renderer::Renderer(
-    const QGLFormat & qglFormat,
+    const QSurfaceFormat & format,
     int hRes,
     int vRes,
     bool nativeResolution,
     bool fullScreen,
-    QWidget * parent)
-: QGLWidget(qglFormat, parent)
+    QWindow * parent)
+: QWindow(parent)
+, m_context(nullptr)
 , m_scene(nullptr)
 , m_glScene(new MCGLScene)
 , m_eventHandler(nullptr)
@@ -67,24 +70,14 @@ Renderer::Renderer(
 , m_nativeResolution(nativeResolution)
 , m_fullScreen(fullScreen)
 {
+    setSurfaceType(QWindow::OpenGLSurface);
+    setFormat(format);
+
     assert(!Renderer::m_instance);
     Renderer::m_instance = this;
 
-    setWindowTitle(QString(Config::Game::GAME_NAME) + " " + Config::Game::GAME_VERSION);
-    setWindowIcon(QIcon(":/dustrac-game.png"));
-    setMouseTracking(true);
-
-    if (!fullScreen)
-    {
-        // Set window size & disable resize
-        resize(hRes, vRes);
-        setMinimumSize(hRes, vRes);
-        setMaximumSize(hRes, vRes);
-
-        // Try to center the window.
-        QRect geometry(QApplication::desktop()->availableGeometry());
-        move(geometry.width() / 2 - width() / 2, geometry.height() / 2 - height() / 2);
-    }
+    setTitle(QString(Config::Game::GAME_NAME) + " " + Config::Game::GAME_VERSION);
+    setIcon(QIcon(":/dustrac-game.png"));
 }
 
 Renderer & Renderer::instance()
@@ -93,12 +86,34 @@ Renderer & Renderer::instance()
     return *Renderer::m_instance;
 }
 
-void Renderer::initializeGL()
+void Renderer::initialize()
 {
+    if (!m_fullScreen)
+    {
+        // Set window size & disable resize
+        resize(m_hRes, m_vRes);
+        setMinimumSize(QSize(m_hRes, m_vRes));
+        setMaximumSize(QSize(m_hRes, m_vRes));
+
+        // Try to center the window
+        const int fullVRes = QGuiApplication::primaryScreen()->geometry().height();
+        const int fullHRes = QGuiApplication::primaryScreen()->geometry().width();
+        setPosition(fullHRes / 2 - m_hRes / 2, fullVRes / 2 - m_vRes / 2);
+    }
+
+    m_context = new QOpenGLContext(this);
+    m_context->setFormat(requestedFormat());
+    m_context->create();
+    m_context->makeCurrent(this);
+
+    // This has to be called after we have a current context!
+    initializeOpenGLFunctions();
+
     MCLogger().info() << "OpenGL Version: " << glGetString(GL_VERSION);
 
     m_glScene->initialize();
 
+    resizeGL(m_hRes, m_vRes);
     loadShaders();
 }
 
@@ -192,7 +207,7 @@ void Renderer::renderCustomResolution()
     // Render the game scene to the frame buffer object
     resizeGL(m_hRes, m_vRes);
 
-    static QGLFramebufferObject fbo(m_hRes, m_vRes);
+    static QOpenGLFramebufferObject fbo(m_hRes, m_vRes);
 
     fbo.bind();
 
@@ -205,10 +220,10 @@ void Renderer::renderCustomResolution()
 
     fbo.release();
 
-    // Render the frame buffer object onto the screen
+        // Render the frame buffer object onto the screen
 
-    const int fullVRes = QApplication::desktop()->height();
-    const int fullHRes = QApplication::desktop()->width();
+        const int fullVRes = QGuiApplication::primaryScreen()->geometry().height();
+        const int fullHRes = QGuiApplication::primaryScreen()->geometry().width();
 
     resizeGL(fullHRes, fullVRes);
 
@@ -218,7 +233,7 @@ void Renderer::renderCustomResolution()
     sd.render(nullptr, MCVector3dF(Scene::width() / 2, Scene::height() / 2, 0), 0);
 }
 
-void Renderer::paintGL()
+void Renderer::render()
 {
     if (m_enabled)
     {
@@ -230,15 +245,15 @@ void Renderer::paintGL()
         {
             renderCustomResolution();
         }
-    }
-}
 
+        m_context->swapBuffers(this);
+    }
 void Renderer::keyPressEvent(QKeyEvent * event)
 {
     assert(m_eventHandler);
     if (!m_eventHandler->handleKeyPressEvent(event))
     {
-        QGLWidget::keyPressEvent(event);
+        QWindow::keyPressEvent(event);
     }
 }
 
@@ -247,7 +262,7 @@ void Renderer::keyReleaseEvent(QKeyEvent * event)
     assert(m_eventHandler);
     if (!m_eventHandler->handleKeyReleaseEvent(event))
     {
-        QGLWidget::keyReleaseEvent(event);
+        QWindow::keyReleaseEvent(event);
     }
 }
 

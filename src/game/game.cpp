@@ -35,9 +35,8 @@
 #include <MCLogger>
 #include <MCObjectFactory>
 
-#include <QApplication>
-#include <QFontDatabase>
-#include <QDesktopWidget>
+#include <QGuiApplication>
+#include <QScreen>
 #include <QDir>
 #include <QTime>
 
@@ -119,8 +118,8 @@ void Game::createRenderer()
 
     if (nativeResolution)
     {
-        hRes = QApplication::desktop()->width();
-        vRes = QApplication::desktop()->height();
+        hRes = QGuiApplication::primaryScreen()->geometry().width();
+        vRes = QGuiApplication::primaryScreen()->geometry().height();
     }
 
     adjustSceneSize(hRes, vRes, fullScreen);
@@ -132,7 +131,7 @@ void Game::createRenderer()
     // At least for now the QGLFormat needs to be passed to the constructor of QGLWidget,
     // because setting it afterwards by using QGLWidget::setFormat() resulted in a black
     // window on Windows 7. It worked on Ubuntu, though.
-    QGLFormat qglFormat;
+	QSurfaceFormat format;
 #ifdef __MC_GL30__
     format.setMajorVersion(3);
     format.setMinorVersion(0);
@@ -144,10 +143,10 @@ void Game::createRenderer()
     format.setMajorVersion(2);
     format.setMinorVersion(1);
 #endif
-    format.setSamples(1);
+	format.setSamples(0);
 
-    m_renderer = new Renderer(qglFormat, hRes, vRes, nativeResolution, fullScreen);
-    m_renderer->activateWindow();
+    MCLogger().info() << "Creating the renderer..";
+    m_renderer = new Renderer(format, hRes, vRes, nativeResolution, fullScreen);
 
     if (fullScreen)
     {
@@ -158,11 +157,9 @@ void Game::createRenderer()
         m_renderer->show();
     }
 
-    m_renderer->setFocus();
-
     // Note that this must be called before loading textures in order
     // to load textures to correct OpenGL context.
-    m_renderer->makeCurrent();
+    m_renderer->initialize();
     m_renderer->setEventHandler(*m_eventHandler);
 
     connect(m_stateMachine, SIGNAL(renderingEnabled(bool)), m_renderer, SLOT(setEnabled(bool)));
@@ -174,7 +171,8 @@ void Game::adjustSceneSize(int hRes, int vRes, bool fullScreen)
     if (fullScreen)
     {
         const int newSceneHeight =
-            Scene::width() * QApplication::desktop()->height() / QApplication::desktop()->width();
+            Scene::width() * QGuiApplication::primaryScreen()->geometry().height() /
+                QGuiApplication::primaryScreen()->geometry().width();
         Scene::setSize(Scene::width(), newSceneHeight);
     }
     else
@@ -362,7 +360,7 @@ void Game::exitGame()
     stop();
     m_renderer->close();
     m_audioThread->quit();
-    QApplication::quit();
+    QGuiApplication::quit();
 }
 
 void Game::updateFrame()
