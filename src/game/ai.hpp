@@ -27,11 +27,11 @@ class Track;
 class TrackTile;
 
 //! The base class of car controllers.
-class AIBase {
+class CarController {
 public:
-	AIBase(Car & car);
+	CarController(Car & car);
 	virtual void update(bool isRaceCompleted) = 0;
-	virtual ~AIBase() = default;
+	virtual ~CarController() = default;
 
 	//! Set the current race track.
 	void setTrack(Track & track);
@@ -46,7 +46,7 @@ protected:
 };
 
 //! Class that implements the artificial intelligence of the computer players.
-class AI: public AIBase {
+class AI: public CarController {
 public:
     //! Constructor.
     AI(Car & car);
@@ -71,6 +71,6 @@ private:
     MCVector2dF   m_randomTolerance;
 };
 
-typedef std::shared_ptr<AIBase> AIPtr;
+typedef std::shared_ptr<CarController> AIPtr;
 
 #endif // AI_HPP

@@ -77,7 +77,7 @@ public:
     static void setSize(int width, int height);
 
     //! Update physics and objects by the given time step.
-    void updateFrame(InputHandler & handler, float timeStep);
+    void updateFrame(float timeStep);
 
     //! Update/trigger animations.
     void updateAnimations();
@@ -116,7 +116,6 @@ private:
     void createCars();
     void createMenus();
     void initRace();
-    void processUserInput(InputHandler & handler);
     void renderPlayerScene(MCCamera & camera);
     void renderPlayerSceneShadows(MCCamera & camera);
     void resizeOverlays();

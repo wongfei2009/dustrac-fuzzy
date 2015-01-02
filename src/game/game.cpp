@@ -381,7 +381,7 @@ void Game::updateFrame()
     if (m_elapsed.elapsed() >= m_updateDelay - m_renderElapsed - TUNE)
     {
         m_stateMachine->update();
-        m_scene->updateFrame(*m_inputHandler, m_timeStep);
+        m_scene->updateFrame(m_timeStep);
         m_scene->updateAnimations();
         m_scene->updateOverlays();
         m_elapsed.restart();

@@ -26,22 +26,28 @@
 #include <MCTrigonom>
 #include <MCTypes>
 
-AIBase::AIBase(Car& car)
+CarController::CarController(Car& car)
 : m_car(car)
 , m_track(nullptr)
 , m_route(nullptr)
 {
 }
 
-AI::AI(Car& car)
-: AIBase(car)
-, m_lastDiff(0)
+void CarController::setTrack(Track & track)
 {
+    m_track = &track;
+    m_route = &track.trackData().route();
 }
 
-Car & AIBase::car() const
+Car & CarController::car() const
 {
     return m_car;
+}
+
+AI::AI(Car& car)
+: CarController(car)
+, m_lastDiff(0)
+{
 }
 
 void AI::update(bool isRaceCompleted)
@@ -189,10 +195,4 @@ void AI::speedControl(TrackTile & currentTile, bool isRaceCompleted)
     {
         m_car.accelerate();
     }
-}
-
-void AIBase::setTrack(Track & track)
-{
-    m_track = &track;
-    m_route = &track.trackData().route();
 }

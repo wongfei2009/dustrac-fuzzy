@@ -47,6 +47,7 @@
 #include "trackselectionmenu.hpp"
 #include "tracktile.hpp"
 #include "treeview.hpp"
+#include "usercontroller.hpp"
 
 #include "../common/config.hpp"
 #include "../common/targetnodebase.hpp"
@@ -190,8 +191,9 @@ void Scene::createCars()
         CarPtr car(CarFactory::buildCar(i, NUM_CARS, m_game));
         if (car)
         {
-            if (!car->isHuman())
-            {
+            if (car->isHuman()) {
+            	m_ai.push_back(AIPtr(new UserController(*car, m_game.inputHandler(), i)));
+            } else {
                 m_ai.push_back(AIPtr(new AI(*car)));
             }
 
@@ -253,7 +255,7 @@ void Scene::createMenus()
     m_menuManager->enterMenu(*m_mainMenu);
 }
 
-void Scene::updateFrame(InputHandler & handler, float timeStep)
+void Scene::updateFrame(float timeStep)
 {
     if (m_stateMachine.state() == StateMachine::GameTransitionIn  ||
         m_stateMachine.state() == StateMachine::GameTransitionOut ||
@@ -264,7 +266,6 @@ void Scene::updateFrame(InputHandler & handler, float timeStep)
         {
             if (m_race.started())
             {
-                processUserInput(handler);
                 updateAI();
             }
 
@@ -337,44 +338,6 @@ void Scene::updateCameraLocation(MCCamera & camera, MCFloat & offset, MCObject &
     loc    += object.direction() * offset * offsetAmplification;
 
     camera.setPos(loc.i(), loc.j());
-}
-
-void Scene::processUserInput(InputHandler & handler)
-{
-    for (int i = 0; i < (m_game.hasTwoHumanPlayers() ? 2 : 1); i++)
-    {
-        m_cars.at(i)->clearStatuses();
-
-        // Handle accelerating / braking
-        if (handler.getActionState(i, InputHandler::IA_DOWN))
-        {
-            if (!m_race.timing().raceCompleted(i))
-            {
-                m_cars.at(i)->brake();
-            }
-        }
-        else if (handler.getActionState(i, InputHandler::IA_UP))
-        {
-            if (!m_race.timing().raceCompleted(i))
-            {
-                m_cars.at(i)->accelerate();
-            }
-        }
-
-        // Handle turning
-        if (handler.getActionState(i, InputHandler::IA_LEFT))
-        {
-            m_cars.at(i)->turnLeft();
-        }
-        else if (handler.getActionState(i, InputHandler::IA_RIGHT))
-        {
-            m_cars.at(i)->turnRight();
-        }
-        else
-        {
-            m_cars.at(i)->noSteering();
-        }
-    }
 }
 
 void Scene::updateAI()

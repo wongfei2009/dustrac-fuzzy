@@ -21,6 +21,8 @@
 #include <QTimer>
 #include <QTime>
 
+#include <cassert>
+
 #include "settings.hpp"
 
 class AudioWorker;
@@ -109,6 +111,16 @@ public:
     AudioWorker & audioWorker();
 
     const std::string & fontName() const;
+
+    InputHandler& inputHandler() {
+    	assert(m_inputHandler);
+    	return *m_inputHandler;
+    }
+
+    const InputHandler& inputHandler() const {
+    	assert(m_inputHandler);
+		return *m_inputHandler;
+	}
 
 public slots:
 
