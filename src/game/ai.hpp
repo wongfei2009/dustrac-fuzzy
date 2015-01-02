@@ -26,25 +26,38 @@ class TargetNodeBase;
 class Track;
 class TrackTile;
 
-//! Class that implements the artificial intelligence of the computer players.
-class AI
-{
+//! The base class of car controllers.
+class AIBase {
 public:
+	AIBase(Car & car);
+	virtual void update(bool isRaceCompleted) = 0;
+	virtual ~AIBase() = default;
 
+	//! Set the current race track.
+	void setTrack(Track & track);
+
+	//! Get associated car.
+	Car& car() const;
+
+protected:
+	Car         & m_car;
+	Track       * m_track;
+	const Route * m_route;
+};
+
+//! Class that implements the artificial intelligence of the computer players.
+class AI: public AIBase {
+public:
     //! Constructor.
     AI(Car & car);
 
+    //! Virtual destructor.
+    virtual ~AI() = default;
+
     //! Update.
-    void update(bool isRaceCompleted);
-
-    //! Set the current race track.
-    void setTrack(Track & track);
-
-    //! Get associated car.
-    Car & car() const;
+    virtual void update(bool isRaceCompleted);
 
 private:
-
     //! Steering logic.
     void steerControl(TargetNodeBase & tnode);
 
@@ -53,14 +66,11 @@ private:
 
     void setRandomTolerance();
 
-    Car         & m_car;
-    Track       * m_track;
-    const Route * m_route;
     int           m_lastDiff;
     int           m_lastTargetNodeIndex;
     MCVector2dF   m_randomTolerance;
 };
 
-typedef std::shared_ptr<AI> AIPtr;
+typedef std::shared_ptr<AIBase> AIPtr;
 
 #endif // AI_HPP
