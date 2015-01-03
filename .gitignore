@@ -53,3 +53,5 @@ src/game/dustrac-game_fi.qm
 src/game/dustrac-game_it.qm
 src/game/trackobjectfactory.cpp.orig
 build/
+.project
+.cproject
