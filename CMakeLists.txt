@@ -29,6 +29,8 @@ option(NO_GLEW "Don't use GLEW to resolve OpenGL extensions if enabled." ON)
 
 option(QOpenGLFunctions "Use QOpenGLFunctions to resolve OpenGL extensions if enabled." ON)
 
+option(NO_FUZZY "Disable support for fuzzy controllers." OFF)
+
 if(GLES)
     add_definitions(-D__MC_GLES__)
     message(STATUS "Compiling for OpenGL ES 2.0")
@@ -65,6 +67,9 @@ set(EDITOR_BINARY_NAME "dustrac-editor")
 
 add_definitions(-DVERSION="${VERSION}")
 
+# Add custom search modules.
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(Qt5Core REQUIRED)
@@ -92,6 +97,13 @@ if(StaticVorbisLibs)
 else()
     include(FindPkgConfig)
     pkg_check_modules(VORBISFILE REQUIRED vorbisfile)
+endif()
+
+# Find fuzzylite if fuzzy support enabled; otherwise define a macro.
+if(NO_FUZZY)
+	add_definitions(-DNO_FUZZY)
+else()
+	find_package(fuzzylite)
 endif()
 
 # Enable CMake's unit test framework
