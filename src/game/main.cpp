@@ -20,7 +20,11 @@
 #include <QMessageBox>
 #include <QTranslator>
 
+#include <QCommandLineOption>
+#include <QCommandLineParser>
+
 #include "game.hpp"
+#include "../common/config.hpp"
 
 #include <MCException>
 #include <MCLogger>
@@ -99,38 +103,39 @@ int main(int argc, char ** argv)
     try
     {
         QApplication app(argc, argv);
+        QCoreApplication::setApplicationName(Config::Game::GAME_NAME);
+        QCoreApplication::setApplicationVersion(Config::Game::GAME_VERSION);
+
+        // command line options parser
+        QCommandLineParser parser;
+		parser.setApplicationDescription(QCoreApplication::translate("main",
+			"%1 %2\n"
+			"Copyright (c) 2011-2015 Jussi Lind."
+		).arg(Config::Game::GAME_NAME).arg(Config::Game::GAME_VERSION));
+		parser.addHelpOption();
+		parser.addVersionOption();
+
+		// add the options
+		QCommandLineOption vsyncOption(QStringList() << "n" << "no-vsync", QCoreApplication::translate("main", "Force vsync off."));
+		parser.addOption(vsyncOption);
+
+		QCommandLineOption disableMenus(QStringList() << "d" << "disable-menus", QCoreApplication::translate("main", "Disable all menus and hop directly into the game."));
+		parser.addOption(disableMenus);
+
+		QCommandLineOption langOption(QStringList() << "l" << "lang", QCoreApplication::translate("main", "Set the language."), "");
+		parser.addOption(langOption);
+
+		// parse the options
+		parser.process(app);
+
         QTranslator appTranslator;
-        QString lang = "";
-
-        bool forceNoVSync = false;
-        std::vector<QString> args(argv, argv + argc);
-        if (std::find(args.begin(), args.end(), "--help") != args.end())
-        {
-            printHelp();
-            exit(EXIT_SUCCESS);
-        }
-        else
-        {
-            for (unsigned int i = 0; i < args.size(); i++)
-            {
-                if (args[i] == "--lang" && (i + i) < args.size())
-                {
-                    lang = args[i + 1];
-                }
-                else if (args[i] == "--no-vsync")
-                {
-                    forceNoVSync = true;
-                }
-            }
-        }
-
         initLogger();
-        initTranslations(appTranslator, app, lang);
+        initTranslations(appTranslator, app, parser.value(langOption));
         checkOpenGLVersion();
 
         // Create the game object and set the renderer
-        MCLogger().info() << "Creating game object..";
-        Game game(forceNoVSync);
+        MCLogger().info() << "Creating game object.";
+        Game game(parser.isSet(vsyncOption), parser.isSet(disableMenus));
 
         // Initialize and start the game
         if (game.init())
