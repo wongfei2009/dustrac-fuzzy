@@ -45,6 +45,13 @@ public:
     //! Add path to search level files for.
     void addTrackSearchPath(QString path);
 
+    /**
+     * Returns a const reference to the vector of track search paths.
+     */
+    const std::vector<QString>& getTrackSearchPaths() const {
+    	return m_paths;
+    }
+
     /*! Load all tracks found in the added paths.
      *  Lock/unlock tracks according to the given lap count.
      *  \return Number of track loaded. */
@@ -61,26 +68,28 @@ public:
 
     static TrackLoader & instance();
 
-private:
-
     //! Load the given track.
+    //! @isFullPath Specifies whether path should be understood as the full
+    //! path to the file (default) or just its name.
     //! \return Valid data pointer or nullptr if fails.
-    TrackData * loadTrack(QString path);
+    TrackData * loadTrack(QString path, bool isFullPath = true) const;
+
+private:
 
     void sortTracks();
 
     //! Read a tile element.
-    void readTile(QDomElement & element, TrackData & newData);
+    void readTile(QDomElement & element, TrackData & newData) const;
 
     //! Read an object element.
-    void readObject(QDomElement & element, TrackData & newData);
+    void readObject(QDomElement & element, TrackData & newData) const;
 
     //! Read a target node element and push to the given vector.
     void readTargetNode(
-        QDomElement & element, TrackData & newData, std::vector<TargetNodeBase *> & route);
+        QDomElement & element, TrackData & newData, std::vector<TargetNodeBase *> & route) const;
 
     //! Convert tile type string to a type enum.
-    TrackTile::TileType tileTypeEnumFromString(std::string str);
+    TrackTile::TileType tileTypeEnumFromString(std::string str) const;
 
     TrackObjectFactory   m_trackObjectFactory;
     std::vector<QString> m_paths;

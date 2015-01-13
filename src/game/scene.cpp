@@ -48,6 +48,7 @@
 #include "tracktile.hpp"
 #include "treeview.hpp"
 #include "usercontroller.hpp"
+#include "fuzzycontroller.hpp"
 
 #include "../common/config.hpp"
 #include "../common/targetnodebase.hpp"
@@ -192,7 +193,8 @@ void Scene::createCars()
         if (car)
         {
             if (car->isHuman()) {
-            	m_ai.push_back(AIPtr(new UserController(*car, m_game.inputHandler(), i)));
+//            	m_ai.push_back(AIPtr(new UserController(*car, m_game.inputHandler(), i)));
+            	m_ai.push_back(AIPtr(new FuzzyController(*car, "data/controller.fis")));
             } else {
                 m_ai.push_back(AIPtr(new AI(*car)));
             }
@@ -253,6 +255,10 @@ void Scene::createMenus()
     m_menuManager->addMenu(*m_trackSelectionMenu);
 
     m_menuManager->enterMenu(*m_mainMenu);
+}
+
+void Scene::startRace() {
+	m_race.start();
 }
 
 void Scene::updateFrame(float timeStep)

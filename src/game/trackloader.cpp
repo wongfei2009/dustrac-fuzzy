@@ -67,7 +67,7 @@ void TrackLoader::addTrackSearchPath(QString path)
 int TrackLoader::loadTracks(int lapCount)
 {
     int numLoaded = 0;
-    for (QString path : m_paths)
+    for (QString& path : m_paths)
     {
         MCLogger().info() << "Loading race tracks from '" << path.toStdString() << "'..";
         QStringList trackPaths(QDir(path).entryList(QStringList("*.trk")));
@@ -160,8 +160,24 @@ void TrackLoader::sortTracks()
     }
 }
 
-TrackData * TrackLoader::loadTrack(QString path)
+TrackData * TrackLoader::loadTrack(QString path, bool isFullPath) const
 {
+	// search for the file, if necessary
+	if(!isFullPath) {
+		TrackData* data = nullptr;
+
+		for(const QString& prefix: m_paths) {
+			QDir dir(prefix);
+
+			if(dir.exists(path)) {
+				data = loadTrack(dir.filePath(path), true);
+				break;
+			}
+		}
+
+		return data;
+	}
+
     QDomDocument doc;
 
     QFile file(path);
@@ -237,7 +253,7 @@ TrackData * TrackLoader::loadTrack(QString path)
 }
 
 void TrackLoader::readTile(
-    QDomElement & element, TrackData & newData)
+    QDomElement & element, TrackData & newData) const
 {
     const std::string id =
         element.attribute(TrackDataBase::IO::Tile::TYPE, "clear").toStdString();
@@ -282,7 +298,7 @@ void TrackLoader::readTile(
     }
 }
 
-TrackTile::TileType TrackLoader::tileTypeEnumFromString(std::string str)
+TrackTile::TileType TrackLoader::tileTypeEnumFromString(std::string str) const
 {
     if (str == "bridge")
     {
@@ -348,7 +364,7 @@ TrackTile::TileType TrackLoader::tileTypeEnumFromString(std::string str)
     return TrackTile::TT_NONE;
 }
 
-void TrackLoader::readObject(QDomElement & element, TrackData & newData)
+void TrackLoader::readObject(QDomElement & element, TrackData & newData) const
 {
     const QString role = element.attribute(TrackDataBase::IO::Object::ROLE, "");
     const QString category = element.attribute(TrackDataBase::IO::Object::CATEGORY, "");
@@ -376,7 +392,7 @@ void TrackLoader::readObject(QDomElement & element, TrackData & newData)
 }
 
 void TrackLoader::readTargetNode(
-    QDomElement & element, TrackData & newData, std::vector<TargetNodeBase *> & route)
+    QDomElement & element, TrackData & newData, std::vector<TargetNodeBase *> & route) const
 {
     const int x = element.attribute(TrackDataBase::IO::Node::X,      "0").toInt();
     const int y = element.attribute(TrackDataBase::IO::Node::Y,      "0").toInt();

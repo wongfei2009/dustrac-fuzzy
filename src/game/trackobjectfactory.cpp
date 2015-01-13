@@ -35,7 +35,7 @@ TrackObjectFactory::TrackObjectFactory(MCObjectFactory & objectFactory)
 }
 
 TrackObject * TrackObjectFactory::build(
-    QString category, QString role, MCVector2dF location, int angle)
+    QString category, QString role, MCVector2dF location, int angle) const
 {
     MCObjectPtr object;
 

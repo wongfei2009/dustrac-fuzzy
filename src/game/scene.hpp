@@ -105,6 +105,8 @@ public:
 
     void renderCommonHUD();
 
+    void startRace();
+
 signals:
 
     void listenerLocationChanged(float x, float y);

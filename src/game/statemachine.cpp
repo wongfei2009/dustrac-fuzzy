@@ -21,11 +21,12 @@
 
 StateMachine * StateMachine::m_instance = nullptr;
 
-StateMachine::StateMachine(InputHandler & inputHandler)
+StateMachine::StateMachine(InputHandler & inputHandler, bool menusDisabled)
 : m_state(Init)
 , m_oldState(Init)
 , m_raceFinished(false)
 , m_inputHandler(inputHandler)
+, m_menusDisabled(menusDisabled)
 {
     assert(!StateMachine::m_instance);
     StateMachine::m_instance = this;
@@ -56,12 +57,17 @@ void StateMachine::quit()
 {
     if (m_state == StateMachine::Play)
     {
-        m_state = GameTransitionOut;
+    	if(m_menusDisabled) emit exitGameRequested();
+    	else m_state = GameTransitionOut;
     }
     else if (m_state == StateMachine::Menu)
     {
         emit exitGameRequested();
     }
+}
+
+void StateMachine::startGame() {
+	m_state = Play;
 }
 
 bool StateMachine::update()

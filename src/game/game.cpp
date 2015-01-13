@@ -48,10 +48,10 @@ static const unsigned int MAX_PLAYERS = 2;
 
 Game * Game::m_instance = nullptr;
 
-Game::Game(bool forceNoVSync)
+Game::Game(bool forceNoVSync, bool menusDisabled)
 : m_inputHandler(new InputHandler(MAX_PLAYERS))
 , m_eventHandler(new EventHandler(*m_inputHandler))
-, m_stateMachine(new StateMachine(*m_inputHandler))
+, m_stateMachine(new StateMachine(*m_inputHandler, menusDisabled))
 , m_renderer(nullptr)
 , m_scene(nullptr)
 , m_assetManager(new MCAssetManager(
@@ -326,14 +326,35 @@ bool Game::init()
 
     m_assetManager->load();
 
-    if (loadTracks())
-    {
-        initScene();
-    }
-    else
-    {
-        return false;
-    }
+    if(m_stateMachine->getMenusDisabled()) {
+    	initScene();
+
+    	TrackData* t_data = m_trackLoader->loadTrack("infinity.trk", false);
+
+    	if(!t_data) {
+    		MCLogger().error() << "Track data not found.";
+    		return false;
+    	}
+
+    	_customTrack = std::shared_ptr<Track>(new Track(t_data));
+
+		m_scene->setActiveTrack(*_customTrack);
+		m_stateMachine->startGame();
+		m_scene->startRace();
+		InputHandler::setEnabled(true);
+
+	} else {
+
+	    if (loadTracks())
+	    {
+	        initScene();
+	    }
+	    else
+	    {
+	        return false;
+	    }
+
+	}
 
     return true;
 }

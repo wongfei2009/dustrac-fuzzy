@@ -22,6 +22,7 @@
 #include <QTime>
 
 #include <cassert>
+#include <memory>
 
 #include "settings.hpp"
 
@@ -61,7 +62,7 @@ public:
     };
 
     //! Constructor
-    Game(bool forceNoVSync = false);
+    Game(bool forceNoVSync = false, bool menusDisabled = false);
 
     //! Destructor
     virtual ~Game();
@@ -162,6 +163,8 @@ private:
     SplitType         m_splitType;
     AudioWorker     * m_audioWorker;
     QThread           m_audioThread;
+
+    std::shared_ptr<Track> _customTrack;
 
     static Game * m_instance;
 };
