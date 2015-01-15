@@ -20,8 +20,6 @@
 #include <QSettings>
 #include <cassert>
 
-Settings * Settings::m_instance = nullptr;
-
 static const char * SETTINGS_GROUP_CONFIG = "Config";
 static const char * SETTINGS_GROUP_LAP    = "LapRecords";
 static const char * SETTINGS_GROUP_RACE   = "RaceRecords";
@@ -54,9 +52,6 @@ QString Settings::vsyncKey()
 
 Settings::Settings()
 {
-    assert(!Settings::m_instance);
-    Settings::m_instance = this;
-
     m_actionToStringMap[InputHandler::IA_UP]    = "IA_UP";
     m_actionToStringMap[InputHandler::IA_DOWN]  = "IA_DOWN";
     m_actionToStringMap[InputHandler::IA_LEFT]  = "IA_LEFT";
@@ -65,8 +60,8 @@ Settings::Settings()
 
 Settings & Settings::instance()
 {
-    assert(Settings::m_instance);
-    return *Settings::m_instance;
+	static Settings settings;
+    return settings;
 }
 
 void Settings::saveLapRecord(const Track & track, int msecs)

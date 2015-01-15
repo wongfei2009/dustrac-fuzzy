@@ -48,7 +48,7 @@ public:
     };
 
     //! Constructor.
-    StateMachine(InputHandler & inputHandler, bool menusDisabled = false);
+    StateMachine(InputHandler & inputHandler);
 
     //! Destructor.
     virtual ~StateMachine();
@@ -67,14 +67,6 @@ public:
     virtual void reset();
 
     void startGame();
-
-    bool getMenusDisabled() const {
-    	return m_menusDisabled;
-    }
-
-    void setMenusDisabled(bool menusDisabled) {
-    	m_menusDisabled = menusDisabled;
-    }
 
 public slots:
 
@@ -131,7 +123,6 @@ private:
     State              m_oldState;
     bool               m_raceFinished;
     InputHandler     & m_inputHandler;
-    bool			   m_menusDisabled;
 };
 
 #endif // STATEMACHINE_HPP

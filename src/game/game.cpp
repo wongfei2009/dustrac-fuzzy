@@ -48,10 +48,10 @@ static const unsigned int MAX_PLAYERS = 2;
 
 Game * Game::m_instance = nullptr;
 
-Game::Game(bool forceNoVSync, bool menusDisabled)
+Game::Game(bool forceNoVSync)
 : m_inputHandler(new InputHandler(MAX_PLAYERS))
 , m_eventHandler(new EventHandler(*m_inputHandler))
-, m_stateMachine(new StateMachine(*m_inputHandler, menusDisabled))
+, m_stateMachine(new StateMachine(*m_inputHandler))
 , m_renderer(nullptr)
 , m_scene(nullptr)
 , m_assetManager(new MCAssetManager(
@@ -74,6 +74,16 @@ Game::Game(bool forceNoVSync, bool menusDisabled)
 {
     assert(!Game::m_instance);
     Game::m_instance = this;
+
+    const QString& mode = Settings::instance().getGameMode();
+
+    if(mode == "OnePlayerRace") setMode(OnePlayerRace);
+    else if(mode == "TwoPlayerRace") setMode(TwoPlayerRace);
+    else if(mode == "TimeTrial") setMode(TimeTrial);
+    else if(mode == "Duel") setMode(Duel);
+    else {
+    	MCLogger().warning() << "Unknown game mode '" << mode.toStdString() << "'.";
+    }
 
     createRenderer(forceNoVSync);
 
@@ -326,10 +336,12 @@ bool Game::init()
 
     m_assetManager->load();
 
-    if(m_stateMachine->getMenusDisabled()) {
+    Settings& settings = Settings::instance();
+
+    if(settings.getMenusDisabled()) {
     	initScene();
 
-    	TrackData* t_data = m_trackLoader->loadTrack("infinity.trk", false);
+    	TrackData* t_data = m_trackLoader->loadTrack(settings.getCustomTrackFile(), false);
 
     	if(!t_data) {
     		MCLogger().error() << "Track data not found.";

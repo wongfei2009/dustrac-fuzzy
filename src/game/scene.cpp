@@ -186,6 +186,8 @@ void Scene::createCars()
     m_cars.clear();
     m_ai.clear();
 
+    Settings& settings = Settings::instance();
+
     // Create and add cars.
     for (int i = 0; i < NUM_CARS; i++)
     {
@@ -193,8 +195,19 @@ void Scene::createCars()
         if (car)
         {
             if (car->isHuman()) {
-//            	m_ai.push_back(AIPtr(new UserController(*car, m_game.inputHandler(), i)));
-            	m_ai.push_back(AIPtr(new FuzzyController(*car, "data/controller.fis")));
+            	const QString& ctype = settings.getControllerType();
+
+            	if(ctype == "user") {
+            		m_ai.push_back(AIPtr(new UserController(*car, m_game.inputHandler(), i)));
+            	} else if(ctype == "pid") {
+            		m_ai.push_back(AIPtr(new AI(*car)));
+            	} else if(ctype == "fuzzy") {
+            		m_ai.push_back(AIPtr(new FuzzyController(*car, settings.getControllerPath().toStdString())));
+            	} else {
+            		MCLogger().warning() << "Unknown controller type '" << ctype.toStdString() << "'.";
+            		m_ai.push_back(AIPtr(new UserController(*car, m_game.inputHandler(), i)));
+            	}
+
             } else {
                 m_ai.push_back(AIPtr(new AI(*car)));
             }

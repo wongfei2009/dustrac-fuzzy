@@ -26,11 +26,11 @@ class Track;
 //! Singleton settings class that wraps the use of QSettings.
 class Settings
 {
-public:
-
+private:
     //! Constructor.
     Settings();
 
+public:
     static Settings & instance();
 
     void saveLapRecord(const Track & track, int msecs);
@@ -62,11 +62,56 @@ public:
     static QString soundsKey();
     static QString vsyncKey();
 
+public:
+    void setMenusDisabled(bool menusDisabled) {
+    	m_menusDisabled = menusDisabled;
+    }
+
+    bool getMenusDisabled() const {
+    	return m_menusDisabled;
+    }
+
+    void setControllerType(const QString& type) {
+    	m_controllerType = type;
+    }
+
+    const QString& getControllerType() const {
+    	return m_controllerType;
+    }
+
+    void setGameMode(const QString& gameMode) {
+    	m_gameMode = gameMode;
+    }
+
+    const QString& getGameMode() const {
+    	return m_gameMode;
+    }
+
+    const QString& getControllerPath() const {
+    	return m_controllerPath;
+    }
+
+    void setControllerPath(const QString& path) {
+    	m_controllerPath = path;
+    }
+
+    const QString& getCustomTrackFile() const {
+    	return m_customTrackFile;
+    }
+
+    void setCustomTrackFile(const QString& customTrackFile) {
+    	m_customTrackFile = customTrackFile;
+    }
+
 private:
+    QString m_controllerType;
+    QString m_controllerPath;
+    QString m_customTrackFile;
+    bool m_menusDisabled;
+    QString m_gameMode;
 
+private:
     QString combineActionAndPlayer(int player, InputHandler::InputAction action);
-
-    static Settings * m_instance;
     std::map<InputHandler::InputAction, QString> m_actionToStringMap;
 };
 

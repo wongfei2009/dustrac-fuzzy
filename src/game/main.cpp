@@ -70,17 +70,6 @@ static void checkOpenGLVersion()
 #endif
 }
 
-static void printHelp()
-{
-    std::cout << "Dust Racing 2D version " << VERSION << std::endl;
-    std::cout << "Copyright (c) 2011-2015 Jussi Lind." << std::endl << std::endl;
-    std::cout << "Options:" << std::endl;
-    std::cout << "--help        Show this help." << std::endl;
-    std::cout << "--lang [lang] Force language: fi, fr, it, cs." << std::endl;
-    std::cout << "--no-vsync    Force vsync off." << std::endl;
-    std::cout << std::endl;
-}
-
 static void initTranslations(QTranslator & appTranslator, QApplication & app, QString lang = "")
 {
     if (lang == "")
@@ -119,14 +108,33 @@ int main(int argc, char ** argv)
 		QCommandLineOption vsyncOption(QStringList() << "n" << "no-vsync", QCoreApplication::translate("main", "Force vsync off."));
 		parser.addOption(vsyncOption);
 
-		QCommandLineOption disableMenus(QStringList() << "d" << "disable-menus", QCoreApplication::translate("main", "Disable all menus and hop directly into the game."));
-		parser.addOption(disableMenus);
-
 		QCommandLineOption langOption(QStringList() << "l" << "lang", QCoreApplication::translate("main", "Set the language."), "");
 		parser.addOption(langOption);
 
+		QCommandLineOption disableMenus(QStringList() << "d" << "disable-menus", QCoreApplication::translate("main", "Disable all menus and hop directly into the game."));
+		parser.addOption(disableMenus);
+
+		QCommandLineOption controllerType(QStringList() << "c" << "controller-type", QCoreApplication::translate("main", "Type of the controller to use."), "user|fuzzy|pid", "user");
+		parser.addOption(controllerType);
+
+		QCommandLineOption controllerPath(QStringList() << "p" << "controller-path", QCoreApplication::translate("main", "Path to the controller file (if any)."), "file");
+		parser.addOption(controllerPath);
+
+		QCommandLineOption gameMode(QStringList() << "m" << "game-mode", QCoreApplication::translate("main", "Sets the game mode."), "OnePlayerRace|TwoPlayerRace|TimeTrial|Duel", "OnePlayerRace");
+		parser.addOption(gameMode);
+
+		QCommandLineOption customTrackFile(QStringList() << "t" << "custom-track-file", QCoreApplication::translate("main", "Sets the custom track file (only used with menus disabled)."), "file", "infinity.trk");
+		parser.addOption(customTrackFile);
+
 		// parse the options
 		parser.process(app);
+
+		Settings& settings = Settings::instance();
+		settings.setMenusDisabled(parser.isSet(disableMenus));
+		settings.setControllerType(parser.value(controllerType));
+		settings.setControllerPath(parser.value(controllerPath));
+		settings.setGameMode(parser.value(gameMode));
+		settings.setCustomTrackFile(parser.value(customTrackFile));
 
         QTranslator appTranslator;
         initLogger();
@@ -135,7 +143,7 @@ int main(int argc, char ** argv)
 
         // Create the game object and set the renderer
         MCLogger().info() << "Creating game object.";
-        Game game(parser.isSet(vsyncOption), parser.isSet(disableMenus));
+        Game game(parser.isSet(vsyncOption));
 
         // Initialize and start the game
         if (game.init())

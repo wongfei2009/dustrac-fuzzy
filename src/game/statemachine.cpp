@@ -15,18 +15,18 @@
 
 #include "statemachine.hpp"
 #include "inputhandler.hpp"
+#include "settings.hpp"
 
 #include <MenuManager>
 #include <cassert>
 
 StateMachine * StateMachine::m_instance = nullptr;
 
-StateMachine::StateMachine(InputHandler & inputHandler, bool menusDisabled)
+StateMachine::StateMachine(InputHandler & inputHandler)
 : m_state(Init)
 , m_oldState(Init)
 , m_raceFinished(false)
 , m_inputHandler(inputHandler)
-, m_menusDisabled(menusDisabled)
 {
     assert(!StateMachine::m_instance);
     StateMachine::m_instance = this;
@@ -57,7 +57,7 @@ void StateMachine::quit()
 {
     if (m_state == StateMachine::Play)
     {
-    	if(m_menusDisabled) emit exitGameRequested();
+    	if(Settings::instance().getMenusDisabled()) emit exitGameRequested();
     	else m_state = GameTransitionOut;
     }
     else if (m_state == StateMachine::Menu)

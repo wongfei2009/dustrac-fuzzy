@@ -62,7 +62,7 @@ public:
     };
 
     //! Constructor
-    Game(bool forceNoVSync = false, bool menusDisabled = false);
+    Game(bool forceNoVSync = false);
 
     //! Destructor
     virtual ~Game();
@@ -142,7 +142,7 @@ private:
     bool loadTracks();
     void loadFonts();
 
-    Settings          m_settings;
+    Settings&          m_settings = Settings::instance();
     InputHandler    * m_inputHandler;
     EventHandler    * m_eventHandler;
     StateMachine    * m_stateMachine;
