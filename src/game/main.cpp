@@ -114,13 +114,13 @@ int main(int argc, char ** argv)
 		QCommandLineOption disableMenus(QStringList() << "d" << "disable-menus", QCoreApplication::translate("main", "Disable all menus and hop directly into the game."));
 		parser.addOption(disableMenus);
 
-		QCommandLineOption controllerType(QStringList() << "c" << "controller-type", QCoreApplication::translate("main", "Type of the controller to use."), "user|fuzzy|pid", "user");
+		QCommandLineOption controllerType(QStringList() << "c" << "controller-type", QCoreApplication::translate("main", "Type of the controller to use (user|fuzzy|pid)."), "type", "user");
 		parser.addOption(controllerType);
 
 		QCommandLineOption controllerPath(QStringList() << "p" << "controller-path", QCoreApplication::translate("main", "Path to the controller file (if any)."), "file");
 		parser.addOption(controllerPath);
 
-		QCommandLineOption gameMode(QStringList() << "m" << "game-mode", QCoreApplication::translate("main", "Sets the game mode."), "OnePlayerRace|TwoPlayerRace|TimeTrial|Duel", "OnePlayerRace");
+		QCommandLineOption gameMode(QStringList() << "m" << "game-mode", QCoreApplication::translate("main", "Sets the game mode (OnePlayerRace|TwoPlayerRace|TimeTrial|Duel)."), "mode", "OnePlayerRace");
 		parser.addOption(gameMode);
 
 		QCommandLineOption customTrackFile(QStringList() << "t" << "custom-track-file", QCoreApplication::translate("main", "Sets the custom track file (only used with menus disabled)."), "file", "infinity.trk");

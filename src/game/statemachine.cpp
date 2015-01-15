@@ -183,7 +183,8 @@ void StateMachine::statePlay()
 
 void StateMachine::finishRace()
 {
-    m_state = GameTransitionOut;
+	if(Settings::instance().getMenusDisabled()) emit exitGameRequested();
+	else m_state = GameTransitionOut;
     m_raceFinished = true;
 }
 
