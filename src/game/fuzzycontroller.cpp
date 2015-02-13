@@ -84,11 +84,17 @@ void FuzzyController::steerControl(TargetNodeBase& tnode) {
 		}
 	}
 
-	// run the fuzzy controller
-	m_fis->getInputVariable(0)->setInputValue(diff);
-	m_fis->getInputVariable(1)->setInputValue(diff - m_lastDiff);
-	m_fis->process();
+	// if there is only one input variable, run this as a P controller,
+	// if two, run as a PD
+	if(m_fis->numberOfInputVariables() >= 2) {
+		m_fis->getInputVariable(0)->setInputValue(diff);
+		m_fis->getInputVariable(1)->setInputValue(diff - m_lastDiff);
+	} else {
+		m_fis->getInputVariable(0)->setInputValue(diff);
+	}
 
+	// run the fuzzy controller
+	m_fis->process();
 	auto control = m_fis->getOutputVariable(0)->defuzzify();
 
 	const MCFloat maxControl = 1.5;
@@ -110,70 +116,87 @@ void FuzzyController::steerControl(TargetNodeBase& tnode) {
 }
 
 void FuzzyController::speedControl(TrackTile& currentTile, bool isRaceCompleted) {
-	// TODO: Maybe it'd be possible to adjust speed according to
-	// the difference between current and target angles so that
-	// computer hints wouldn't be needed anymore..?
-
-	// Braking / acceleration logic
-	bool accelerate = true;
-	bool brake      = false;
-
 	const float absSpeed = m_car.absSpeed();
-	if (isRaceCompleted)
-	{
-		accelerate = false;
-	}
-	else
-	{
-		// The following speed limits are experimentally defined.
-		float scale = 0.9;
-		if (currentTile.computerHint() == TrackTile::CH_BRAKE)
+
+	// if the fuzzy controller has two outputs, use the second one for speed
+	// control; otherwise fall back to the standard version
+	if(m_fis->numberOfOutputVariables() >= 2) {
+		auto controllerSpeed = m_fis->getOutputVariable(1)->defuzzify() / 10;
+
+		// if controllerSpeed > absSpeed, accelerate
+		// if controllerSpeed < 0, brake
+		if(controllerSpeed > absSpeed) {
+			m_car.accelerate();
+		} else if(controllerSpeed < 0) {
+			m_car.brake();
+		}
+
+	} else {
+
+		// TODO: Maybe it'd be possible to adjust speed according to
+		// the difference between current and target angles so that
+		// computer hints wouldn't be needed anymore..?
+
+		// Braking / acceleration logic
+		bool accelerate = true;
+		bool brake      = false;
+
+		if (isRaceCompleted)
 		{
-			if (absSpeed > 14.0 * scale)
+			accelerate = false;
+		}
+		else
+		{
+			// The following speed limits are experimentally defined.
+			float scale = 0.9;
+			if (currentTile.computerHint() == TrackTile::CH_BRAKE)
 			{
-				brake = true;
+				if (absSpeed > 14.0 * scale)
+				{
+					brake = true;
+				}
+			}
+
+			if (currentTile.computerHint() == TrackTile::CH_BRAKE_HARD)
+			{
+				if (absSpeed > 9.5 * scale)
+				{
+					brake = true;
+				}
+			}
+
+			if (currentTile.tileTypeEnum() == TrackTile::TT_CORNER_90)
+			{
+				if (absSpeed > 7.0 * scale)
+				{
+					accelerate = false;
+				}
+			}
+
+			if (currentTile.tileTypeEnum() == TrackTile::TT_CORNER_45_LEFT ||
+				currentTile.tileTypeEnum() == TrackTile::TT_CORNER_45_RIGHT)
+			{
+				if (absSpeed > 8.3 * scale)
+				{
+					accelerate = false;
+				}
+			}
+
+			if (absSpeed < 3.6 * scale)
+			{
+				accelerate = true;
+				brake = false;
 			}
 		}
 
-		if (currentTile.computerHint() == TrackTile::CH_BRAKE_HARD)
+		if (brake)
 		{
-			if (absSpeed > 9.5 * scale)
-			{
-				brake = true;
-			}
+			m_car.brake();
 		}
-
-		if (currentTile.tileTypeEnum() == TrackTile::TT_CORNER_90)
+		else if (accelerate)
 		{
-			if (absSpeed > 7.0 * scale)
-			{
-				accelerate = false;
-			}
+			m_car.accelerate();
 		}
-
-		if (currentTile.tileTypeEnum() == TrackTile::TT_CORNER_45_LEFT ||
-			currentTile.tileTypeEnum() == TrackTile::TT_CORNER_45_RIGHT)
-		{
-			if (absSpeed > 8.3 * scale)
-			{
-				accelerate = false;
-			}
-		}
-
-		if (absSpeed < 3.6 * scale)
-		{
-			accelerate = true;
-			brake = false;
-		}
-	}
-
-	if (brake)
-	{
-		m_car.brake();
-	}
-	else if (accelerate)
-	{
-		m_car.accelerate();
 	}
 }
 
