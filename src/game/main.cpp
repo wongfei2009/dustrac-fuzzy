@@ -159,7 +159,7 @@ int main(int argc, char ** argv)
 			if(parser.isSet(hresOpt)) hRes = parser.value(hresOpt).toUInt();
 			if(parser.isSet(vresOpt)) vRes = parser.value(vresOpt).toUInt();
 
-			settings.setTermResolution(hRes, vRes, native, fullscreen);
+			settings.setTermResolution(hRes, vRes, fullscreen);
 			settings.setUseTermResolution(true);
 		}
 

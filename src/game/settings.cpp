@@ -232,7 +232,7 @@ void Settings::getResolution(int & hRes, int & vRes, bool & nativeResolution, bo
 	if(m_useTermResolution) {
 		hRes = m_hRes;
 		vRes = m_vRes;
-		nativeResolution = m_nativeResolution;
+		nativeResolution = false;
 		fullScreen = m_fullScreen;
 	} else {
 		loadResolution(hRes, vRes, nativeResolution, fullScreen);

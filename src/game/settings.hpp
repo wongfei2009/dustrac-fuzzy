@@ -105,10 +105,9 @@ public:
     }
 
     //! Sets the resolution as specified at command line.
-    void setTermResolution(int hRes, int vRes, bool nativeResolution, bool fullScreen) {
+    void setTermResolution(int hRes, int vRes, bool fullScreen) {
     	m_hRes = hRes;
     	m_vRes = vRes;
-    	m_nativeResolution = nativeResolution;
     	m_fullScreen = fullScreen;
     }
 
@@ -125,7 +124,6 @@ private:
 
     int m_hRes;
     int m_vRes;
-    bool m_nativeResolution;
     bool m_fullScreen;
     bool m_useTermResolution = false;
 

@@ -128,11 +128,11 @@ void Game::createRenderer(bool forceNoVSync)
 
     if (nativeResolution)
     {
-        hRes = QApplication::desktop()->width();
-        vRes = QApplication::desktop()->height();
+        hRes = QApplication::desktop()->screen(QApplication::desktop()->screenNumber(m_renderer))->width();
+        vRes = QApplication::desktop()->screen(QApplication::desktop()->screenNumber(m_renderer))->height();
     }
 
-    adjustSceneSize(hRes, vRes, fullScreen);
+//    adjustSceneSize(hRes, vRes, fullScreen);
 
     MCLogger().info()
         << "Resolution: " << hRes << " " << vRes << " " << nativeResolution << " " << fullScreen;

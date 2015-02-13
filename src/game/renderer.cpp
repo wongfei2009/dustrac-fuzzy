@@ -181,8 +181,8 @@ void Renderer::render()
         return;
     }
 
-    const int fullVRes = m_fullScreen ? QApplication::desktop()->height() : height();
-    const int fullHRes = m_fullScreen ? QApplication::desktop()->width()  : width();
+    const int fullVRes = m_fullScreen ? QApplication::desktop()->screen(QApplication::desktop()->screenNumber(this))->height() : height();
+    const int fullHRes = m_fullScreen ? QApplication::desktop()->screen(QApplication::desktop()->screenNumber(this))->width() : width();
 
     // Render the game scene to the frame buffer object
     resizeGL(m_hRes, m_vRes);
