@@ -51,6 +51,7 @@ public:
 
     void saveResolution(int hRes, int vRes, bool nativeResolution, bool fullScreen);
     void loadResolution(int & hRes, int & vRes, bool & nativeResolution, bool & fullScreen);
+    void getResolution(int & hRes, int & vRes, bool & nativeResolution, bool & fullScreen);
 
     void saveKeyMapping(int player, InputHandler::InputAction action, int key);
     int loadKeyMapping(int player, InputHandler::InputAction action);
@@ -103,12 +104,30 @@ public:
     	m_customTrackFile = customTrackFile;
     }
 
+    //! Sets the resolution as specified at command line.
+    void setTermResolution(int hRes, int vRes, bool nativeResolution, bool fullScreen) {
+    	m_hRes = hRes;
+    	m_vRes = vRes;
+    	m_nativeResolution = nativeResolution;
+    	m_fullScreen = fullScreen;
+    }
+
+    void setUseTermResolution(bool useTermResolution) {
+    	m_useTermResolution = useTermResolution;
+    }
+
 private:
     QString m_controllerType;
     QString m_controllerPath;
     QString m_customTrackFile;
     bool m_menusDisabled;
     QString m_gameMode;
+
+    int m_hRes;
+    int m_vRes;
+    bool m_nativeResolution;
+    bool m_fullScreen;
+    bool m_useTermResolution = false;
 
 private:
     QString combineActionAndPlayer(int player, InputHandler::InputAction action);

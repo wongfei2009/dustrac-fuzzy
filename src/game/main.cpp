@@ -126,6 +126,19 @@ int main(int argc, char ** argv)
 		QCommandLineOption customTrackFile(QStringList() << "t" << "custom-track-file", QCoreApplication::translate("main", "Sets the custom track file (only used with menus disabled)."), "file", "infinity.trk");
 		parser.addOption(customTrackFile);
 
+		QCommandLineOption fullscreenOpt(QStringList() << "f" << "fullscreen", QCoreApplication::translate("main", "Starts the game in fullscreen mode."));
+		parser.addOption(fullscreenOpt);
+
+		QCommandLineOption windowedOpt(QStringList() << "w" << "windowed", QCoreApplication::translate("main", "Starts the game in windowed mode."));
+		parser.addOption(windowedOpt);
+
+		QCommandLineOption hresOpt(QStringList() << "hres", QCoreApplication::translate("main", "Sets horizontal resolution."), "resolution");
+		parser.addOption(hresOpt);
+
+		QCommandLineOption vresOpt(QStringList() << "vres", "vertical-resolution", QCoreApplication::translate("main", "Sets vertical resolution."), "resolution");
+		parser.addOption(vresOpt);
+
+
 		// parse the options
 		parser.process(app);
 
@@ -135,6 +148,20 @@ int main(int argc, char ** argv)
 		settings.setControllerPath(parser.value(controllerPath));
 		settings.setGameMode(parser.value(gameMode));
 		settings.setCustomTrackFile(parser.value(customTrackFile));
+
+		if(parser.isSet(fullscreenOpt) || parser.isSet(windowedOpt) || parser.isSet(hresOpt) || parser.isSet(vresOpt)) {
+			int hRes, vRes;
+			bool native, fullscreen;
+			settings.loadResolution(hRes, vRes, native, fullscreen);
+
+			if(parser.isSet(fullscreenOpt)) fullscreen = true;
+			if(parser.isSet(windowedOpt)) fullscreen = false;
+			if(parser.isSet(hresOpt)) hRes = parser.value(hresOpt).toUInt();
+			if(parser.isSet(vresOpt)) vRes = parser.value(vresOpt).toUInt();
+
+			settings.setTermResolution(hRes, vRes, native, fullscreen);
+			settings.setUseTermResolution(true);
+		}
 
         QTranslator appTranslator;
         initLogger();

@@ -224,6 +224,21 @@ void Settings::loadResolution(int & hRes, int & vRes, bool & nativeResolution, b
     settings.endGroup();
 }
 
+/**
+ * If the resolution has been set from terminal, returns it. Otherwise calls
+ * loadResolution to get it from the settings file.
+ */
+void Settings::getResolution(int & hRes, int & vRes, bool & nativeResolution, bool & fullScreen) {
+	if(m_useTermResolution) {
+		hRes = m_hRes;
+		vRes = m_vRes;
+		nativeResolution = m_nativeResolution;
+		fullScreen = m_fullScreen;
+	} else {
+		loadResolution(hRes, vRes, nativeResolution, fullScreen);
+	}
+}
+
 void Settings::saveValue(QString key, int value)
 {
     QSettings settings(Config::Common::QSETTINGS_COMPANY_NAME,

@@ -124,7 +124,7 @@ void Game::createRenderer(bool forceNoVSync)
     bool nativeResolution = true;
     bool fullScreen       = false;
 
-    m_settings.loadResolution(hRes, vRes, nativeResolution, fullScreen);
+    m_settings.getResolution(hRes, vRes, nativeResolution, fullScreen);
 
     if (nativeResolution)
     {
