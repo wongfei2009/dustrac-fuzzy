@@ -331,6 +331,13 @@ void Race::update()
 
     if (isRaceFinished() && !m_isfinishedSignalSent)
     {
+    	if(m_game.hasTwoHumanPlayers()) {
+    		MCLogger().info() << "player 1 finished at position " << getPositionOfCar(*m_cars[HUMAN_PLAYER_INDEX1]);
+    		MCLogger().info() << "player 2 finished at position " << getPositionOfCar(*m_cars[HUMAN_PLAYER_INDEX2]);
+    	} else {
+    		MCLogger().info() << "player finished at position " << getPositionOfCar(*m_cars[HUMAN_PLAYER_INDEX1]);
+    	}
+
         emit finished();
         m_isfinishedSignalSent = true;
     }
@@ -588,6 +595,10 @@ void Race::setTrack(Track & track, int lapCount)
 int Race::lapCount() const
 {
     return m_lapCount;
+}
+
+void Race::setLapCount(int lapCount_) {
+	m_lapCount = lapCount_;
 }
 
 void Race::addCar(Car & car)

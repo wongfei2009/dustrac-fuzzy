@@ -59,9 +59,13 @@ public:
     void saveValue(QString key, int value);
     int loadValue(QString key, int defaultValue = 0);
 
-    static QString lapCountKey();
     static QString soundsKey();
     static QString vsyncKey();
+
+    int getLapCount();
+    void setLapCount(int lapCount);
+    void saveLapCount(int lapCount);
+    void resetLapCount();
 
 public:
     void setMenusDisabled(bool menusDisabled) {
@@ -121,6 +125,8 @@ private:
     QString m_customTrackFile;
     bool m_menusDisabled;
     QString m_gameMode;
+    int m_lapCount;
+    bool m_lapCountSet = false;
 
     int m_hRes;
     int m_vRes;

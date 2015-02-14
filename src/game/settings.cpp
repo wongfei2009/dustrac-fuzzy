@@ -36,10 +36,24 @@ static QString combineTrackAndLapCountBase64(const Track & track, int lapCount)
     return (QString("%1_%2").arg(track.trackData().name()).arg(lapCount)).toLatin1().toBase64();
 }
 
-QString Settings::lapCountKey()
-{
-    return "lapCount";
+int Settings::getLapCount() {
+	if(m_lapCountSet) return m_lapCount;
+	else return loadValue("lapCount", 5);
 }
+
+void Settings::setLapCount(int lapCount) {
+	m_lapCount = lapCount;
+	m_lapCountSet = true;
+}
+
+void Settings::saveLapCount(int lapCount) {
+	saveValue("lapCount", lapCount);
+}
+
+void Settings::resetLapCount() {
+	m_lapCountSet = false;
+}
+
 QString Settings::soundsKey()
 {
     return "sounds";

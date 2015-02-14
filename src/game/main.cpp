@@ -138,6 +138,9 @@ int main(int argc, char ** argv)
 		QCommandLineOption vresOpt(QStringList() << "vres", "vertical-resolution", QCoreApplication::translate("main", "Sets vertical resolution."), "resolution");
 		parser.addOption(vresOpt);
 
+		QCommandLineOption lapCount(QStringList() << "lap-count", QCoreApplication::translate("main", "Sets the number of laps."), "laps", "5");
+		parser.addOption(lapCount);
+
 
 		// parse the options
 		parser.process(app);
@@ -148,6 +151,7 @@ int main(int argc, char ** argv)
 		settings.setControllerPath(parser.value(controllerPath));
 		settings.setGameMode(parser.value(gameMode));
 		settings.setCustomTrackFile(parser.value(customTrackFile));
+		settings.setLapCount(parser.value(lapCount).toInt());
 
 		if(parser.isSet(fullscreenOpt) || parser.isSet(windowedOpt) || parser.isSet(hresOpt) || parser.isSet(vresOpt)) {
 			int hRes, vRes;

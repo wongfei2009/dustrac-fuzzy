@@ -59,6 +59,9 @@ public:
     //! Get the number of laps.
     int lapCount() const;
 
+    //! Set the number of laps.
+    void setLapCount(int lapCount);
+
     //! Add a car to the race.
     void addCar(Car & car);
 

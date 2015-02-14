@@ -35,8 +35,6 @@
 
 #include <QObject> // For QObject::tr()
 
-static const QString LAP_COUNT_KEY(Settings::lapCountKey());
-
 static const int ITEM_HEIGHT_DIV = 10;
 static const int ITEM_TEXT_SIZE  = 20;
 
@@ -435,7 +433,7 @@ void SettingsMenu::populateLapCountMenu(int width, int height)
             {
                 MCLogger().info() << LAP_COUNTS[i] << " laps selected.";
                 Game::instance().setLapCount(LAP_COUNTS[i]);
-                Settings::instance().saveValue(LAP_COUNT_KEY, LAP_COUNTS[i]);
+                Settings::instance().saveLapCount(LAP_COUNTS[i]);
                 MenuManager::instance().popMenu();
             });
 
