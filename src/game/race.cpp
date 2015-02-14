@@ -333,9 +333,13 @@ void Race::update()
     {
     	if(m_game.hasTwoHumanPlayers()) {
     		MCLogger().info() << "player 1 finished at position " << getPositionOfCar(*m_cars[HUMAN_PLAYER_INDEX1]);
+    		MCLogger().info() << "player 1 finished in " << m_timing.raceTime(HUMAN_PLAYER_INDEX1) << " ms";
+
     		MCLogger().info() << "player 2 finished at position " << getPositionOfCar(*m_cars[HUMAN_PLAYER_INDEX2]);
+    		MCLogger().info() << "player 2 finished in " << m_timing.raceTime(HUMAN_PLAYER_INDEX2) << " ms";
     	} else {
     		MCLogger().info() << "player finished at position " << getPositionOfCar(*m_cars[HUMAN_PLAYER_INDEX1]);
+    		MCLogger().info() << "player 1 finished in " << m_timing.raceTime(HUMAN_PLAYER_INDEX1) << " ms";
     	}
 
         emit finished();
