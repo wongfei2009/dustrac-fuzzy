@@ -64,6 +64,7 @@ void FuzzyController::steerControl(TargetNodeBase& tnode) {
 	MCFloat angle = MCTrigonom::radToDeg(std::atan2(target.j(), target.i()));
 	MCFloat cur   = static_cast<int>(m_car.angle()) % 360;
 	MCFloat diff  = angle - cur;
+	MCFloat absSpeed = m_car.absSpeed();
 
 	bool ok = false;
 	while (!ok)
@@ -86,7 +87,11 @@ void FuzzyController::steerControl(TargetNodeBase& tnode) {
 
 	// if there is only one input variable, run this as a P controller,
 	// if two, run as a PD
-	if(m_fis->numberOfInputVariables() >= 2) {
+	if(m_fis->numberOfInputVariables() >= 3) {
+		m_fis->getInputVariable(0)->setInputValue(diff);
+		m_fis->getInputVariable(1)->setInputValue(diff - m_lastDiff);
+		m_fis->getInputVariable(2)->setInputValue(absSpeed);
+	} else if(m_fis->numberOfInputVariables() >= 2) {
 		m_fis->getInputVariable(0)->setInputValue(diff);
 		m_fis->getInputVariable(1)->setInputValue(diff - m_lastDiff);
 	} else {
