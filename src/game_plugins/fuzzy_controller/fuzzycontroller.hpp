@@ -16,9 +16,7 @@
 #ifndef FUZZYCONTROLLER_HPP
 #define FUZZYCONTROLLER_HPP
 
-#ifndef NO_FUZZY
-
-#include "ai.hpp"
+#include <ai.hpp>
 #include <fl/Headers.h>
 #include <string>
 #include <fstream>
@@ -49,7 +47,5 @@ protected:
     int           m_lastDiff = 0;
     fl::Engine* m_fis;
 };
-
-#endif // NO_FUZZY
 
 #endif // FUZZYCONTROLLER_HPP

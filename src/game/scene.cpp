@@ -16,6 +16,7 @@
 #include "scene.hpp"
 
 #include "ai.hpp"
+#include "aifactory.hpp"
 #include "audioworker.hpp"
 #include "bridge.hpp"
 #include "car.hpp"
@@ -47,8 +48,6 @@
 #include "trackselectionmenu.hpp"
 #include "tracktile.hpp"
 #include "treeview.hpp"
-#include "usercontroller.hpp"
-#include "fuzzycontroller.hpp"
 
 #include "../common/config.hpp"
 #include "../common/targetnodebase.hpp"
@@ -123,40 +122,43 @@ Scene::Scene(Game & game, StateMachine & stateMachine, Renderer & renderer)
     connect(m_startlights, SIGNAL(messageRequested(QString)), m_messageOverlay, SLOT(addMessage(QString)));
     connect(this, SIGNAL(listenerLocationChanged(float, float)), &m_game.audioWorker(), SLOT(setListenerLocation(float, float)));
 
-    m_game.audioWorker().connectAudioSource(m_race);
 
-    m_cameraOffset[0] = 0.0;
-    m_cameraOffset[1] = 0.0;
+//    if(!Settings::instance().getDisableRendering()) {
+		m_game.audioWorker().connectAudioSource(m_race);
 
-    m_checkeredFlag->setDimensions(width(), height());
-    m_intro->setDimensions(width(), height());
-    m_startlightsOverlay->setDimensions(width(), height());
-    m_messageOverlay->setDimensions(width(), height());
+		m_cameraOffset[0] = 0.0;
+		m_cameraOffset[1] = 0.0;
 
-    m_timingOverlay[0].setRace(m_race);
-    m_timingOverlay[1].setRace(m_race);
+		m_checkeredFlag->setDimensions(width(), height());
+		m_intro->setDimensions(width(), height());
+		m_startlightsOverlay->setDimensions(width(), height());
+		m_messageOverlay->setDimensions(width(), height());
 
-    m_world->renderer().enableDepthTestOnLayer(Layers::Tree);
-    m_world->renderer().enableDepthTestOnLayer(Layers::Objects);
-    m_world->renderer().enableDepthTestOnLayer(Layers::GrandStands);
-    m_world->setMetersPerPixel(METERS_PER_PIXEL);
+		m_timingOverlay[0].setRace(m_race);
+		m_timingOverlay[1].setRace(m_race);
 
-    MCAssetManager::textureFontManager().font(m_game.fontName()).setShaderProgram(
-        m_renderer.program("text"));
-    MCAssetManager::textureFontManager().font(m_game.fontName()).setShadowShaderProgram(
-        m_renderer.program("textShadow"));
+		m_world->renderer().enableDepthTestOnLayer(Layers::Tree);
+		m_world->renderer().enableDepthTestOnLayer(Layers::Objects);
+		m_world->renderer().enableDepthTestOnLayer(Layers::GrandStands);
+		m_world->setMetersPerPixel(METERS_PER_PIXEL);
 
-    const MCGLAmbientLight ambientLight(1.0, 0.9, 0.95, 0.7);
-    const MCGLDiffuseLight diffuseLight(MCVector3dF(1.0, -1.0, -1.0), 1.0, 0.9, 0.85, 0.3);
-    const MCGLDiffuseLight specularLight(MCVector3dF(1.0, -1.0, -1.0), 1.0, 1.0, 1.0, 1.0);
+		MCAssetManager::textureFontManager().font(m_game.fontName()).setShaderProgram(
+			m_renderer.program("text"));
+		MCAssetManager::textureFontManager().font(m_game.fontName()).setShadowShaderProgram(
+			m_renderer.program("textShadow"));
 
-    m_renderer.glScene().setAmbientLight(ambientLight);
-    m_renderer.glScene().setDiffuseLight(diffuseLight);
-    m_renderer.glScene().setSpecularLight(specularLight);
+		const MCGLAmbientLight ambientLight(1.0, 0.9, 0.95, 0.7);
+		const MCGLDiffuseLight diffuseLight(MCVector3dF(1.0, -1.0, -1.0), 1.0, 0.9, 0.85, 0.3);
+		const MCGLDiffuseLight specularLight(MCVector3dF(1.0, -1.0, -1.0), 1.0, 1.0, 1.0, 1.0);
 
-    m_renderer.setFadeValue(0.0);
+		m_renderer.glScene().setAmbientLight(ambientLight);
+		m_renderer.glScene().setDiffuseLight(diffuseLight);
+		m_renderer.glScene().setSpecularLight(specularLight);
 
-    createMenus();
+		m_renderer.setFadeValue(0.0);
+
+		if(!Settings::instance().getMenusDisabled()) createMenus();
+//	}
 }
 
 void Scene::setupAudio(Car & car, int index)
@@ -196,18 +198,7 @@ void Scene::createCars()
         {
             if (car->isHuman()) {
             	const QString& ctype = settings.getControllerType();
-
-            	if(ctype == "user") {
-            		m_ai.push_back(AIPtr(new UserController(*car, m_game.inputHandler(), i)));
-            	} else if(ctype == "pid") {
-            		m_ai.push_back(AIPtr(new AI(*car)));
-            	} else if(ctype == "fuzzy") {
-            		m_ai.push_back(AIPtr(new FuzzyController(*car, settings.getControllerPath().toStdString())));
-            	} else {
-            		MCLogger().warning() << "Unknown controller type '" << ctype.toStdString() << "'.";
-            		m_ai.push_back(AIPtr(new UserController(*car, m_game.inputHandler(), i)));
-            	}
-
+				m_ai.push_back(AIPtr(AIFactory::instance().create(ctype.toStdString(), *car)));
             } else {
                 m_ai.push_back(AIPtr(new AI(*car)));
             }

@@ -1,13 +1,11 @@
-#ifndef NO_FUZZY
-
-#include "fuzzycontroller.hpp"
-#include "car.hpp"
-#include "track.hpp"
-#include "trackdata.hpp"
-#include "tracktile.hpp"
-#include "../common/route.hpp"
-#include "../common/targetnodebase.hpp"
-#include "../common/tracktilebase.hpp"
+#include <fuzzycontroller.hpp>
+#include <car.hpp>
+#include <track.hpp>
+#include <trackdata.hpp>
+#include <tracktile.hpp>
+#include <../common/route.hpp>
+#include <../common/targetnodebase.hpp>
+#include <../common/tracktilebase.hpp>
 
 #include <MCTrigonom>
 
@@ -204,5 +202,3 @@ void FuzzyController::speedControl(TrackTile& currentTile, bool isRaceCompleted)
 		}
 	}
 }
-
-#endif // NO_FUZZY

@@ -25,6 +25,7 @@
 
 #include "game.hpp"
 #include "../common/config.hpp"
+#include "loadplugins.hpp"
 
 #include <MCException>
 #include <MCLogger>
@@ -89,8 +90,8 @@ static void initTranslations(QTranslator & appTranslator, QApplication & app, QS
 
 int main(int argc, char ** argv)
 {
-    try
-    {
+//    try
+//    {
         QApplication app(argc, argv);
         QCoreApplication::setApplicationName(Config::Game::GAME_NAME);
         QCoreApplication::setApplicationVersion(Config::Game::GAME_VERSION);
@@ -114,7 +115,7 @@ int main(int argc, char ** argv)
 		QCommandLineOption disableMenus(QStringList() << "d" << "disable-menus", QCoreApplication::translate("main", "Disable all menus and hop directly into the game."));
 		parser.addOption(disableMenus);
 
-		QCommandLineOption controllerType(QStringList() << "c" << "controller-type", QCoreApplication::translate("main", "Type of the controller to use (user|fuzzy|pid)."), "type", "user");
+		QCommandLineOption controllerType(QStringList() << "c" << "controller-type", QCoreApplication::translate("main", "Type of the controller to use (user|user1|user2|pid|from plugins...)."), "type", "type");
 		parser.addOption(controllerType);
 
 		QCommandLineOption controllerPath(QStringList() << "p" << "controller-path", QCoreApplication::translate("main", "Path to the controller file (if any)."), "file");
@@ -141,6 +142,8 @@ int main(int argc, char ** argv)
 		QCommandLineOption lapCount(QStringList() << "lap-count", QCoreApplication::translate("main", "Sets the number of laps."), "laps", "5");
 		parser.addOption(lapCount);
 
+		QCommandLineOption disableRendering(QStringList() << "disable-rendering", QCoreApplication::translate("main", "Disables rendering."));
+		parser.addOption(disableRendering);
 
 		// parse the options
 		parser.process(app);
@@ -148,10 +151,12 @@ int main(int argc, char ** argv)
 		Settings& settings = Settings::instance();
 		settings.setMenusDisabled(parser.isSet(disableMenus));
 		settings.setControllerType(parser.value(controllerType));
+
 		settings.setControllerPath(parser.value(controllerPath));
 		settings.setGameMode(parser.value(gameMode));
 		settings.setCustomTrackFile(parser.value(customTrackFile));
 		settings.setLapCount(parser.value(lapCount).toInt());
+		settings.setDisableRendering(parser.isSet(disableRendering));
 
 		if(parser.isSet(fullscreenOpt) || parser.isSet(windowedOpt) || parser.isSet(hresOpt) || parser.isSet(vresOpt)) {
 			int hRes, vRes;
@@ -176,6 +181,9 @@ int main(int argc, char ** argv)
         MCLogger().info() << "Creating game object.";
         Game game(parser.isSet(vsyncOption));
 
+		// loads plugins
+		loadPlugins(QString(Config::Game::pluginPath));
+
         // Initialize and start the game
         if (game.init())
         {
@@ -188,13 +196,13 @@ int main(int argc, char ** argv)
         }
 
         return app.exec();
-    }
-    // Catch some errors during game initialization e.g.
-    // a vertex shader not found.
-    catch (MCException & e)
-    {
-        MCLogger().fatal() << e.what();
-        MCLogger().fatal() << INIT_ERROR;
-        return EXIT_FAILURE;
-    }
+//    }
+//    // Catch some errors during game initialization e.g.
+//    // a vertex shader not found.
+//    catch (MCException & e)
+//    {
+//        MCLogger().fatal() << e.what();
+//        MCLogger().fatal() << INIT_ERROR;
+//        return EXIT_FAILURE;
+//    }
 }

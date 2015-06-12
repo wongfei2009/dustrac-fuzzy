@@ -329,10 +329,12 @@ void Game::initScene()
 
 bool Game::init()
 {
-    m_audioThread.start();
-    m_audioWorker->moveToThread(&m_audioThread);
-    QMetaObject::invokeMethod(m_audioWorker, "init");
-    QMetaObject::invokeMethod(m_audioWorker, "loadSounds");
+	if(!Settings::instance().getDisableRendering()) {
+		m_audioThread.start();
+		m_audioWorker->moveToThread(&m_audioThread);
+		QMetaObject::invokeMethod(m_audioWorker, "init");
+		QMetaObject::invokeMethod(m_audioWorker, "loadSounds");
+	}
 
     m_assetManager->load();
 

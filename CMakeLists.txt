@@ -19,6 +19,8 @@ option(USC "Enable install layout required by Ubuntu Software Center i.e. instal
 
 option(DATA_PATH "Optional DATA_PATH for Linux release build." "")
 
+option(PLUGIN_PATH "Optional PLUGIN_PATH for Linux release build." "")
+
 option(BIN_PATH "Optional BIN_PATH for Linux release build." "")
 
 option(DOC_PATH "Optional DOC_PATH for Linux release build." "")
@@ -28,8 +30,6 @@ option(GLES "Build for OpenGL ES 2.0" OFF)
 option(NO_GLEW "Don't use GLEW to resolve OpenGL extensions if enabled." ON)
 
 option(QOpenGLFunctions "Use QOpenGLFunctions to resolve OpenGL extensions if enabled." ON)
-
-option(NO_FUZZY "Disable support for fuzzy controllers." OFF)
 
 if(GLES)
     add_definitions(-D__MC_GLES__)
@@ -99,13 +99,6 @@ else()
     pkg_check_modules(VORBISFILE REQUIRED vorbisfile)
 endif()
 
-# Find fuzzylite if fuzzy support enabled; otherwise define a macro.
-if(NO_FUZZY)
-	add_definitions(-DNO_FUZZY)
-else()
-	find_package(fuzzylite)
-endif()
-
 # Enable CMake's unit test framework
 enable_testing()
 
@@ -114,3 +107,4 @@ resolve_install_paths()
 
 add_subdirectory(src/editor)
 add_subdirectory(src/game)
+add_subdirectory(src/game_plugins)

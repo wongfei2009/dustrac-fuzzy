@@ -38,4 +38,4 @@ const char       * Config::Game::GAME_VERSION            = VERSION;
 const unsigned int Config::Game::WINDOW_WIDTH            = 1024;
 const unsigned int Config::Game::WINDOW_HEIGHT           = 768;
 const char       * Config::Game::QSETTINGS_SOFTWARE_NAME = "Game";
-
+const char * Config::Game::pluginPath                    = PLUGIN_PATH;

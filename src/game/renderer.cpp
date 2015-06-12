@@ -17,6 +17,7 @@
 
 #include "eventhandler.hpp"
 #include "scene.hpp"
+#include "settings.hpp"
 
 #ifdef __MC_GL30__
 #include "shaders30.h"
@@ -176,6 +177,11 @@ float Renderer::fadeValue() const
 
 void Renderer::render()
 {
+	if(Settings::instance().getDisableRendering()) {
+		MCSurface ss(nullptr, 0, 0);
+		return;
+	}
+
     if (!m_scene)
     {
         return;

@@ -68,5 +68,8 @@ public:
 
         //! Default window height.
         static const unsigned int WINDOW_HEIGHT;
+
+		//! The path to plugins.
+		static const char * pluginPath;
     };
 };

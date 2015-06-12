@@ -21,14 +21,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/MTFH")
 # Sound toolkit include paths
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/STFH")
 
-# fuzzylite include paths, if fuzzy support enabled
-
-if(NO_FUZZY)
-	set(fuzzylite_LIBRARIES "")
-else()
-	include_directories("${fuzzylite_INCLUDE_DIRS}")
-endif()
-
 # Translation files in src/game/translations (without .ts)
 set(TS dustrac-game_fi dustrac-game_it dustrac-game_cs dustrac-game_fr)
 set(TS_FILES)
@@ -48,6 +40,7 @@ set(HDR
 # Set sources
 set(SRC
     ai.cpp
+	aifactory.cpp
     audioworker.cpp
     audiosource.cpp
     bridge.cpp
@@ -63,13 +56,13 @@ set(SRC
     eventhandler.cpp
     fadeanimation.cpp
     fontfactory.cpp
-	fuzzycontroller.cpp
     game.cpp
     graphicsfactory.cpp
     help.cpp
     inputhandler.cpp
     intro.cpp
     keyconfigmenu.cpp
+	loadplugins.cpp
     main.cpp
     mainmenu.cpp
     map.cpp
@@ -165,7 +158,8 @@ set(COMMON_LIBS
     ${VORBISFILE_STATIC_LIB} # Valid only if static lib was used
     ${VORBIS_STATIC_LIB}     # Valid only if static lib was used
     ${OGG_STATIC_LIB}       # Valid only if static lib was used
-	${fuzzylite_LIBRARIES})
+	${CMAKE_DL_LIBS} # for linking to ldl
+)
 
 qt5_use_modules(${GAME_BINARY_NAME} OpenGL Widgets Xml)
 target_link_libraries(${COMMON_LIBS})

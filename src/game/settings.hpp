@@ -119,6 +119,15 @@ public:
     	m_useTermResolution = useTermResolution;
     }
 
+    bool getDisableRendering() const {
+    	return m_disableRendering;
+    }
+
+    void setDisableRendering(bool disableRendering) {
+    	m_disableRendering = disableRendering;
+    	if(m_disableRendering) m_menusDisabled = true;
+    }
+
 private:
     QString m_controllerType;
     QString m_controllerPath;
@@ -132,6 +141,8 @@ private:
     int m_vRes;
     bool m_fullScreen;
     bool m_useTermResolution = false;
+
+    bool m_disableRendering = false;
 
 private:
     QString combineActionAndPlayer(int player, InputHandler::InputAction action);

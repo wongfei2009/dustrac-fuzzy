@@ -6,6 +6,9 @@ function(resolve_install_paths)
     if(NOT DATA_PATH)
         set(DATA_PATH ${CMAKE_INSTALL_PREFIX}/${DEFAULT_DATA_PATH_BASE}/data)
     endif()
+    if(NOT PLUGIN_PATH)
+        set(PLUGIN_PATH ${CMAKE_INSTALL_PREFIX}/${DEFAULT_DATA_PATH_BASE}/plugins)
+    endif()
     if(NOT BIN_PATH)
         set(BIN_PATH bin)
     endif()
@@ -19,12 +22,14 @@ function(resolve_install_paths)
             message(STATUS "Installing to /opt.")
             set(BIN_PATH /opt/dustrac)
             set(DATA_PATH /opt/dustrac/data)
+			set(PLUGIN_PATH /opt/dustrac/plugins)
             set(DOC_PATH /opt/dustrac/)
         endif()
     else()
         message(STATUS "Linux development build with local install targets.")
         set(BIN_PATH .)
         set(DATA_PATH ./data)
+        set(PLUGIN_PATH ./plugins)
         set(DOC_PATH .)
 
         # Add target to copy runtime files to the binary dir.
@@ -39,17 +44,19 @@ function(resolve_install_paths)
 
     message(STATUS "BIN_PATH: " ${BIN_PATH})
     message(STATUS "DATA_PATH: " ${DATA_PATH})
+    message(STATUS "PLUGIN_PATH: " ${PLUGIN_PATH})
     message(STATUS "DOC_PATH:" ${DOC_PATH})
 
     # This is the main data path given to the game and editor binaries.
     add_definitions(-DDATA_PATH="${DATA_PATH}")
+	add_definitions(-DPLUGIN_PATH="${PLUGIN_PATH}")
 
-    setup_install_targets(${BIN_PATH} ${DATA_PATH} ${DOC_PATH})
+    setup_install_targets(${BIN_PATH} ${DATA_PATH} ${PLUGIN_PATH} ${DOC_PATH})
 
 endfunction()
 
 # **** Install targets for Linux ****
-function(setup_install_targets BIN_PATH DATA_PATH DOC_PATH)
+function(setup_install_targets BIN_PATH DATA_PATH PLUGIN_PATH DOC_PATH)
 
     # Install binaries and game data
     install(PROGRAMS ${CMAKE_BINARY_DIR}/${GAME_BINARY_NAME} DESTINATION ${BIN_PATH})
@@ -66,6 +73,7 @@ function(setup_install_targets BIN_PATH DATA_PATH DOC_PATH)
     install(DIRECTORY data/sounds DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.ogg")
     install(DIRECTORY data/fonts DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.ttf")
     install(DIRECTORY ${CMAKE_BINARY_DIR}/data/translations DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.qm")
+	install(DIRECTORY plugins DESTINATION ${PLUGIN_PATH} FILES_MATCHING PATTERN "*.dpl")
 
     if(ReleaseBuild)
         # Install .desktop files
