@@ -14,7 +14,7 @@ void init(Game&, int argc, char ** argv) {
 	}
 
 	QCommandLineParser parser;
-	QCommandLineOption pathOption(QStringList() << "p" << "controller-path", QCoreApplication::translate("main", "Path to the controller file (if any)."), "file");
+	QCommandLineOption pathOption(QStringList() << "p" << "controller-path", QCoreApplication::translate("main", "Path to the controller file (if any)."), "file", "data/controller.fis");
 	parser.addOption(pathOption);
 	parser.parse(args);
 

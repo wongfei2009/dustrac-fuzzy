@@ -21,8 +21,6 @@
 #include <string>
 #include <fstream>
 
-class InputHandler;
-
 //! The base class of car controllers.
 class FuzzyController: public CarController {
 public:

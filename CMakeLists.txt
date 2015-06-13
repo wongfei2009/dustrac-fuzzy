@@ -19,8 +19,6 @@ option(USC "Enable install layout required by Ubuntu Software Center i.e. instal
 
 option(DATA_PATH "Optional DATA_PATH for Linux release build." "")
 
-option(PLUGIN_PATH "Optional PLUGIN_PATH for Linux release build." "")
-
 option(BIN_PATH "Optional BIN_PATH for Linux release build." "")
 
 option(DOC_PATH "Optional DOC_PATH for Linux release build." "")
@@ -30,6 +28,9 @@ option(GLES "Build for OpenGL ES 2.0" OFF)
 option(NO_GLEW "Don't use GLEW to resolve OpenGL extensions if enabled." ON)
 
 option(QOpenGLFunctions "Use QOpenGLFunctions to resolve OpenGL extensions if enabled." ON)
+
+set(PLUGIN_PATH "plugins" CACHE STRING "The relative path to plugins.")
+add_definitions(-DPLUGIN_PATH="${PLUGIN_PATH}")
 
 if(GLES)
     add_definitions(-D__MC_GLES__)

@@ -1,0 +1,73 @@
+[System]
+Name='controller_PD_speed2'
+Type='mamdani'
+Version=2.0
+NumInputs=2
+NumOutputs=2
+NumRules=22
+AndMethod='min'
+OrMethod='max'
+ImpMethod='min'
+AggMethod='max'
+DefuzzMethod='centroid'
+
+[Input1]
+Name='error'
+Range=[-50 50]
+NumMFs=5
+MF1='velmivlavo':'trapmf',[-62.3 -55.7 -29.2 -21.5608465608466]
+MF2='vlavo':'trimf',[-26.8518518518519 -9.98 -0.65]
+MF3='vstrede':'trimf',[-10.3 0 10.1590106007067]
+MF4='vpravo':'trimf',[0.65 10.16 28.2]
+MF5='velmivpravo':'trapmf',[21.9759717314488 31.9833791388562 71.9759717314488 71.9759717314488]
+
+[Input2]
+Name='deltaerror'
+Range=[-10 10]
+NumMFs=3
+MF1='vlavo':'trapmf',[-19 -11 -4.04593639575972 -1]
+MF2='vstrede':'trimf',[-2.03180212014134 0 2.03]
+MF3='vpravo':'trapmf',[1 4.29328621908127 11 19]
+
+[Output1]
+Name='steering'
+Range=[-7 7]
+NumMFs=5
+MF1='rovno':'trimf',[-0.09459 0 0.1276]
+MF2='dolava':'trimf',[-0.5 -0.25 -0.017]
+MF3='doprava':'trimf',[0.01 0.25 0.5]
+MF4='prudko_dolava':'trimf',[-5.128 -4.582 -3.867]
+MF5='prudko_doprava':'trimf',[3.976 4.613 5.53]
+
+[Output2]
+Name='speed'
+Range=[-10 180]
+NumMFs=4
+MF1='slow':'trimf',[83.2031746031746 104.603174603175 128.603174603175]
+MF2='medium':'trimf',[117.450264550265 137.450264550265 158.650264550265]
+MF3='fast':'trimf',[151.1 170.1 189.1]
+MF4='brake':'trimf',[-12.25 -7.334 -0.7001]
+
+[Rules]
+1 1, 5 0 (1) : 1
+1 2, 5 0 (1) : 1
+1 3, 1 0 (1) : 1
+2 0, 3 0 (1) : 1
+3 0, 1 0 (1) : 1
+4 0, 2 0 (1) : 1
+5 1, 1 0 (1) : 1
+5 2, 4 0 (1) : 1
+5 3, 4 0 (1) : 1
+4 3, 0 1 (1) : 1
+5 3, 0 4 (1) : 1
+2 1, 0 1 (1) : 1
+1 1, 0 4 (1) : 1
+3 0, 0 3 (1) : 1
+2 3, 0 2 (1) : 1
+1 3, 0 2 (1) : 1
+4 1, 0 2 (1) : 1
+5 1, 0 2 (1) : 1
+2 2, 0 1 (1) : 1
+4 2, 0 1 (1) : 1
+1 2, 0 4 (1) : 1
+5 2, 0 4 (1) : 1
