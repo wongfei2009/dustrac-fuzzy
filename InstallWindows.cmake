@@ -5,7 +5,7 @@ function(resolve_install_paths)
     
     set(BIN_PATH .)
     set(DATA_PATH ./data)
-	set(PLUGIN_PATH ./plugins)
+	set(PLUGIN_PATH .)
     set(DOC_PATH .)
 
     # This is the main data path given to the game and editor binaries.
@@ -41,7 +41,7 @@ function(setup_install_targets BIN_PATH DATA_PATH PLUGIN_PATH DOC_PATH)
     install(DIRECTORY data/levels DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.trk")
     install(DIRECTORY data/models DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.obj")
     install(DIRECTORY data/translations DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.qm")
-	install(DIRECTORY plugins DESTINATION ${PLUGIN_PATH} FILES_MATCHING PATTERN "*.dpl")
+	install(DIRECTORY ${CMAKE_BINARY_DIR}/plugins DESTINATION ${PLUGIN_PATH} FILES_MATCHING PATTERN "*.dpl")
 
 endfunction()
 
