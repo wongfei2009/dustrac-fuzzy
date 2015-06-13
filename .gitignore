@@ -6,7 +6,6 @@
 *qrc_*
 *.tar.gz
 *__*
-*CMake*
 Makefile
 bin/
 dustrac.pro.user
