@@ -23,7 +23,7 @@
 
 #include <dlfcn.h>
 
-void loadPlugins(QString path) {
+void loadPlugins(QString path, int argc, char ** argv) {
 	QStringList pluginPaths(QDir(path).entryList(QStringList("*.dpl")));
 	
 	for (QString pluginPath : pluginPaths)
@@ -32,9 +32,9 @@ void loadPlugins(QString path) {
 		void* handle = dlopen(pluginPath.toStdString().c_str(), RTLD_LAZY);
 
 		if (handle) {
-			void (*init)(Game&);
+			void (*init)(Game&, int, char**);
 			*(void **)(&init) = dlsym(handle, "init");
-			if(init) (*init)(Game::instance());
+			if(init) (*init)(Game::instance(), argc, argv);
 			else MCLogger().error() << "Couldn't initialize plugin '" << pluginPath.toStdString() << "'.";
 		} else {
 			MCLogger().error() << "Couldn't load plugin '" << pluginPath.toStdString() << "'.";

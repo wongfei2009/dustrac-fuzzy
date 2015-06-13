@@ -33,6 +33,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cstring>
 
 static const char * INIT_ERROR = "Initing the game failed!";
 
@@ -90,15 +91,41 @@ static void initTranslations(QTranslator & appTranslator, QApplication & app, QS
 
 int main(int argc, char ** argv)
 {
-//    try
-//    {
-        QApplication app(argc, argv);
+    try
+    {
+		// split the argument list into two parts: before -- and after --
+		int splitpos = -1;
+		for(int i = 0; i < argc; i++) {
+			if(!std::strcmp(argv[i], "--")) {
+				splitpos = i;
+				break;
+			}
+		}
+
+		int argc1, argc2;
+		char ** argv1, ** argv2;
+
+		if(splitpos >= 0) {
+			argc1 = splitpos;
+			argv1 = argv;
+
+			argc2 = argc - splitpos;
+			argv2 = argv + splitpos;
+		} else {
+			argc1 = argc;
+			argv1 = argv;
+			argc2 = 0;
+			argv2 = nullptr;
+		}
+
+        QApplication app(argc1, argv1);
         QCoreApplication::setApplicationName(Config::Game::GAME_NAME);
         QCoreApplication::setApplicationVersion(Config::Game::GAME_VERSION);
 
         // command line options parser
         QCommandLineParser parser;
 		parser.setApplicationDescription(QCoreApplication::translate("main",
+			"Plugin options may be entered, but must be separated using --.\n"
 			"%1 %2\n"
 			"Copyright (c) 2011-2015 Jussi Lind."
 		).arg(Config::Game::GAME_NAME).arg(Config::Game::GAME_VERSION));
@@ -117,9 +144,6 @@ int main(int argc, char ** argv)
 
 		QCommandLineOption controllerType(QStringList() << "c" << "controller-type", QCoreApplication::translate("main", "Type of the controller to use (user|user1|user2|pid|from plugins...)."), "type", "type");
 		parser.addOption(controllerType);
-
-		QCommandLineOption controllerPath(QStringList() << "p" << "controller-path", QCoreApplication::translate("main", "Path to the controller file (if any)."), "file");
-		parser.addOption(controllerPath);
 
 		QCommandLineOption gameMode(QStringList() << "m" << "game-mode", QCoreApplication::translate("main", "Sets the game mode (OnePlayerRace|TwoPlayerRace|TimeTrial|Duel)."), "mode", "OnePlayerRace");
 		parser.addOption(gameMode);
@@ -152,7 +176,6 @@ int main(int argc, char ** argv)
 		settings.setMenusDisabled(parser.isSet(disableMenus));
 		settings.setControllerType(parser.value(controllerType));
 
-		settings.setControllerPath(parser.value(controllerPath));
 		settings.setGameMode(parser.value(gameMode));
 		settings.setCustomTrackFile(parser.value(customTrackFile));
 		settings.setLapCount(parser.value(lapCount).toInt());
@@ -182,7 +205,7 @@ int main(int argc, char ** argv)
         Game game(parser.isSet(vsyncOption));
 
 		// loads plugins
-		loadPlugins(QString(Config::Game::pluginPath));
+		loadPlugins(QString(Config::Game::pluginPath), argc2, argv2);
 
         // Initialize and start the game
         if (game.init())
@@ -196,13 +219,13 @@ int main(int argc, char ** argv)
         }
 
         return app.exec();
-//    }
-//    // Catch some errors during game initialization e.g.
-//    // a vertex shader not found.
-//    catch (MCException & e)
-//    {
-//        MCLogger().fatal() << e.what();
-//        MCLogger().fatal() << INIT_ERROR;
-//        return EXIT_FAILURE;
-//    }
+    }
+    // Catch some errors during game initialization e.g.
+    // a vertex shader not found.
+    catch (MCException & e)
+    {
+        MCLogger().fatal() << e.what();
+        MCLogger().fatal() << INIT_ERROR;
+        return EXIT_FAILURE;
+    }
 }

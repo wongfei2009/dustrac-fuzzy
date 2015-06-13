@@ -92,14 +92,6 @@ public:
     	return m_gameMode;
     }
 
-    const QString& getControllerPath() const {
-    	return m_controllerPath;
-    }
-
-    void setControllerPath(const QString& path) {
-    	m_controllerPath = path;
-    }
-
     const QString& getCustomTrackFile() const {
     	return m_customTrackFile;
     }
@@ -130,7 +122,6 @@ public:
 
 private:
     QString m_controllerType;
-    QString m_controllerPath;
     QString m_customTrackFile;
     bool m_menusDisabled;
     QString m_gameMode;

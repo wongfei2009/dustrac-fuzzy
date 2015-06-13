@@ -18,6 +18,13 @@
 
 #include <QString>
 
-void loadPlugins(QString path);
+/**
+* Loads all plugins (shared libs with extension .dpl) at the
+* specified path. Once the shared lib is loaded, its init function
+* with signature init(Game&, int argc, char ** argv)  is called.
+*
+* argc and argv represent command line arguments.
+**/
+void loadPlugins(QString path, int argc, char ** argv);
 
 #endif // LOADPLUGINS

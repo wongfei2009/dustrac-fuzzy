@@ -1,14 +1,29 @@
 #include <iostream>
 #include <aifactory.hpp>
 
+#include <QCommandLineOption>
+#include <QCommandLineParser>
+
 #include "loader.hpp"
 #include "fuzzycontroller.hpp"
 
-void init(Game&) {
+void init(Game&, int argc, char ** argv) {
+	QStringList args;
+	for(int i = 0; i < argc; i++) {
+		args << argv[i];
+	}
+
+	QCommandLineParser parser;
+	QCommandLineOption pathOption(QStringList() << "p" << "controller-path", QCoreApplication::translate("main", "Path to the controller file (if any)."), "file");
+	parser.addOption(pathOption);
+	parser.parse(args);
+
+	std::string controllerPath = parser.value(pathOption).toStdString();
+
 	AIFactory& factory = AIFactory::instance();
 	factory.add("fuzzy",
-		[](Car& car) {
-			return new FuzzyController(car, Settings::instance().getControllerPath().toStdString());
+		[controllerPath](Car& car) {
+			return new FuzzyController(car, controllerPath);
 		}
 	);
 }
