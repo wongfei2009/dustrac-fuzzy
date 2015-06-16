@@ -16,20 +16,18 @@
 #ifndef FUZZYCONTROLLER_HPP
 #define FUZZYCONTROLLER_HPP
 
-#include <ai.hpp>
+#include <pidcontroller.hpp>
 #include <fl/Headers.h>
 #include <string>
 #include <fstream>
 
-//! The base class of car controllers.
-class FuzzyController: public CarController {
+//! A controller based on fuzzylite.
+class FuzzyController: public PIDController {
 public:
 	FuzzyController(Car& car, fl::Engine* engine);
 	FuzzyController(Car& car, const std::string& fis_filename);
 	FuzzyController(Car& car, std::istream& fis_file);
 	virtual ~FuzzyController() = default;
-
-	virtual void update(bool isRaceCompleted);
 
 private:
 	static fl::Engine* loadFis(std::istream& fis_file);
@@ -37,9 +35,9 @@ private:
 
 protected:
     //! Steering logic.
-    void steerControl(TargetNodeBase& tnode);
+    virtual float steerControl(bool isRaceCompleted);
     //! Brake/accelerate logic.
-    void speedControl(TrackTile& currentTile, bool isRaceCompleted);
+	virtual float speedControl(bool isRaceCompleted);
 
 protected:
     int           m_lastDiff = 0;

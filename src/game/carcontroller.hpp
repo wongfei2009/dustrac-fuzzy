@@ -13,18 +13,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Dust Racing 2D. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef AI_HPP
-#define AI_HPP
-
-#include <MCVector2d>
+#ifndef CARCONTROLLER_HPP
+#define CARCONTROLLER_HPP
 
 #include <memory>
 
 class Car;
-class Route;
-class TargetNodeBase;
 class Track;
-class TrackTile;
+class Route;
 
 //! The base class of car controllers.
 class CarController {
@@ -45,32 +41,6 @@ protected:
 	const Route * m_route;
 };
 
-//! Class that implements the artificial intelligence of the computer players.
-class AI: public CarController {
-public:
-    //! Constructor.
-    AI(Car & car);
-
-    //! Virtual destructor.
-    virtual ~AI() = default;
-
-    //! Update.
-    virtual void update(bool isRaceCompleted);
-
-private:
-    //! Steering logic.
-    void steerControl(TargetNodeBase & tnode);
-
-    //! Brake/accelerate logic.
-    void speedControl(TrackTile & currentTile, bool isRaceCompleted);
-
-    void setRandomTolerance();
-
-    int           m_lastDiff;
-    int           m_lastTargetNodeIndex;
-    MCVector2dF   m_randomTolerance;
-};
-
 typedef std::shared_ptr<CarController> AIPtr;
 
-#endif // AI_HPP
+#endif // CARCONTROLLER_HPP

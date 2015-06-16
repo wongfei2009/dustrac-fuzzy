@@ -39,13 +39,13 @@ set(HDR
 
 # Set sources
 set(SRC
-    ai.cpp
 	aifactory.cpp
     audioworker.cpp
     audiosource.cpp
     bridge.cpp
     bridgetrigger.cpp
     car.cpp
+	carcontroller.cpp
     carfactory.cpp
     carparticleeffectmanager.cpp
     carsoundeffectmanager.cpp
@@ -76,6 +76,7 @@ set(SRC
     openaloggdata.cpp
     openalwavdata.cpp
     overlaybase.cpp
+	pidcontroller.cpp
     race.cpp
     renderer.cpp
     resolutionmenu.cpp

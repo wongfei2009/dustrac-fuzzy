@@ -16,7 +16,7 @@
 #ifndef AIFACTORY_HPP
 #define AIFACTORY_HPP
 
-#include "ai.hpp"
+#include "pidcontroller.hpp"
 #include <map>
 #include <functional>
 #include <string>

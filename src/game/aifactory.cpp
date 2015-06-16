@@ -24,7 +24,8 @@ AIFactory::AIFactory()
 	add("user", [this](Car& car){return new UserController(car, Game::instance().inputHandler(), 1);});
 	add("user1", [this](Car& car){return new UserController(car, Game::instance().inputHandler(), 1);});
 	add("user2", [this](Car& car){return new UserController(car, Game::instance().inputHandler(), 2);});
-	add("pid", [](Car& car){return new AI(car);});
+	add("userpid", [](Car& car){return new PIDController(car, false);});
+	add("pid", [](Car& car){return new PIDController(car, true);});
 }
 
 AIFactory& AIFactory::instance()

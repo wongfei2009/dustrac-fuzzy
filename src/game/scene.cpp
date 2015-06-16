@@ -15,7 +15,6 @@
 
 #include "scene.hpp"
 
-#include "ai.hpp"
 #include "aifactory.hpp"
 #include "audioworker.hpp"
 #include "bridge.hpp"
@@ -200,7 +199,7 @@ void Scene::createCars()
             	const QString& ctype = settings.getControllerType();
 				m_ai.push_back(AIPtr(AIFactory::instance().create(ctype.toStdString(), *car)));
             } else {
-                m_ai.push_back(AIPtr(new AI(*car)));
+                m_ai.push_back(AIPtr(new PIDController(*car, true)));
             }
 
             car->setRenderLayer(Layers::Objects);

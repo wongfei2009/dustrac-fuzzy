@@ -16,7 +16,7 @@
 #ifndef SCENE_HPP
 #define SCENE_HPP
 
-#include "ai.hpp"
+#include "carcontroller.hpp"
 #include "car.hpp"
 #include "race.hpp"
 #include "timingoverlay.hpp"

@@ -16,7 +16,7 @@
 #ifndef USERCONTROLLER_HPP
 #define USERCONTROLLER_HPP
 
-#include "ai.hpp"
+#include "carcontroller.hpp"
 
 class InputHandler;
 
