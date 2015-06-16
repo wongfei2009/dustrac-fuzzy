@@ -22,7 +22,7 @@ macro(add_plugin NAME)
 
 	if("BUILD_${NAME}")
 		add_library(${NAME} SHARED ${ARGN})
-		set_target_properties(FuzzyController
+		set_target_properties(${NAME}
 			 PROPERTIES
 			 PREFIX ""
 			 SUFFIX ".dpl"
