@@ -9,6 +9,7 @@
 
 void init(Game&, int argc, char ** argv) {
 	QStringList args;
+	args << "plugin";
 	for(int i = 0; i < argc; i++) {
 		args << argv[i];
 	}

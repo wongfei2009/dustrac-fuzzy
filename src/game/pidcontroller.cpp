@@ -74,17 +74,12 @@ void PIDController::update(bool isRaceCompleted) {
 
 		// steer according to steerC
 		const MCFloat maxControl = 1.5;
-		steerC = steerC < 0 ? -steerC : steerC;
-		steerC = steerC > maxControl ? maxControl : steerC;
+		steerC = std::min(std::max(steerC, -maxControl), maxControl);
 
-		const MCFloat maxDelta = 3.0;
-		if (diff < -maxDelta)
-		{
-		    m_car.turnRight(steerC);
-		}
-		else if (diff > maxDelta)
-		{
-		    m_car.turnLeft(steerC);
+		if (steerC >= 0) {
+		    m_car.turnRight(std::abs(steerC));
+		} else if (steerC < 0) {
+		    m_car.turnLeft(std::abs(steerC));
 		}
 
 		// accelerate/brake according to speedC
@@ -102,7 +97,7 @@ void PIDController::setRandomTolerance()
 }
 
 float PIDController::steerControl(bool) {
-	return m_steeringData.error * 0.025 + m_steeringData.deltaError * 0.025;
+	return -(m_steeringData.error * 0.025 + m_steeringData.deltaError * 0.025);
 }
 
 float PIDController::speedControl(bool isRaceCompleted)
