@@ -142,7 +142,7 @@ int main(int argc, char ** argv)
 		QCommandLineOption disableMenus(QStringList() << "d" << "disable-menus", QCoreApplication::translate("main", "Disable all menus and hop directly into the game."));
 		parser.addOption(disableMenus);
 
-		QCommandLineOption controllerType(QStringList() << "c" << "controller-type", QCoreApplication::translate("main", "Type of the controller to use (user|user1|user2|pid|from plugins...)."), "type", "type");
+		QCommandLineOption controllerType(QStringList() << "c" << "controller-type", QCoreApplication::translate("main", "Type of the controller to use (user|user1|user2|pid|from plugins...)."), "type", "user");
 		parser.addOption(controllerType);
 
 		QCommandLineOption gameMode(QStringList() << "m" << "game-mode", QCoreApplication::translate("main", "Sets the game mode (OnePlayerRace|TwoPlayerRace|TimeTrial|Duel)."), "mode", "OnePlayerRace");
