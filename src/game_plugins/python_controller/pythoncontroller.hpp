@@ -13,26 +13,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Dust Racing 2D. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef PIDCONTROLLER_HPP
-#define PIDCONTROLLER_HPP
+#ifndef PYTHONCONTROLLER_HPP
+#define PYTHONCONTROLLER_HPP
 
-#include "carcontroller.hpp"
-#include "piddata.hpp"
-#include <MCVector2d>
+#include <pidcontroller.hpp>
+#include <fl/Headers.h>
+#include <string>
+#include <fstream>
+#include "pydata.hpp"
 
-class TargetNodeBase;
-class TrackTile;
+#include <Python.h>
 
-class PIDController: public CarController {
+//! A class that allows implementing the controller in Python. 
+class PythonController: public PIDController {
 public:
-	PIDController(Car& car, bool random);
-    virtual ~PIDController() = default;
-
-	//! Update. Computes the signals required to implement PID
-	//! control and calls steerControl and speedControl, which
-	//! may be reimplemented using other types of control.
-	//! In this version steerControl is called before speedControl.
-    virtual void update(bool isRaceCompleted);
+	PythonController(Car& car, PyObject* creation_method, const PyDataMakerPtr& dataMaker);
+	virtual ~PythonController();
 
 protected:
 	//! Steering logic. Returns the steering angle in degrees.
@@ -43,17 +39,11 @@ protected:
 	//! Negative values mean braking.
 	virtual float speedControl(bool isRaceCompleted);
 
-	//! Sets up a random tolerance vector (only used if m_random
-	//! is true).
-	void setRandomTolerance();
-
-protected:
-	PIDData m_steeringData;
-	PIDData m_speedData;
-	bool m_random;
-	int m_lastTargetNodeIndex;
-	MCVector2dF m_randomTolerance;
+private:
+	PyObject* m_controller = nullptr;
+	PyObject* m_steerControl = nullptr;
+	PyObject* m_speedControl = nullptr;
+	PyDataMakerPtr m_dataMaker = nullptr;
 };
 
-#endif // PIDCONTROLLER_HPP
-
+#endif // PYTHONCONTROLLER_HPP

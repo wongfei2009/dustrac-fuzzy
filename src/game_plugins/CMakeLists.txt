@@ -37,4 +37,5 @@ endmacro(add_plugin)
 
 # The individual plugins:
 add_subdirectory(fuzzy_controller)
+add_subdirectory(python_controller)
 
