@@ -2,40 +2,42 @@
 #include "inputhandler.hpp"
 #include "car.hpp"
 
+const float UserController::controlStep = 2;
+
 UserController::UserController(Car& car, InputHandler& handler, unsigned int numPlayer):
 	CarController(car), m_handler(handler), m_num_player(numPlayer) {}
 
-void UserController::update(bool isRaceCompleted) {
-	m_car.clearStatuses();
+float UserController::steerControl(bool isRaceCompleted) {
+	if(isRaceCompleted) return 0;
 
-	// Handle accelerating / braking
-	if (m_handler.getActionState(m_num_player, InputHandler::IA_DOWN))
-	{
-		if (!isRaceCompleted)
-		{
-			m_car.brake();
-		}
-	}
-	else if (m_handler.getActionState(m_num_player, InputHandler::IA_UP))
-	{
-		if (!isRaceCompleted)
-		{
-			m_car.accelerate();
-		}
-	}
-
-	// Handle turning
+	// Handle steering
 	if (m_handler.getActionState(m_num_player, InputHandler::IA_LEFT))
 	{
-		m_car.turnLeft();
+		return -controlStep;
 	}
 	else if (m_handler.getActionState(m_num_player, InputHandler::IA_RIGHT))
 	{
-		m_car.turnRight();
-	}
-	else
-	{
-		m_car.noSteering();
+		return controlStep;
 	}
 
+	return 0;
 }
+
+float UserController::speedControl(bool isRaceCompleted) {
+	if(isRaceCompleted) return 0;
+
+	// Handle braking
+	if (m_handler.getActionState(m_num_player, InputHandler::IA_DOWN))
+	{
+		return -1;
+	}
+
+	// Handle accelerating
+	if (m_handler.getActionState(m_num_player, InputHandler::IA_UP))
+	{
+		return m_car.absSpeed() + 10;
+	}
+
+	return 0;
+}
+

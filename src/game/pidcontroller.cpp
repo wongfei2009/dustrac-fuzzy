@@ -68,6 +68,9 @@ void PIDController::update(bool isRaceCompleted) {
 		float steerC = steerControl(isRaceCompleted);
 		float speedC = speedControl(isRaceCompleted);
 
+		// report the progress to listeners
+		report(steerC, speedC, isRaceCompleted);
+
 		// update control data
 		m_steeringData.updateControl(steerC);
 		m_speedData.updateControl(speedC);

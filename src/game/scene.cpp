@@ -47,6 +47,7 @@
 #include "trackselectionmenu.hpp"
 #include "tracktile.hpp"
 #include "treeview.hpp"
+#include "listenerbank.hpp"
 
 #include "../common/config.hpp"
 #include "../common/targetnodebase.hpp"
@@ -201,6 +202,8 @@ void Scene::createCars()
             } else {
                 m_ai.push_back(AIPtr(new PIDController(*car, true)));
             }
+
+			m_ai.back()->setListeners(&(ListenerBank::instance().getListeners(i)));
 
             car->setRenderLayer(Layers::Objects);
             car->shape()->view()->setShaderProgram(m_renderer.program("car"));

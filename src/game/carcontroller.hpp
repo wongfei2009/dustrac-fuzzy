@@ -17,6 +17,7 @@
 #define CARCONTROLLER_HPP
 
 #include <memory>
+#include "listenerbank.hpp"
 
 class Car;
 class Track;
@@ -25,9 +26,14 @@ class Route;
 //! The base class of car controllers.
 class CarController {
 public:
-	CarController(Car & car);
-	virtual void update(bool isRaceCompleted) = 0;
+	//! @param random Specifies whether the controller will
+	//! have stochastic elements (so that all cars do not do the same).
+	CarController(Car& car);
 	virtual ~CarController() = default;
+	
+	//! Calls upon computeSignals, steerControl and speedControl
+	//! (in that order) and applies the control signals.
+	virtual void update(bool isRaceCompleted);
 
 	//! Set the current race track.
 	void setTrack(Track & track);
@@ -35,10 +41,28 @@ public:
 	//! Get associated car.
 	Car& car() const;
 
+public:
+	const std::set<ListenerPtr>* getListeners() const {return m_listeners;}
+	void setListeners(const std::set<ListenerPtr>* listeners) {m_listeners = listeners;}
+	void resetListeners() {m_listeners = nullptr;}
+
+protected:
+	void report(float steerControl, float speedControl, bool isRaceCompleted);
+
+protected:
+	//! Steering logic. Returns the steering angle in degrees.
+	//! Negative means left.
+	virtual float steerControl(bool isRaceCompleted) = 0;
+
+	//! Brake/accelerate logic. Returns the prescribed speed.
+	//! Negative values mean braking.
+	virtual float speedControl(bool isRaceCompleted) = 0;
+
 protected:
 	Car         & m_car;
 	Track       * m_track;
 	const Route * m_route;
+	const std::set<ListenerPtr>* m_listeners = nullptr;
 };
 
 typedef std::shared_ptr<CarController> AIPtr;

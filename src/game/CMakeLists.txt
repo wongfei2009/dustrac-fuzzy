@@ -63,6 +63,7 @@ set(SRC
     intro.cpp
     keyconfigmenu.cpp
 	loadplugins.cpp
+	listenerbank.cpp
     main.cpp
     mainmenu.cpp
     map.cpp

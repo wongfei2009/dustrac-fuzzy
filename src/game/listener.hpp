@@ -13,32 +13,28 @@
 // You should have received a copy of the GNU General Public License
 // along with Dust Racing 2D. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef USERCONTROLLER_HPP
-#define USERCONTROLLER_HPP
+#ifndef LISTENER_HPP
+#define LISTENER_HPP
 
-#include "carcontroller.hpp"
+#include <memory>
 
-class InputHandler;
+class Car;
+class Track;
 
-//! The base class of car controllers.
-class UserController: public CarController {
+class Listener {
 public:
-	UserController(Car& car, InputHandler& handler, unsigned int numPlayer);
-	virtual ~UserController() = default;
+	virtual void report(
+		const Car& car,
+		const Track* track,
+		float steerControl,
+		float speedControl,
+		bool isRaceCompleted
+	) = 0;
 
-protected:
-	//! Steering logic. Returns the steering angle in degrees.
-	//! Negative means left.
-	virtual float steerControl(bool isRaceCompleted);
-
-	//! Brake/accelerate logic. Returns the prescribed speed.
-	//! Negative values mean braking.
-	virtual float speedControl(bool isRaceCompleted);
-
-protected:
-	InputHandler	& m_handler;
-	unsigned int	m_num_player;
-	static const float controlStep;
+	virtual ~Listener() = default;
 };
 
-#endif // USERCONTROLLER_HPP
+typedef std::shared_ptr<Listener> ListenerPtr;
+
+#endif // LISTENER_HPP
+
