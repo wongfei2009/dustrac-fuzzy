@@ -29,7 +29,7 @@ void loadPlugins(QString path, int argc, char ** argv) {
 	for (QString pluginPath : pluginPaths)
     {
         pluginPath = path + QDir::separator() + pluginPath;
-		void* handle = dlopen(pluginPath.toStdString().c_str(), RTLD_LAZY);
+		void* handle = dlopen(pluginPath.toStdString().c_str(), RTLD_LAZY | RTLD_GLOBAL);
 
 		if (handle) {
 			void (*init)(Game&, int, char**);
