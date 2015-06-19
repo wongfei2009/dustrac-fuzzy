@@ -30,8 +30,6 @@ macro(add_plugin NAME)
 		)
 		# Some Qt deps.
 		qt5_use_modules(${NAME} Widgets Xml)
-
-		MESSAGE("FINISHED ADDING THE STUFF")
 	endif()
 endmacro(add_plugin)
 
