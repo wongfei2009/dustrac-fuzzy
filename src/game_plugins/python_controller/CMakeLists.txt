@@ -3,6 +3,7 @@ set(PythonControllerSRC
 	pydata.cpp
 	pythoncontroller.cpp
 	pylistener.cpp
+	pythonexception.cpp
 	loader.cpp
 )
 

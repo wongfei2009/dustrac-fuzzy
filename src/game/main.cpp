@@ -109,8 +109,8 @@ int main(int argc, char ** argv)
 			argc1 = splitpos;
 			argv1 = argv;
 
-			argc2 = argc - splitpos;
-			argv2 = argv + splitpos;
+			argc2 = argc - splitpos - 1;
+			argv2 = argv + splitpos + 1;
 		} else {
 			argc1 = argc;
 			argv1 = argv;

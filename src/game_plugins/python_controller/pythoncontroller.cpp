@@ -9,7 +9,7 @@
 #include <../common/tracktilebase.hpp>
 
 #include <MCTrigonom>
-#include <MCException>
+#include "pythonexception.hpp"
 
 PythonController::PythonController(Car& car, PyObject* creation_method, const PyDataMakerPtr& dataMaker):
 	PIDController(car, false), m_dataMaker(dataMaker)
@@ -18,18 +18,18 @@ PythonController::PythonController(Car& car, PyObject* creation_method, const Py
         m_controller = PyObject_CallObject(creation_method, NULL);
     }
 	else {
-        throw MCException("The specified Python creation function is not a callable.");
+        throw PythonException("The specified Python creation function is not a callable.");
     }
 
-	if(!m_controller) throw MCException("The Python creation function has not returned a valid object.");
+	if(!m_controller) throw PythonException("The Python creation function has not returned a valid object.");
 
 	m_steerControl = PyObject_GetAttrString(m_controller, "steerControl");
 	if(m_steerControl and !PyCallable_Check(m_steerControl))
-		throw MCException("Name steerControl did not resolve into a valid method.");
+		throw PythonException("Name steerControl did not resolve into a valid method.");
 
 	m_speedControl = PyObject_GetAttrString(m_controller, "speedControl");
 	if(m_speedControl and !PyCallable_Check(m_speedControl))
-		throw MCException("Name speedControl did not resolve into a valid method.");
+		throw PythonException("Name speedControl did not resolve into a valid method.");
 }
 
 PythonController::~PythonController() {
@@ -43,8 +43,13 @@ PythonController::~PythonController() {
 float PythonController::steerControl(bool isRaceCompleted) {
 	if(m_steerControl) {
 		PyObject* data = m_dataMaker->makeData(m_steeringData);
-		float control = PyFloat_AsDouble(PyObject_CallFunctionObjArgs(m_steerControl, data, NULL));
+		PyObject* controlObj = PyObject_CallFunctionObjArgs(m_steerControl, data, NULL);
+
+		if(!controlObj) throw PythonException("An error calling python steerControl.");
+
+		float control = PyFloat_AsDouble(controlObj);
 		Py_DECREF(data);
+		Py_DECREF(controlObj);
 
 		return control;
 	} else {
@@ -57,8 +62,13 @@ float PythonController::steerControl(bool isRaceCompleted) {
 float PythonController::speedControl(bool isRaceCompleted) {
 	if(m_speedControl) {
 		PyObject* data = m_dataMaker->makeData(m_speedData);
-		float control = PyFloat_AsDouble(PyObject_CallFunctionObjArgs(m_speedControl, data, NULL));
+		PyObject* controlObj = PyObject_CallFunctionObjArgs(m_speedControl, data, NULL);
+
+		if(!controlObj) throw PythonException("An error calling python steerControl.");
+
+		float control = PyFloat_AsDouble(controlObj);
 		Py_DECREF(data);
+		Py_DECREF(controlObj);
 
 		return control;
 	} else {
