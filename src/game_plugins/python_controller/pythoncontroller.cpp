@@ -16,20 +16,23 @@ PythonController::PythonController(Car& car, PyObject* creation_method, const Py
 {
 	if (PyCallable_Check(creation_method)) {
         m_controller = PyObject_CallObject(creation_method, NULL);
-    }
-	else {
+    } else {
         throw PythonException("The specified Python creation function is not a callable.");
     }
 
 	if(!m_controller) throw PythonException("The Python creation function has not returned a valid object.");
 
-	m_steerControl = PyObject_GetAttrString(m_controller, "steerControl");
-	if(m_steerControl and !PyCallable_Check(m_steerControl))
-		throw PythonException("Name steerControl did not resolve into a valid method.");
+	if(PyObject_HasAttrString(m_controller, "steerControl")) {
+		m_steerControl = PyObject_GetAttrString(m_controller, "steerControl");
+		if(!PyCallable_Check(m_steerControl))
+			throw PythonException("Name steerControl did not resolve into a valid method.");
+	}
 
-	m_speedControl = PyObject_GetAttrString(m_controller, "speedControl");
-	if(m_speedControl and !PyCallable_Check(m_speedControl))
-		throw PythonException("Name speedControl did not resolve into a valid method.");
+	if(PyObject_HasAttrString(m_controller, "speedControl")) {
+		m_speedControl = PyObject_GetAttrString(m_controller, "speedControl");
+		if(!PyCallable_Check(m_speedControl))
+			throw PythonException("Name speedControl did not resolve into a valid method.");
+	}
 }
 
 PythonController::~PythonController() {

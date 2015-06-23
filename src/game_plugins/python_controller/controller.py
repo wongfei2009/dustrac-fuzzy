@@ -13,15 +13,14 @@ class PIDData:
 class Controller:
     def __init__(self):
         self.net = theanets.Experiment(theanets.Regressor, layers=())
-        self.net.load('network.dat')
-        self.net.network([[1, 1, 1]])[0]
+        self.net.load('data/default_net.dat')
 
     def steerControl(self, data):
-        return self.net.network([[data.error, data.deltaError, data.deltaError2]])[0]
+        return self.net.network.predict([[data.error, data.deltaError, data.deltaError2]])[0]
 #        return -(data.error * 0.025 + data.deltaError * 0.025)
 
-    def speedControl(self, data):
-        return 60
+#    def speedControl(self, data):
+#        return 60
 
 class Listener:
     def __init__(self):

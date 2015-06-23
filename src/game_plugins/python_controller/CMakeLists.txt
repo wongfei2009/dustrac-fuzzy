@@ -18,4 +18,7 @@ if(BUILD_PythonController)
 	# copy/install a default controller file
 	FILE(COPY controller.py DESTINATION ${CMAKE_BINARY_DIR}/data)
 	install(FILES controller.py DESTINATION data)
+
+	FILE(COPY default_net.dat DESTINATION ${CMAKE_BINARY_DIR}/data)
+	install(FILES default_net.dat DESTINATION data)
 endif()
