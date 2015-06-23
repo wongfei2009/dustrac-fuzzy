@@ -20,7 +20,7 @@ include_directories("${GAME_DIR}/STFH")
 macro(add_plugin NAME)
 	option("BUILD_${NAME}" "Enable support for plugin ${NAME}." ON)
 
-	if("BUILD_${NAME}")
+	if(BUILD_${NAME})
 		add_library(${NAME} SHARED ${ARGN})
 		set_target_properties(${NAME}
 			 PROPERTIES

@@ -21,25 +21,42 @@
 #include <QStringList>
 #include <MCLogger>
 
-#include <dlfcn.h>
+#ifdef __unix__
+	#include <dlfcn.h>
+#elif defined(_WIN32) || defined(WIN32)
+	#include <windows.h>
+#endif
 
 void loadPlugins(QString path, int argc, char ** argv) {
 	QStringList pluginPaths(QDir(path).entryList(QStringList("*.dpl")));
-	
+
 	for (QString pluginPath : pluginPaths)
     {
         pluginPath = path + QDir::separator() + pluginPath;
-		void* handle = dlopen(pluginPath.toStdString().c_str(), RTLD_LAZY | RTLD_GLOBAL);
 
-		if (handle) {
-			void (*init)(Game&, int, char**);
-			*(void **)(&init) = dlsym(handle, "init");
-			if(init) (*init)(Game::instance(), argc, argv);
-			else MCLogger().error() << "Couldn't initialize plugin '" << pluginPath.toStdString() << "'.";
-		} else {
-			MCLogger().error() << "Couldn't load plugin '" << pluginPath.toStdString() << "'.";
-		}
+        #ifdef __unix__
+            void* handle = dlopen(pluginPath.toStdString().c_str(), RTLD_LAZY | RTLD_GLOBAL);
 
+            if (handle) {
+                void (*init)(Game&, int, char**);
+                *(void **)(&init) = dlsym(handle, "init");
+                if(init) (*init)(Game::instance(), argc, argv);
+                else MCLogger().error() << "Couldn't initialize plugin '" << pluginPath.toStdString() << "'.";
+            } else {
+                MCLogger().error() << "Couldn't load plugin '" << pluginPath.toStdString() << "'.";
+            }
+        #elif defined(_WIN32) || defined(WIN32)
+            HINSTANCE handle = LoadLibrary(pluginPath.toStdString().c_str());
+
+            if (handle) {
+                typedef void (__stdcall *init_t)(Game&, int, char**);
+                init_t init = (init_t) GetProcAddress(handle, "init");
+                if(init) (*init)(Game::instance(), argc, argv);
+                else MCLogger().error() << "Couldn't initialize plugin '" << pluginPath.toStdString() << "'.";
+            } else {
+                MCLogger().error() << "Couldn't load plugin '" << pluginPath.toStdString() << "'.";
+            }
+        #endif
     }
 }
 

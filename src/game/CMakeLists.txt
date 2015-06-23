@@ -21,6 +21,9 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/MTFH")
 # Sound toolkit include paths
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/STFH")
 
+# OpenAL include paths
+include_directories(${OPENAL_INCLUDE_DIR})
+
 # Translation files in src/game/translations (without .ts)
 set(TS dustrac-game_fi dustrac-game_it dustrac-game_cs dustrac-game_fr)
 set(TS_FILES)
