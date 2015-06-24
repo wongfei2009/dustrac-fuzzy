@@ -75,7 +75,7 @@ Car::Car(Description & desc, MCSurface & surface, MCUint index, bool isHuman)
     numberPlate->setRenderLayerRelative(1);
 
     const MCFloat offTrackFrictionFactor = 0.65;
-    const MCFloat frontFriction = 0.85;
+    const MCFloat frontFriction = 2.5;
     m_leftFrontTire.reset(new Tire(*this, frontFriction, frontFriction * offTrackFrictionFactor));
     addChildObject(m_leftFrontTire, m_desc.leftFrontTirePos, 0);
     m_leftFrontTire->setRenderLayerRelative(-1);
@@ -84,7 +84,7 @@ Car::Car(Description & desc, MCSurface & surface, MCUint index, bool isHuman)
     addChildObject(m_rightFrontTire, m_desc.rightFrontTirePos, 0);
     m_rightFrontTire->setRenderLayerRelative(-1);
 
-    const MCFloat rearFriction = 0.95;
+    const MCFloat rearFriction = 3;
     m_leftRearTire.reset(new Tire(*this, rearFriction, rearFriction * offTrackFrictionFactor));
     addChildObject(m_leftRearTire, m_desc.leftRearTirePos, 0);
     m_leftRearTire->setRenderLayerRelative(-1);
@@ -98,7 +98,7 @@ void Car::setProperties(Description & desc)
 {
     setRenderLayer(Layers::Objects);
     setMass(desc.mass);
-    setMomentOfInertia(desc.mass * 3);
+    setMomentOfInertia(desc.mass * 2);
     setRestitution(desc.restitution);
     setShadowOffset(MCVector2dF(5, -5));
 

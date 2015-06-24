@@ -6,7 +6,6 @@
 
 #include <QCommandLineOption>
 #include <QCommandLineParser>
-#include <MCException>
 
 #include "loader.hpp"
 #include "pythoncontroller.hpp"

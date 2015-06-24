@@ -2,7 +2,7 @@
 #include "inputhandler.hpp"
 #include "car.hpp"
 
-const float UserController::controlStep = 2;
+const float UserController::controlStep = 0.5;
 
 UserController::UserController(Car& car, InputHandler& handler, unsigned int numPlayer):
 	CarController(car), m_handler(handler), m_num_player(numPlayer) {}
@@ -35,7 +35,7 @@ float UserController::speedControl(bool isRaceCompleted) {
 	// Handle accelerating
 	if (m_handler.getActionState(m_num_player, InputHandler::IA_UP))
 	{
-		return m_car.absSpeed() + 10;
+		return m_car.speedInKmh() + 10;
 	}
 
 	return 0;

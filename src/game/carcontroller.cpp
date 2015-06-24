@@ -33,7 +33,7 @@ void CarController::update(bool isRaceCompleted) {
 
 	// accelerate/brake according to speedC
 	if(speedC < 0) m_car.brake();
-	else if(speedC > m_car.absSpeed()) m_car.accelerate();
+	else if(speedC > m_car.speedInKmh()) m_car.accelerate();
 }
 
 void CarController::report(float steerControl, float speedControl, bool isRaceCompleted) {

@@ -87,7 +87,7 @@ void PIDController::update(bool isRaceCompleted) {
 
 		// accelerate/brake according to speedC
 		if(speedC < 0) m_car.brake();
-		else if(speedC > m_car.absSpeed()) m_car.accelerate();
+		else if(speedC > m_car.speedInKmh()) m_car.accelerate();
 
 		// is this update to track progress??
 		m_lastTargetNodeIndex = m_car.currentTargetNodeIndex();
@@ -113,7 +113,7 @@ float PIDController::speedControl(bool isRaceCompleted)
     m_car.location().i(), m_car.location().j());
 
 	// Current speed of the car.
-    const float absSpeed = m_car.absSpeed();
+    const float absSpeed = m_car.speedInKmh();
 	// The prescribed speed under the circumnstances.
 	// By default, we accelerate slightly.
 	float controlSpeed = absSpeed + 1;
@@ -125,7 +125,7 @@ float PIDController::speedControl(bool isRaceCompleted)
     else
     {
         // The following speed limits are experimentally defined.
-        float scale = 0.9;
+        float scale = 8.1;
         if (currentTile.computerHint() == TrackTile::CH_BRAKE)
         {
             if (absSpeed > 14.0 * scale)
