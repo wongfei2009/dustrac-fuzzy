@@ -39,6 +39,7 @@
 #include <MCShape>
 #include <MCShapeView>
 #include <MCSurfaceManager>
+#include <MCTrigonom>
 
 static const int HUMAN_PLAYER_INDEX1 = 0;
 static const int HUMAN_PLAYER_INDEX2 = 1;
@@ -396,17 +397,14 @@ void Race::updateRouteProgress(Car & car)
     {
         if (!m_timing.raceCompleted(car.index()))
         {
-            // Check is car is stuck and if so, move onto nearest asphalt tile.
-            if (!car.isHuman())
+            if (!car.isHuman() or Settings::instance().getResetStuckPlayer())
             {
+				// Check is car is stuck and if so, move onto nearest asphalt tile.
                 checkIfCarIsStuck(car);
-            }
-
-            // Check is car is off track and display a message.
-            if (car.isHuman())
-            {
-                checkIfCarIsOffTrack(car);
-            }
+            } else {
+				// Check is car is off track and display a message.
+				checkIfCarIsOffTrack(car);
+			}
 
             // Give a bit more tolerance for other than the finishing check point.
             const int tolerance = (currentTargetNodeIndex == 0 ? 0 : TrackTile::TILE_H / 20);
@@ -549,6 +547,12 @@ void Race::moveCarOntoPreviousCheckPoint(Car & car)
     car.translate(MCVector3dF(
         tnode.location().x() + rand()%randRadius - randRadius / 2,
         tnode.location().y() + rand()%randRadius - randRadius / 2));
+	
+	MCVector3dF target(tnode.location().x(), tnode.location().y());
+	target -= MCVector3dF(car.location());
+	MCFloat angle = MCTrigonom::radToDeg(std::atan2(target.j(), target.i()));
+	car.rotate(angle);
+
     car.resetMotion();
 }
 

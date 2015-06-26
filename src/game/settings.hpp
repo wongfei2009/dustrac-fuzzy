@@ -120,6 +120,14 @@ public:
     	if(m_disableRendering) m_menusDisabled = true;
     }
 
+	bool getResetStuckPlayer() const {
+		return m_resetStuckPlayer;
+	}
+
+	void setResetStuckPlayer(bool resetStuckPlayer) {
+		m_resetStuckPlayer = resetStuckPlayer;
+	}
+
 private:
     QString m_controllerType;
     QString m_customTrackFile;
@@ -134,6 +142,7 @@ private:
     bool m_useTermResolution = false;
 
     bool m_disableRendering = false;
+	bool m_resetStuckPlayer = false;
 
 private:
     QString combineActionAndPlayer(int player, InputHandler::InputAction action);

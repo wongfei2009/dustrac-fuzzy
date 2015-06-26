@@ -169,6 +169,9 @@ int main(int argc, char ** argv)
 		QCommandLineOption disableRendering(QStringList() << "disable-rendering", QCoreApplication::translate("main", "Disables rendering."));
 		parser.addOption(disableRendering);
 
+		QCommandLineOption stuckPlayerCheck(QStringList() << "s" << "stuck-player", QCoreApplication::translate("main", "Enables checking whether players' cars are stuck."));
+		parser.addOption(stuckPlayerCheck);
+
 		// parse the options
 		parser.process(app);
 
@@ -180,6 +183,7 @@ int main(int argc, char ** argv)
 		settings.setCustomTrackFile(parser.value(customTrackFile));
 		settings.setLapCount(parser.value(lapCount).toInt());
 		settings.setDisableRendering(parser.isSet(disableRendering));
+		settings.setResetStuckPlayer(parser.isSet(stuckPlayerCheck));
 
 		if(parser.isSet(fullscreenOpt) || parser.isSet(windowedOpt) || parser.isSet(hresOpt) || parser.isSet(vresOpt)) {
 			int hRes, vRes;
