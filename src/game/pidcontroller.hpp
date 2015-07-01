@@ -43,16 +43,8 @@ protected:
 	//! Negative values mean braking.
 	virtual float speedControl(bool isRaceCompleted);
 
-	//! Sets up a random tolerance vector (only used if m_random
-	//! is true).
-	void setRandomTolerance();
-
 protected:
-	PIDData m_steeringData;
-	PIDData m_speedData;
-	bool m_random;
-	int m_lastTargetNodeIndex;
-	MCVector2dF m_randomTolerance;
+	PIDData m_data;
 };
 
 #endif // PIDCONTROLLER_HPP

@@ -44,14 +44,14 @@ float FuzzyController::steerControl(bool) {
 	// if there is only one input variable, run this as a P controller,
 	// if two, run as a PD
 	if(m_fis->numberOfInputVariables() >= 3) {
-		m_fis->getInputVariable(0)->setInputValue(m_steeringData.error);
-		m_fis->getInputVariable(1)->setInputValue(m_steeringData.deltaError);
-		m_fis->getInputVariable(2)->setInputValue(m_car.absSpeed());
+		m_fis->getInputVariable(0)->setInputValue(m_data.angularErrors.error);
+		m_fis->getInputVariable(1)->setInputValue(m_data.angularErrors.deltaError);
+		m_fis->getInputVariable(2)->setInputValue(m_car.speedInKmh());
 	} else if(m_fis->numberOfInputVariables() >= 2) {
-		m_fis->getInputVariable(0)->setInputValue(m_steeringData.error);
-		m_fis->getInputVariable(1)->setInputValue(m_steeringData.deltaError);
+		m_fis->getInputVariable(0)->setInputValue(m_data.angularErrors.error);
+		m_fis->getInputVariable(1)->setInputValue(m_data.angularErrors.deltaError);
 	} else {
-		m_fis->getInputVariable(0)->setInputValue(m_steeringData.error);
+		m_fis->getInputVariable(0)->setInputValue(m_data.angularErrors.error);
 	}
 
 	// run the fuzzy controller
@@ -63,7 +63,7 @@ float FuzzyController::speedControl(bool isRaceCompleted) {
 	// if the fuzzy controller has two outputs, use the second one for speed
 	// control; otherwise fall back to the standard version
 	if(m_fis->numberOfOutputVariables() >= 2) {
-		return m_fis->getOutputVariable(1)->defuzzify() / 10;
+		return m_fis->getOutputVariable(1)->defuzzify();
 	} else {
 		return PIDController::speedControl(isRaceCompleted);
 	}

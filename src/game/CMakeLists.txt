@@ -81,6 +81,7 @@ set(SRC
     openalwavdata.cpp
     overlaybase.cpp
 	pidcontroller.cpp
+	piddata.cpp
     race.cpp
     renderer.cpp
     resolutionmenu.cpp
