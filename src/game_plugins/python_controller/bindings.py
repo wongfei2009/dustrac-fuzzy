@@ -5,8 +5,8 @@ class DiffStore:
         self.deltaError2 = deltaError2  
 
 class PIDData:
-    def __init__(self, angularErrors, lateralErrors, steerControl, speedControl):
+    def __init__(self, angularErrors, distanceErrors, steerControl, speedControl):
         self.angularErrors = angularErrors
-        self.lateralErrors = lateralErrors
+        self.distanceErrors = distanceErrors
         self.steerControl = steerControl
         self.speedControl = speedControl

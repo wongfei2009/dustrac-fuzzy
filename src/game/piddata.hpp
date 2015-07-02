@@ -38,7 +38,7 @@ public:
 
 public:
 	DiffStore angularErrors;
-	DiffStore lateralErrors;
+	DiffStore distanceErrors;
 	float steerControl;
 	float speedControl;
 	
@@ -54,8 +54,8 @@ public:
 	}
 
 private:
-	void updateRandomTolerance();
-	MCVector2dF generateTolerance() const;
+	MCVector2dF generateDisplacement() const;
+	inline void updateDisplacement();
 
 	MCFloat constrainAngle(MCFloat x)
 	{
@@ -71,10 +71,8 @@ private:
 	//! Index of the last target node on the prescribed route (so that we
 	//! know when it changes).
 	unsigned int m_lastTargetNodeIndex;
-	//! A random vector added to the position of the previous node for this car.
-	MCVector2dF m_prevRandomTolerance;
 	//! A random vector added to the position of the current node for this car.
-	MCVector2dF m_curRandomTolerance;
+	MCVector2dF m_randomDisplacement;
 };
 
 #endif // PIDDATA_HPP

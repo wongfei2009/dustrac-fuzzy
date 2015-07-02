@@ -7,8 +7,8 @@ class Controller:
         self.net.load('data/default_net.dat')
 
     def steerControl(self, data):
-#        return self.net.network.predict([[data.lateralErrors.error,
-#            data.lateralErrors.deltaError, data.lateralErrors.deltaError2]])[0]
+#        return self.net.network.predict([[data.angularErrors.error,
+#            data.angularErrors.deltaError, data.angularErrors.deltaError2]])[0]
         return -(data.angularErrors.error * 0.025 + data.angularErrors.deltaError * 0.025)
 
 #    def speedControl(self, data):
@@ -18,7 +18,7 @@ class Listener:
     def __init__(self):
         self.data = None
 
-    def report(self, piddata, tnodedistance):
+    def report(self, piddata):
         item = [piddata.angularErrors.error, piddata.angularErrors.deltaError,
                 piddata.angularErrors.deltaError2, piddata.steerControl, piddata.speedControl]
 

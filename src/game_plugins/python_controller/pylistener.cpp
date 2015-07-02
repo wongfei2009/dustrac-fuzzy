@@ -48,7 +48,7 @@ void PyListener::report(
 	PyObject* pidData = m_dataMaker->makeData(m_data);
 	PyObject* distance = PyFloat_FromDouble(tnodedistance);
 
-	PyObject* res = PyObject_CallFunctionObjArgs(m_reportFunc, pidData, distance, NULL);
+	PyObject* res = PyObject_CallFunctionObjArgs(m_reportFunc, pidData, NULL);
 	if(!res) throw PythonException("Unsuccessful call to PyListener's report.");
 
 	Py_DECREF(pidData);

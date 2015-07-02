@@ -33,14 +33,14 @@ PyObject* PyDataMaker::makeData(const DiffStore& diffData)
 
 PyObject* PyDataMaker::makeData(const PIDData& pidData) {
 	PyObject* angularErrors = makeData(pidData.angularErrors);
-	PyObject* lateralErrors = makeData(pidData.lateralErrors);
+	PyObject* distanceErrors = makeData(pidData.distanceErrors);
 	PyObject* steerControl = PyFloat_FromDouble(pidData.steerControl);
 	PyObject* speedControl = PyFloat_FromDouble(pidData.speedControl);
 
-	PyObject* data = PyObject_CallFunctionObjArgs(m_dataMethod, angularErrors, lateralErrors, steerControl, speedControl, NULL);
+	PyObject* data = PyObject_CallFunctionObjArgs(m_dataMethod, angularErrors, distanceErrors, steerControl, speedControl, NULL);
 
 	Py_DECREF(angularErrors);
-	Py_DECREF(lateralErrors);
+	Py_DECREF(distanceErrors);
 	Py_DECREF(steerControl);
 	Py_DECREF(speedControl);
 
