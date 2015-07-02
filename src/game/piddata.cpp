@@ -62,10 +62,10 @@ void PIDData::updateErrors(const Car& car, const Route& route)
 	MCFloat angleError = constrainAngle(targetAngle - car.angle());
 	angularErrors.update(angleError);
 
-	// point-line distance formula from
-	// http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
-	// point x0 is origin in our case
-	MCFloat lateralError = ((curTarget) % (prevTarget)).length() / (prevTarget - curTarget).length();
+	// point-line distance formula from http://geomalgorithms.com/a02-_lines.html
+	MCVector3dF ul = (curTarget - prevTarget).normalized();
+	MCVector3dF w = -prevTarget;
+	MCFloat lateralError = (ul % w).length();
 	lateralErrors.update(lateralError);
 }
 
