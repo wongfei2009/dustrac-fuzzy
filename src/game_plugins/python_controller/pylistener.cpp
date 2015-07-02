@@ -1,5 +1,6 @@
 #include "pylistener.hpp"
 #include "pydata.hpp"
+#include "pythonexception.hpp"
 
 #include <car.hpp>
 #include <track.hpp>
@@ -11,7 +12,7 @@
 #include <MCException>
 
 PyListener::PyListener(PyObject* listenerFunc, const PyDataMakerPtr& dataMaker):
-m_steerData(), m_speedData(), m_dataMaker(dataMaker)
+m_data(false), m_dataMaker(dataMaker)
 {
 	m_listenerObj = PyObject_CallObject(listenerFunc, NULL);
 	if(!m_listenerObj) throw MCException("The Python listener creation function has not returned a valid object.");
@@ -39,22 +40,17 @@ void PyListener::report(
 	// Initial target coordinates
 	MCVector3dF target(tnode.location().x(), tnode.location().y());
 	target -= MCVector3dF(car.location());
+	double tnodedistance = target.length();
 
-	MCFloat angle = MCTrigonom::radToDeg(std::atan2(target.j(), target.i()));
-	MCFloat cur   = static_cast<int>(car.angle()) % 360;
-	MCFloat diff  = angle - cur;
+	m_data.updateErrors(car, route);
+	m_data.updateControl(steerControl, speedControl);
 
-	m_steerData.updateError(diff);
-	m_speedData.updateError(diff);
+	PyObject* pidData = m_dataMaker->makeData(m_data);
+	PyObject* distance = PyFloat_FromDouble(tnodedistance);
 
-	m_steerData.updateControl(steerControl);
-	m_speedData.updateControl(speedControl);
+	PyObject* res = PyObject_CallFunctionObjArgs(m_reportFunc, pidData, distance, NULL);
+	if(!res) throw PythonException("Unsuccessful call to PyListener's report.");
 
-	PyObject* steerData = m_dataMaker->makeData(m_steerData);
-	PyObject* speedData = m_dataMaker->makeData(m_speedData);
-
-	PyObject_CallFunctionObjArgs(m_reportFunc, steerData, speedData, NULL);
-
-	Py_DECREF(steerData);
-	Py_DECREF(speedData);
+	Py_DECREF(pidData);
+	Py_DECREF(distance);
 }

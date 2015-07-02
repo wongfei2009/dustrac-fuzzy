@@ -15,6 +15,10 @@ if(BUILD_PythonController)
 
 	target_link_libraries(PythonController ${PYTHON_LIBRARIES})
 
+	# copy/install the python header with the bindings
+	FILE(COPY bindings.py DESTINATION ${CMAKE_BINARY_DIR}/data)
+	install(FILES bindings.py DESTINATION data)
+
 	# copy/install a default controller file
 	FILE(COPY controller.py DESTINATION ${CMAKE_BINARY_DIR}/data)
 	install(FILES controller.py DESTINATION data)

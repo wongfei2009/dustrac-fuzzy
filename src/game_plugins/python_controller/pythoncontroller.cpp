@@ -45,9 +45,9 @@ PythonController::~PythonController() {
 //! Negative means left.
 float PythonController::steerControl(bool isRaceCompleted) {
 	if(m_steerControl) {
-		PyObject* data = m_dataMaker->makeData(m_steeringData);
-		PyObject* controlObj = PyObject_CallFunctionObjArgs(m_steerControl, data, NULL);
+		PyObject* data = m_dataMaker->makeData(m_data);
 
+		PyObject* controlObj = PyObject_CallFunctionObjArgs(m_steerControl, data, NULL);
 		if(!controlObj) throw PythonException("An error calling python steerControl.");
 
 		float control = PyFloat_AsDouble(controlObj);
@@ -64,7 +64,7 @@ float PythonController::steerControl(bool isRaceCompleted) {
 //! Negative values mean braking.
 float PythonController::speedControl(bool isRaceCompleted) {
 	if(m_speedControl) {
-		PyObject* data = m_dataMaker->makeData(m_speedData);
+		PyObject* data = m_dataMaker->makeData(m_data);
 		PyObject* controlObj = PyObject_CallFunctionObjArgs(m_speedControl, data, NULL);
 
 		if(!controlObj) throw PythonException("An error calling python steerControl.");

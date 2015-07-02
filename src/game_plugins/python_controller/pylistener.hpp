@@ -36,8 +36,7 @@ public:
 	);
 
 private:
-	PIDData m_steerData;
-	PIDData m_speedData;
+	PIDData m_data;
 	PyObject* m_listenerObj = nullptr;
 	PyObject* m_reportFunc = nullptr;
 	PyDataMakerPtr m_dataMaker = nullptr;

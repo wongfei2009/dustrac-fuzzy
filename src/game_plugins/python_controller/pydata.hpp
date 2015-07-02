@@ -20,18 +20,22 @@
 #include <memory>
 
 class PIDData;
+class DiffStore;
 
 class PyDataMaker {
 public:
-	PyDataMaker(PyObject* dataMethod);
+	PyDataMaker(PyObject* bindingsModule);
+	~PyDataMaker();
 
 public:
 	//! Turns PIDData into a Python object. Remeber to decref the
 	//! object using Py_DECREF when you are done with it.
 	PyObject* makeData(const PIDData& pidData);
+	PyObject* makeData(const DiffStore& diffData);
 
 private:
 	PyObject* m_dataMethod = nullptr;
+	PyObject* m_diffMethod = nullptr;
 };
 
 typedef std::shared_ptr<PyDataMaker> PyDataMakerPtr;
