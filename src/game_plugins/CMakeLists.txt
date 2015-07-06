@@ -18,7 +18,7 @@ include_directories("${GAME_DIR}/MTFH")
 include_directories("${GAME_DIR}/STFH")
 
 macro(add_plugin NAME)
-	option("BUILD_${NAME}" "Enable support for plugin ${NAME}." ON)
+	option("BUILD_${NAME}" "Enable support for plugin ${NAME}." OFF)
 
 	if(BUILD_${NAME})
 		add_library(${NAME} SHARED ${ARGN})

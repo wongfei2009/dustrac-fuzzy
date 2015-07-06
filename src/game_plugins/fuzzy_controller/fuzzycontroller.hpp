@@ -40,7 +40,6 @@ protected:
 	virtual float speedControl(bool isRaceCompleted);
 
 protected:
-    int           m_lastDiff = 0;
     fl::Engine* m_fis;
 };
 
