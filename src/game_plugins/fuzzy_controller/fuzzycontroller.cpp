@@ -1,13 +1,5 @@
 #include <fuzzycontroller.hpp>
 #include <car.hpp>
-#include <track.hpp>
-#include <trackdata.hpp>
-#include <tracktile.hpp>
-#include <../common/route.hpp>
-#include <../common/targetnodebase.hpp>
-#include <../common/tracktilebase.hpp>
-
-#include <MCTrigonom>
 
 FuzzyController::FuzzyController(Car& car, fl::Engine* engine):
 	PIDController(car, false), m_fis(engine) {}
