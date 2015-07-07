@@ -11,8 +11,8 @@ add_plugin(FuzzyController ${FuzzyControllerSRC})
 
 if(BUILD_FuzzyController)
 	# Find fuzzylite.
-	find_package(fuzzylite)
-	include_directories("${fuzzylite_INCLUDE_DIRS}")
+	find_package(fuzzylite REQUIRED)
+	include_directories("${fuzzylite_INCLUDE_DIR}")
 
 	target_link_libraries(FuzzyController ${fuzzylite_LIBRARIES})
 

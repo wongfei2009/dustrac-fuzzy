@@ -1,7 +1,12 @@
 # - Try to find fuzzylite
+# This module reads hints about search locations from variables:
+# fuzzylite_DIR Hint about the location of the entire project.
+# fuzzylite_INCLUDEDIR Hint about the location of the includes.
+# fuzzylite_LIBRARYDIR Hint about the location of the libraries.
+#
 # Once done this will define
 #  fuzzylite_FOUND - System has fuzzylite
-#  fuzzylite_INCLUDE_DIRS - The fuzzylite include directories
+#  fuzzylite_INCLUDE_DIR - The fuzzylite include directories
 #  fuzzylite_LIBRARIES - The libraries needed to use fuzzylite
 #  fuzzylite_DEFINITIONS - Compiler switches required for using fuzzylite
 
