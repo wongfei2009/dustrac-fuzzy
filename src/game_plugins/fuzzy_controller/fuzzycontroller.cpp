@@ -48,14 +48,14 @@ float FuzzyController::steerControl(bool) {
 
 	// run the fuzzy controller
 	m_fis->process();
-	return m_fis->getOutputVariable(0)->defuzzify();
+	return m_fis->getOutputVariable(0)->getOutputValue();
 }
 
 float FuzzyController::speedControl(bool isRaceCompleted) {
 	// if the fuzzy controller has two outputs, use the second one for speed
 	// control; otherwise fall back to the standard version
 	if(m_fis->numberOfOutputVariables() >= 2) {
-		return m_fis->getOutputVariable(1)->defuzzify();
+		return m_fis->getOutputVariable(1)->getOutputValue();
 	} else {
 		return PIDController::speedControl(isRaceCompleted);
 	}
