@@ -93,39 +93,16 @@ int main(int argc, char ** argv)
 {
     try
     {
-		// split the argument list into two parts: before -- and after --
-		int splitpos = -1;
-		for(int i = 0; i < argc; i++) {
-			if(!std::strcmp(argv[i], "--")) {
-				splitpos = i;
-				break;
-			}
-		}
-
-		int argc1, argc2;
-		char ** argv1, ** argv2;
-
-		if(splitpos >= 0) {
-			argc1 = splitpos;
-			argv1 = argv;
-
-			argc2 = argc - splitpos - 1;
-			argv2 = argv + splitpos + 1;
-		} else {
-			argc1 = argc;
-			argv1 = argv;
-			argc2 = 0;
-			argv2 = nullptr;
-		}
-
-        QApplication app(argc1, argv1);
+        QApplication app(argc, argv);
         QCoreApplication::setApplicationName(Config::Game::GAME_NAME);
         QCoreApplication::setApplicationVersion(Config::Game::GAME_VERSION);
+
+        initLogger();
 
         // command line options parser
         QCommandLineParser parser;
 		parser.setApplicationDescription(QCoreApplication::translate("main",
-			"Plugin options may be entered, but must be separated using --.\n"
+			"Plugin options are entered inside --PluginName \"-options\".\n"
 			"%1 %2\n"
 			"Copyright (c) 2011-2015 Jussi Lind."
 		).arg(Config::Game::GAME_NAME).arg(Config::Game::GAME_VERSION));
@@ -172,6 +149,17 @@ int main(int argc, char ** argv)
 		QCommandLineOption stuckPlayerCheck(QStringList() << "s" << "stuck-player", QCoreApplication::translate("main", "Enables checking whether players' cars are stuck."));
 		parser.addOption(stuckPlayerCheck);
 
+		// load plugins
+		loadPlugins(QString(Config::Game::pluginPath));
+	
+		// for every plugin, add a CLI argument
+		for(auto& plugin: PluginRegister) {
+			MCLogger().info() << "Loaded plugin " << plugin.second->name << ".";
+
+			QCommandLineOption pluginOpt(QStringList() << plugin.second->name.c_str(), QCoreApplication::translate("main", 					"Arguments for a plugin."), "\"arguments\"");
+			parser.addOption(pluginOpt);
+		}
+
 		// parse the options
 		parser.process(app);
 
@@ -200,7 +188,6 @@ int main(int argc, char ** argv)
 		}
 
         QTranslator appTranslator;
-        initLogger();
         initTranslations(appTranslator, app, parser.value(langOption));
         checkOpenGLVersion();
 
@@ -208,8 +195,11 @@ int main(int argc, char ** argv)
         MCLogger().info() << "Creating game object.";
         Game game(parser.isSet(vsyncOption));
 
-		// loads plugins
-		loadPlugins(QString(Config::Game::pluginPath), argc2, argv2);
+		// initialize all plugins
+		for(auto& plugin: PluginRegister) {
+			QStringList args = makeArgs(argv[0], parser.value(QString(plugin.second->name.c_str())));
+			initPlugin(plugin.first, *plugin.second, args);
+		}
 
         // Initialize and start the game
         if (game.init())

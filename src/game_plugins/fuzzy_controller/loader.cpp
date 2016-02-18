@@ -7,13 +7,18 @@
 #include "loader.hpp"
 #include "fuzzycontroller.hpp"
 
-void init(Game&, int argc, char ** argv) {
-	QStringList args;
-	args << "plugin";
-	for(int i = 0; i < argc; i++) {
-		args << argv[i];
-	}
+PluginInfo* pluginInfo() {
+	static PluginInfo* info = nullptr;
+	
+	if(!info) {
+		info = new PluginInfo;
+		info->name = "FuzzyController";
+	}	
 
+	return info;
+}
+
+void init(Game&, const QStringList& args) {
 	QCommandLineParser parser;
 	QCommandLineOption pathOption(QStringList() << "p" << "controller-path", QCoreApplication::translate("main", "Path to the controller file (if any)."), "file", "data/controller.fis");
 	parser.addOption(pathOption);

@@ -12,14 +12,18 @@
 #include "pylistener.hpp"
 #include "pythonexception.hpp"
 
-void init(Game&, int argc, char ** argv) {
-	QStringList args;
-	args << "plugin";
-	for(int i = 0; i < argc; i++) {
-		args << argv[i];
-		std::cout << argv[i] << std::endl;
-	}
+PluginInfo* pluginInfo() {
+	static PluginInfo* info = nullptr;
+	
+	if(!info) {
+		info = new PluginInfo;
+		info->name = "PythonController";
+	}	
 
+	return info;
+}
+
+void init(Game&, const QStringList& args) {
 	QCommandLineParser parser;
 	QCommandLineOption pathOption(QStringList() << "p" << "controller-path", QCoreApplication::translate("main", "Path to the controller file (if any)."), "file", "controller");
 	parser.addOption(pathOption);
@@ -45,7 +49,9 @@ void init(Game&, int argc, char ** argv) {
 
 	PyObject* bindings = PyImport_ImportModule("bindings");
 	if(!bindings) throw PythonException("Failed loading python module 'bindings'.");
+
 	PyObject* pModule =  PyImport_ImportModule(controllerPath.c_str());
+
 	if(!pModule) throw PythonException("Failed loading python module '" + controllerPath + "'.");
 
 	// pModuleDict is a borrowed reference
