@@ -159,6 +159,8 @@ Scene::Scene(Game & game, StateMachine & stateMachine, Renderer & renderer)
 
 		if(!Settings::instance().getMenusDisabled()) createMenus();
 //	}
+
+	m_cameraSmoothing = Settings::instance().getCameraSmoothing();
 }
 
 void Scene::setupAudio(Car & car, int index)
@@ -348,6 +350,10 @@ void Scene::updateCameraLocation(MCCamera & camera, MCFloat & offset, MCObject &
 
     offset += (object.velocity().lengthFast() - offset) * smooth;
     loc    += object.direction() * offset * offsetAmplification;
+
+	// additional camera smoothing for the cases when the controller oscillates
+	MCVector2dF oldLoc(camera.x(), camera.y());
+	loc = oldLoc + (loc - oldLoc) * m_cameraSmoothing;
 
     camera.setPos(loc.i(), loc.j());
 }

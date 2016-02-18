@@ -162,6 +162,8 @@ private:
     typedef std::vector<AIPtr> AIVector;
     AIVector m_ai;
 
+	float m_cameraSmoothing;
+
     // TreeViews need to be separately updated.
     std::vector<TreeView *> m_treeViews;
 

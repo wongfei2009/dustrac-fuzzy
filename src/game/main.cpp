@@ -149,6 +149,9 @@ int main(int argc, char ** argv)
 		QCommandLineOption stuckPlayerCheck(QStringList() << "s" << "stuck-player", QCoreApplication::translate("main", "Enables checking whether players' cars are stuck."));
 		parser.addOption(stuckPlayerCheck);
 
+		QCommandLineOption cameraSmoothing(QStringList() << "camera-smoothing", QCoreApplication::translate("main", "Sets camera smoothing."), "(0, 1]", "0.1");
+		parser.addOption(cameraSmoothing);
+
 		// load plugins
 		loadPlugins(QString(Config::Game::pluginPath));
 	
@@ -172,6 +175,7 @@ int main(int argc, char ** argv)
 		settings.setLapCount(parser.value(lapCount).toInt());
 		settings.setDisableRendering(parser.isSet(disableRendering));
 		settings.setResetStuckPlayer(parser.isSet(stuckPlayerCheck));
+		settings.setCameraSmoothing(parser.value(cameraSmoothing).toFloat());
 
 		if(parser.isSet(fullscreenOpt) || parser.isSet(windowedOpt) || parser.isSet(hresOpt) || parser.isSet(vresOpt)) {
 			int hRes, vRes;

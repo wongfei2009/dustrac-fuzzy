@@ -128,6 +128,14 @@ public:
 		m_resetStuckPlayer = resetStuckPlayer;
 	}
 
+	float getCameraSmoothing() const {
+		return m_cameraSmoothing;
+	}
+
+	void setCameraSmoothing(float cameraSmoothing) {
+		m_cameraSmoothing = cameraSmoothing;
+	}
+
 private:
     QString m_controllerType;
     QString m_customTrackFile;
@@ -143,6 +151,8 @@ private:
 
     bool m_disableRendering = false;
 	bool m_resetStuckPlayer = false;
+
+	float m_cameraSmoothing = 0.1;
 
 private:
     QString combineActionAndPlayer(int player, InputHandler::InputAction action);
