@@ -17,6 +17,8 @@ if(BUILD_FuzzyController)
 	target_link_libraries(FuzzyController ${fuzzylite_LIBRARIES})
 
 	# copy/install a default controller file
-	FILE(COPY controller.fis DESTINATION ${CMAKE_BINARY_DIR}/data)
-	install(FILES controller.fis DESTINATION data)
+	FILE(COPY controller.fis DESTINATION ${CMAKE_BINARY_DIR}/${PLUGIN_PATH}/FuzzyController)
+	install(FILES controller.fis DESTINATION "${PLUGIN_INSTALL_PATH}/FuzzyController")
+
+	install(TARGETS FuzzyController DESTINATION "${PLUGIN_INSTALL_PATH}/FuzzyController")
 endif()

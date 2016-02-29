@@ -7,7 +7,7 @@ function(resolve_install_paths)
         set(DATA_PATH ${CMAKE_INSTALL_PREFIX}/${DEFAULT_DATA_PATH_BASE}/data)
     endif()
     if(NOT PLUGIN_INSTALL_PATH)
-        set(PLUGIN_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/${DEFAULT_DATA_PATH_BASE})
+        set(PLUGIN_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/${DEFAULT_DATA_PATH_BASE}/${PLUGIN_PATH})
     endif()
     if(NOT BIN_PATH)
         set(BIN_PATH bin)
@@ -22,14 +22,14 @@ function(resolve_install_paths)
             message(STATUS "Installing to /opt.")
             set(BIN_PATH /opt/dustrac)
             set(DATA_PATH /opt/dustrac/data)
-			set(PLUGIN_INSTALL_PATH /opt/dustrac/)
+			set(PLUGIN_INSTALL_PATH /opt/dustrac/${PLUGIN_PATH})
             set(DOC_PATH /opt/dustrac/)
         endif()
     else()
         message(STATUS "Linux development build with local install targets.")
         set(BIN_PATH .)
         set(DATA_PATH ./data)
-        set(PLUGIN_INSTALL_PATH .)
+        set(PLUGIN_INSTALL_PATH ./${PLUGIN_PATH})
         set(DOC_PATH .)
 
         # Add target to copy runtime files to the binary dir.
@@ -52,6 +52,9 @@ function(resolve_install_paths)
 
     setup_install_targets(${BIN_PATH} ${DATA_PATH} ${PLUGIN_INSTALL_PATH} ${DOC_PATH})
 
+	# export the path to plugins into the parent scope
+	set(PLUGIN_INSTALL_PATH ${PLUGIN_INSTALL_PATH} PARENT_SCOPE)
+
 endfunction()
 
 # **** Install targets for Linux ****
@@ -72,7 +75,6 @@ function(setup_install_targets BIN_PATH DATA_PATH PLUGIN_INSTALL_PATH DOC_PATH)
     install(DIRECTORY data/sounds DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.ogg")
     install(DIRECTORY data/fonts DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.ttf")
     install(DIRECTORY ${CMAKE_BINARY_DIR}/data/translations DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.qm")
-	install(DIRECTORY ${CMAKE_BINARY_DIR}/${PLUGIN_PATH} DESTINATION ${PLUGIN_INSTALL_PATH} FILES_MATCHING PATTERN "*.dpl")
 
     if(ReleaseBuild)
         # Install .desktop files

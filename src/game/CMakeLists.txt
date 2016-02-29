@@ -114,6 +114,7 @@ set(SRC
     ../common/trackdatabase.cpp
     ../common/tracktilebase.cpp
     ../common/mapbase.cpp
+	../common/pathresolver.cpp
     )
 
 set(RCS ${CMAKE_SOURCE_DIR}/data/icons/icons.qrc)

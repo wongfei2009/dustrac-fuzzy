@@ -149,11 +149,11 @@ int main(int argc, char ** argv)
 		QCommandLineOption stuckPlayerCheck(QStringList() << "s" << "stuck-player", QCoreApplication::translate("main", "Enables checking whether players' cars are stuck."));
 		parser.addOption(stuckPlayerCheck);
 
-		QCommandLineOption cameraSmoothing(QStringList() << "camera-smoothing", QCoreApplication::translate("main", "Sets camera smoothing."), "(0, 1]", "0.1");
+		QCommandLineOption cameraSmoothing(QStringList() << "camera-smoothing", QCoreApplication::translate("main", "Sets camera smoothing."), "(0, 1]", "0.05");
 		parser.addOption(cameraSmoothing);
-
+	
 		// load plugins
-		loadPlugins(QString(Config::Game::pluginPath));
+		loadPlugins(QString(Config::Game::pluginPath).split(";", QString::KeepEmptyParts));
 	
 		// for every plugin, add a CLI argument
 		for(auto& plugin: PluginRegister) {
@@ -202,7 +202,7 @@ int main(int argc, char ** argv)
 		// initialize all plugins
 		for(auto& plugin: PluginRegister) {
 			QStringList args = makeArgs(argv[0], parser.value(QString(plugin.second->name.c_str())));
-			initPlugin(plugin.first, *plugin.second, args);
+			initPlugin(*plugin.second, args);
 		}
 
         // Initialize and start the game

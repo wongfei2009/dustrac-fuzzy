@@ -7,24 +7,20 @@
 #include "loader.hpp"
 #include "fuzzycontroller.hpp"
 
-PluginInfo* pluginInfo() {
-	static PluginInfo* info = nullptr;
-	
-	if(!info) {
-		info = new PluginInfo;
-		info->name = "FuzzyController";
-	}	
-
+std::shared_ptr<PluginInfo> pluginInfo() {
+	auto info = std::make_shared<PluginInfo>();
+	info->name = "FuzzyController";
 	return info;
 }
 
-void init(Game&, const QStringList& args) {
+void init(Game&, const PluginInfo& info, const QStringList& args) {
 	QCommandLineParser parser;
-	QCommandLineOption pathOption(QStringList() << "p" << "controller-path", QCoreApplication::translate("main", "Path to the controller file (if any)."), "file", "data/controller.fis");
+	QCommandLineOption pathOption(QStringList() << "p" << "controller-path", QCoreApplication::translate("main", "Path to the controller file (if any)."), "file", "controller.fis");
 	parser.addOption(pathOption);
 	parser.parse(args);
 
-	std::string controllerPath = parser.value(pathOption).toStdString();
+	PathResolver resolver(QStringList("") << QString(info.path.c_str()));
+	std::string controllerPath = resolver.resolve(parser.value(pathOption)).toStdString();
 
 	AIFactory& factory = AIFactory::instance();
 	factory.add("fuzzy",

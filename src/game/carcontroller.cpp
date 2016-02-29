@@ -37,7 +37,7 @@ void CarController::update(bool isRaceCompleted) {
 }
 
 void CarController::report(float steerControl, float speedControl, bool isRaceCompleted) {
-	if(m_listeners) {	
+	if(m_listeners) {
 		for(auto& listener: *m_listeners) {
 			listener->report(m_car, m_track, steerControl, speedControl, isRaceCompleted);
 		}

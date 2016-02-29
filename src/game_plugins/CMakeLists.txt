@@ -26,7 +26,7 @@ macro(add_plugin NAME)
 			 PROPERTIES
 			 PREFIX ""
 			 SUFFIX ".dpl"
-			 LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PLUGIN_PATH}
+			 LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PLUGIN_PATH}/${NAME}
 		)
 		# Some Qt deps.
 		qt5_use_modules(${NAME} Widgets Xml)
@@ -36,4 +36,5 @@ endmacro(add_plugin)
 # The individual plugins:
 add_subdirectory(fuzzy_controller)
 add_subdirectory(python_controller)
+#add_subdirectory(rl_controller)
 

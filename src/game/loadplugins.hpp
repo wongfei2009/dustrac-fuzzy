@@ -16,17 +16,20 @@
 #ifndef LOADPLUGINS
 #define LOADPLUGINS
 
+#include <map>
+#include <string>
 #include <QString>
+
 #include "plugininterface.hpp"
 
-extern std::vector<std::pair<void*, PluginInfo*> > PluginRegister;
+extern std::map<std::string, std::shared_ptr<PluginInfo> > PluginRegister;
 
 /**
 * Loads all plugins (shared libs with extension .dpl) at the
 * specified path and store their handles along with their PluginInfo in the
 * plugin register.
 **/
-void loadPlugins(QString path);
+void loadPlugins(const QStringList& paths);
 
 /**
 * Splits an argument string into its standard argc, argv form.
@@ -37,6 +40,6 @@ QStringList makeArgs(QString appName, QString argstr);
 * Initializes the plugin by calling init(Game&, const QStringList&).
 * Argument args is the list of command line arguments.
 **/
-void initPlugin(void* handle, const PluginInfo& pluginInfo, const QStringList& args);
+void initPlugin(const PluginInfo& pluginInfo, const QStringList& args);
 
 #endif // LOADPLUGINS

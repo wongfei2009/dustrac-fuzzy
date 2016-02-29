@@ -29,70 +29,98 @@
 	#include <windows.h>
 #endif
 
-std::vector<std::pair<void*, PluginInfo*> > PluginRegister;
+std::map<std::string, std::shared_ptr<PluginInfo> > PluginRegister;
 
 QStringList makeArgs(QString appName, QString argstr) {
 	QStringList args = QStringList(appName) << argstr.split(" ", QString::SkipEmptyParts);
 	return args;
 }
 
-void loadPlugins(QString path) {
-	QStringList pluginPaths(QDir(path).entryList(QStringList("*.dpl")));
+void loadPlugins(const QStringList& paths) {
+	for(auto& path: paths) { // for each path in paths
+		QDir pathDir(path);
+		pathDir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
 
-	for (QString pluginPath : pluginPaths)
-    {
-        pluginPath = path + QDir::separator() + pluginPath;
+		for(auto& pluginDir: pathDir.entryList()) { // for each subdirectory in the path
+			QString pluginDirPath = path +  QDir::separator() + pluginDir;
+			QStringList pluginPaths(QDir(pluginDirPath).entryList(QStringList("*.dpl")));
 
-        #ifdef __unix__
-            void* handle = dlopen(pluginPath.toStdString().c_str(), RTLD_LAZY | RTLD_GLOBAL);
-			PluginInfo* info = nullptr;
+			for (QString pluginName : pluginPaths) // for each plugin in the subdirectory
+			{
+				QString pluginFilename = pluginDirPath + QDir::separator() + pluginName;
+				
+				#ifdef __unix__
+				    void* handle = dlopen(pluginFilename.toStdString().c_str(), RTLD_LAZY | RTLD_GLOBAL);
+					std::shared_ptr<PluginInfo> info;
 
-            if (handle) {
-				PluginInfo* (*pluginInfo)();
-                *(void **)(&pluginInfo) = dlsym(handle, "pluginInfo");
-                if(pluginInfo) {
-					info = (*pluginInfo)();
-					if(!info) MCLogger().warning() << "Plugin '" << pluginPath.toStdString() <<
-						"' returns null plugin info. It will be skipped.";
-					else PluginRegister.push_back(std::pair<void*, PluginInfo*>(handle, info));
-                } else MCLogger().error() << "Couldn't get plugin's info '" << pluginPath.toStdString() << "'.";
-            } else {
-                MCLogger().error() << "Couldn't load plugin '" << pluginPath.toStdString() << "'.";
-            }
-        #elif defined(_WIN32) || defined(WIN32)
-            HINSTANCE handle = LoadLibrary(pluginPath.toStdString().c_str());
+				    if (handle) {
+						std::shared_ptr<PluginInfo> (*pluginInfo)();
+				        *(void **)(&pluginInfo) = dlsym(handle, "pluginInfo");
+				        if(pluginInfo) {
+							info = (*pluginInfo)();
+							if(!info) MCLogger().warning() << "Plugin '" << pluginFilename.toStdString() <<
+								"' returns null plugin info. It will be skipped.";
+							else {
+								info->handle = handle;
+//								info->releaseHandle = [](void* handle) {dlclose(handle);};
+								info->path = pluginDirPath.toStdString();
+								info->filename = pluginFilename.toStdString();
 
-            if (handle) {
-                typedef PluginInfo* (__stdcall *pluginInfo_t)();
-                pluginInfo_t pluginInfo = (pluginInfo_t) GetProcAddress(handle, "pluginInfo");
-                if(pluginInfo) {
-					info = (*pluginInfo)(Game::instance(), argc, argv);
-					if(!info) MCLogger().warning() << "Plugin '" << pluginPath.toStdString() <<
-						"' returns null plugin info. It will be skipped.";
-					else PluginRegister.push_back(std::pair<void*, PluginInfo*>(handle, info));
-                } else MCLogger().error() << "Couldn't initialize plugin '" << pluginPath.toStdString() << 
-            } else {
-                MCLogger().error() << "Couldn't load plugin '" << pluginPath.toStdString() << "'.";
-            }
-        #endif
-    }
+								// doing the registration this way makes sure we replace
+								// anything registered under the same name 
+								PluginRegister[info->name] = info;
+							}
+				        } else MCLogger().error() << "Couldn't get plugin's info '" << pluginFilename.toStdString() << "'.";
+				    } else {
+				        MCLogger().error() << "Couldn't load plugin '" << pluginFilename.toStdString() << "'.";
+				    }
+				#elif defined(_WIN32) || defined(WIN32)
+				    HINSTANCE handle = LoadLibrary(pluginFilename.toStdString().c_str());
+
+				    if (handle) {
+				        typedef PluginInfo* (__stdcall *pluginInfo_t)();
+				        pluginInfo_t pluginInfo = (pluginInfo_t) GetProcAddress(handle, "pluginInfo");
+				        if(pluginInfo) {
+							info = (*pluginInfo)(Game::instance(), argc, argv);
+							if(!info) MCLogger().warning() << "Plugin '" << pluginFilename.toStdString() <<
+								"' returns null plugin info. It will be skipped.";
+							else {
+								info->handle = handle;
+//								info->releaseHandle = [](void* handle) {FreeLibrary(handle);};
+								info->path = pluginDirPath.toStdString();
+								info->filename = pluginFilename.toStdString();
+
+								// doing the registration this way makes sure we replace
+								// anything registered under the same name 
+								PluginRegister[info->name] = info;
+							}
+				        } else MCLogger().error() << "Couldn't initialize plugin '" << pluginFilename.toStdString() << 
+				    } else {
+				        MCLogger().error() << "Couldn't load plugin '" << pluginFilename.toStdString() << "'.";
+				    }
+				#endif
+			}
+		}
+	}
 }
 
-void initPlugin(void* handle, const PluginInfo& pluginInfo, const QStringList& args) {
+void initPlugin(const PluginInfo& pluginInfo, const QStringList& args) {
+	auto handle = pluginInfo.handle;
+
 	#ifdef __unix__
         if (handle) {
-            void (*init)(Game&, const QStringList& args);
+            void (*init)(Game&, const PluginInfo& pluginInfo, const QStringList& args);
             *(void **)(&init) = dlsym(handle, "init");
-            if(init) (*init)(Game::instance(), args);
+            if(init) (*init)(Game::instance(), pluginInfo, args);
             else MCLogger().error() << "Couldn't initialize plugin '" << pluginInfo.name << "'.";
         } else {
             MCLogger().error() << "Couldn't load plugin '" << pluginInfo.name << "'.";
         }
     #elif defined(_WIN32) || defined(WIN32)
         if (handle) {
-            typedef void (__stdcall *init_t)(Game&, const QStringList& args);
+            typedef void (__stdcall *init_t)(Game&, const PluginInfo& pluginInfo, const QStringList& args);
             init_t init = (init_t) GetProcAddress(handle, "init");
-            if(init) (*init)(Game::instance(), args);
+            if(init) (*init)(Game::instance(), pluginInfo, args);
             else MCLogger().error() << "Couldn't initialize plugin '" << pluginInfo.name << "'.";
         } else {
             MCLogger().error() << "Couldn't load plugin '" << pluginInfo.name << "'.";

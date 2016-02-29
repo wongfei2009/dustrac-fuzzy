@@ -37,7 +37,8 @@ set(SRC
     ../common/route.cpp
     ../common/targetnodebase.cpp
     ../common/trackdatabase.cpp
-    ../common/tracktilebase.cpp)
+    ../common/tracktilebase.cpp
+	../common/pathresolver.cpp)
 
 #set(UIS ui/about.ui ui/settings.ui)
 

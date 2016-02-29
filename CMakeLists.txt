@@ -30,7 +30,6 @@ option(NO_GLEW "Don't use GLEW to resolve OpenGL extensions if enabled." ON)
 option(QOpenGLFunctions "Use QOpenGLFunctions to resolve OpenGL extensions if enabled." ON)
 
 set(PLUGIN_PATH "plugins" CACHE STRING "The relative path to plugins.")
-add_definitions(-DPLUGIN_PATH="${PLUGIN_PATH}")
 
 if(GLES)
     add_definitions(-D__MC_GLES__)
@@ -105,6 +104,8 @@ enable_testing()
 
 # Install paths depend on the build type and target platform
 resolve_install_paths()
+
+add_definitions(-DPLUGIN_PATH="${PLUGIN_INSTALL_PATH}\\\;${PLUGIN_PATH}")
 
 add_subdirectory(src/editor)
 add_subdirectory(src/game)

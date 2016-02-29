@@ -5,7 +5,7 @@ function(resolve_install_paths)
     
     set(BIN_PATH .)
     set(DATA_PATH ./data)
-	set(PLUGIN_INSTALL_PATH .)
+	set(PLUGIN_INSTALL_PATH ./${PLUGIN_PATH})
     set(DOC_PATH .)
 
     # This is the main data path given to the game and editor binaries.
@@ -21,6 +21,9 @@ function(resolve_install_paths)
         DEPENDS ${GAME_BINARY_NAME} ${QM_FILES})
 
     setup_install_targets(${BIN_PATH} ${DATA_PATH} ${PLUGIN_INSTALL_PATH} ${DOC_PATH})
+
+	# export the path to plugins into the parent scope
+	set(PLUGIN_INSTALL_PATH ${PLUGIN_INSTALL_PATH} PARENT_SCOPE)
 
 endfunction()
 
@@ -40,7 +43,6 @@ function(setup_install_targets BIN_PATH DATA_PATH PLUGIN_INSTALL_PATH DOC_PATH)
     install(DIRECTORY data/levels DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.trk")
     install(DIRECTORY data/models DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.obj")
     install(DIRECTORY data/translations DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.qm")
-	install(DIRECTORY ${CMAKE_BINARY_DIR}/${PLUGIN_PATH} DESTINATION ${PLUGIN_INSTALL_PATH} FILES_MATCHING PATTERN "*.dpl")
 
 endfunction()
 

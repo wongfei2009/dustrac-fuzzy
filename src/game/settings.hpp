@@ -152,7 +152,7 @@ private:
     bool m_disableRendering = false;
 	bool m_resetStuckPlayer = false;
 
-	float m_cameraSmoothing = 0.1;
+	float m_cameraSmoothing = 0.05;
 
 private:
     QString combineActionAndPlayer(int player, InputHandler::InputAction action);
