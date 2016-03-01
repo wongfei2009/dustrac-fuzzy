@@ -62,6 +62,23 @@ if(CMAKE_COMPILER_IS_GNUCXX OR MINGW OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cla
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fomit-frame-pointer -finline-functions -ffast-math")
 endif()
 
+if("${CMAKE_HOST_SYSTEM}" MATCHES ".*Windows.*")
+    set(PATH_SEP "\\;")
+else()
+    set(PATH_SEP ":")
+endif()
+
+# builds a platform-specific path list from a list of paths
+function(to_path_list var path1)
+    set(result "${path1}")
+    foreach(path ${ARGN})
+        set(result "${result}${PATH_SEP}${path}")
+    endforeach()
+    set(${var} "${result}" PARENT_SCOPE)
+endfunction()
+
+add_definitions(-DPATH_SEP="${PATH_SEP}")
+
 set(GAME_BINARY_NAME "dustrac-game")
 set(EDITOR_BINARY_NAME "dustrac-editor")
 
@@ -105,7 +122,8 @@ enable_testing()
 # Install paths depend on the build type and target platform
 resolve_install_paths()
 
-add_definitions(-DPLUGIN_PATH="${PLUGIN_INSTALL_PATH}\\\;${PLUGIN_PATH}")
+to_path_list(PLUGIN_PATH_LIST ${PLUGIN_INSTALL_PATH} ${PLUGIN_PATH})
+add_definitions(-DPLUGIN_PATH="${PLUGIN_PATH_LIST}")
 
 add_subdirectory(src/editor)
 add_subdirectory(src/game)

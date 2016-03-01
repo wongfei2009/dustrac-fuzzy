@@ -153,7 +153,7 @@ int main(int argc, char ** argv)
 		parser.addOption(cameraSmoothing);
 	
 		// load plugins
-		loadPlugins(QString(Config::Game::pluginPath).split(";", QString::KeepEmptyParts));
+		loadPlugins(QString(Config::Game::pluginPath).split(PATH_SEP, QString::KeepEmptyParts));
 	
 		// for every plugin, add a CLI argument
 		for(auto& plugin: PluginRegister) {
