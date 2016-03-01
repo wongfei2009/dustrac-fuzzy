@@ -60,7 +60,7 @@ public:
     static const int NUM_CARS = 12;
 
     //! Constructor.
-    Scene(Game & game, StateMachine & stateMachine, Renderer & renderer);
+    Scene(Game & game, StateMachine & stateMachine, Renderer* renderer);
 
     //! Destructor.
     ~Scene();
@@ -135,7 +135,7 @@ private:
     static int            m_height;
     Game                & m_game;
     StateMachine        & m_stateMachine;
-    Renderer            & m_renderer;
+    Renderer            * m_renderer;
     MessageOverlay      * m_messageOverlay;
     Race                  m_race;
     Track               * m_activeTrack;

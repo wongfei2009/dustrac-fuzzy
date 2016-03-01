@@ -96,7 +96,6 @@ void Renderer::initializeGL()
     MCLogger().info() << "OpenGL Version: " << glGetString(GL_VERSION);
 
     m_glScene->initialize();
-
     loadShaders();
 }
 
@@ -178,6 +177,7 @@ float Renderer::fadeValue() const
 void Renderer::render()
 {
 	if(Settings::instance().getDisableRendering()) {
+		// this is here to avoid a segfault at game completion
 		MCSurface ss(nullptr, 0, 0);
 		return;
 	}

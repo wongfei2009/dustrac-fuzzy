@@ -85,18 +85,18 @@ Game::Game(bool forceNoVSync)
     	MCLogger().warning() << "Unknown game mode '" << mode.toStdString() << "'.";
     }
 
-    createRenderer(forceNoVSync);
+	createRenderer(forceNoVSync);
+	loadFonts();
+	m_assetManager->textureFontManager().createFontFromData(FontFactory::generateFont());
 
-    loadFonts();
+	if(!Settings::instance().getDisableRendering()) {
+		connect(m_eventHandler, SIGNAL(pauseToggled()), this, SLOT(togglePause()));
+		connect(m_eventHandler, SIGNAL(cursorRevealed()), this, SLOT(showCursor()));
+		connect(m_eventHandler, SIGNAL(cursorHid()), this, SLOT(hideCursor()));
+		connect(m_eventHandler, SIGNAL(soundRequested(QString)), m_audioWorker, SLOT(playSound(QString)));
+	}
 
-    m_assetManager->textureFontManager().createFontFromData(FontFactory::generateFont());
-
-    connect(m_eventHandler, SIGNAL(pauseToggled()), this, SLOT(togglePause()));
     connect(m_eventHandler, SIGNAL(gameExited()), this, SLOT(exitGame()));
-    connect(m_eventHandler, SIGNAL(cursorRevealed()), this, SLOT(showCursor()));
-    connect(m_eventHandler, SIGNAL(cursorHid()), this, SLOT(hideCursor()));
-    connect(m_eventHandler, SIGNAL(soundRequested(QString)), m_audioWorker, SLOT(playSound(QString)));
-
     connect(&m_updateTimer, SIGNAL(timeout()), this, SLOT(updateFrame()));
     m_updateTimer.setInterval(0);
 
@@ -124,18 +124,25 @@ void Game::createRenderer(bool forceNoVSync)
     bool nativeResolution = true;
     bool fullScreen       = false;
 
-    m_settings.getResolution(hRes, vRes, nativeResolution, fullScreen);
+	if(!Settings::instance().getDisableRendering()) {
 
-    if (nativeResolution)
-    {
-        hRes = QApplication::desktop()->screen(QApplication::desktop()->screenNumber(m_renderer))->width();
-        vRes = QApplication::desktop()->screen(QApplication::desktop()->screenNumber(m_renderer))->height();
-    }
+    	m_settings.getResolution(hRes, vRes, nativeResolution, fullScreen);
 
-//    adjustSceneSize(hRes, vRes, fullScreen);
+		if (nativeResolution)
+		{
+		    hRes = QApplication::desktop()->screen(QApplication::desktop()->screenNumber(m_renderer))->width();
+		    vRes = QApplication::desktop()->screen(QApplication::desktop()->screenNumber(m_renderer))->height();
+		}
 
-    MCLogger().info()
-        << "Resolution: " << hRes << " " << vRes << " " << nativeResolution << " " << fullScreen;
+	//    adjustSceneSize(hRes, vRes, fullScreen);
+
+		MCLogger().info()
+		    << "Resolution: " << hRes << " " << vRes << " " << nativeResolution << " " << fullScreen;
+
+	} else {
+		hRes = 100;
+		vRes = 100;
+	}
 
     MCLogger().info() << "Creating the renderer..";
     // At least for now the QGLFormat needs to be passed to the constructor of QGLWidget,
@@ -162,25 +169,38 @@ void Game::createRenderer(bool forceNoVSync)
     }
 
     m_renderer = new Renderer(format, hRes, vRes, nativeResolution, fullScreen);
-    m_renderer->activateWindow();
 
-    if (fullScreen)
-    {
-        m_renderer->showFullScreen();
-    }
-    else
-    {
-        m_renderer->show();
-    }
+	if(!Settings::instance().getDisableRendering()) {
+	    m_renderer->activateWindow();
 
-    m_renderer->setFocus();
+		if (fullScreen)
+		{
+		    m_renderer->showFullScreen();
+		}
+		else
+		{
+		    m_renderer->show();
+		}
 
-    // Note that this must be called before loading textures in order
-    // to load textures to correct OpenGL context.
-    m_renderer->makeCurrent();
-    m_renderer->setEventHandler(*m_eventHandler);
+		m_renderer->setFocus();
 
-    connect(m_stateMachine, SIGNAL(renderingEnabled(bool)), m_renderer, SLOT(setEnabled(bool)));
+		// Note that this must be called before loading textures in order
+		// to load textures to correct OpenGL context.
+		m_renderer->makeCurrent();
+		m_renderer->setEventHandler(*m_eventHandler);
+
+		connect(m_stateMachine, SIGNAL(renderingEnabled(bool)), m_renderer, SLOT(setEnabled(bool)));
+
+	} else {
+		m_renderer->show();
+
+		m_renderer->makeCurrent();
+		m_renderer->setEventHandler(*m_eventHandler);
+
+		connect(m_stateMachine, SIGNAL(renderingEnabled(bool)), m_renderer, SLOT(setEnabled(bool)));
+
+//		m_renderer->setVisible(false);
+	}
 }
 
 void Game::adjustSceneSize(int hRes, int vRes, bool fullScreen)
@@ -311,10 +331,9 @@ void Game::loadFonts()
 void Game::initScene()
 {
     assert(m_stateMachine);
-    assert(m_renderer);
 
     // Create the scene
-    m_scene = new Scene(*this, *m_stateMachine, *m_renderer);
+    m_scene = new Scene(*this, *m_stateMachine, m_renderer);
 
     // Add tracks to the menu.
     for (unsigned int i = 0; i < m_trackLoader->tracks(); i++)
@@ -324,12 +343,14 @@ void Game::initScene()
 
     // Set the current game scene. Renderer calls render()
     // for all objects in the scene.
-    m_renderer->setScene(*m_scene);
+    if(m_renderer) m_renderer->setScene(*m_scene);
 }
 
 bool Game::init()
 {
-	if(!Settings::instance().getDisableRendering()) {
+    Settings& settings = Settings::instance();
+
+	if(!settings.getDisableRendering()) {
 		m_audioThread.start();
 		m_audioWorker->moveToThread(&m_audioThread);
 		QMetaObject::invokeMethod(m_audioWorker, "init");
@@ -337,8 +358,6 @@ bool Game::init()
 	}
 
     m_assetManager->load();
-
-    Settings& settings = Settings::instance();
 
     if(settings.getMenusDisabled()) {
     	initScene();
@@ -351,8 +370,8 @@ bool Game::init()
     	}
 
     	_customTrack = std::shared_ptr<Track>(new Track(t_data));
-
 		m_scene->setActiveTrack(*_customTrack);
+
 		m_stateMachine->startGame();
 		m_scene->startRace();
 		InputHandler::setEnabled(true);

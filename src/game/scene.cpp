@@ -82,7 +82,7 @@ int Scene::m_height = 768;
 
 static const MCFloat METERS_PER_PIXEL = 0.05f;
 
-Scene::Scene(Game & game, StateMachine & stateMachine, Renderer & renderer)
+Scene::Scene(Game & game, StateMachine & stateMachine, Renderer* renderer)
 : m_game(game)
 , m_stateMachine(stateMachine)
 , m_renderer(renderer)
@@ -112,18 +112,18 @@ Scene::Scene(Game & game, StateMachine & stateMachine, Renderer & renderer)
     connect(&m_stateMachine, SIGNAL(fadeOutFlashRequested(int, int, int)), m_fadeAnimation, SLOT(beginFadeOutFlash(int, int, int)));
     connect(&m_stateMachine, SIGNAL(soundsStopped()), &m_race, SLOT(stopEngineSounds()));
 
-    connect(m_fadeAnimation, SIGNAL(fadeValueChanged(float)), &m_renderer, SLOT(setFadeValue(float)));
+    if(m_renderer) connect(m_fadeAnimation, SIGNAL(fadeValueChanged(float)), m_renderer, SLOT(setFadeValue(float)));
     connect(m_fadeAnimation, SIGNAL(fadeInFinished()), &m_stateMachine, SLOT(endFadeIn()));
     connect(m_fadeAnimation, SIGNAL(fadeOutFinished()), &m_stateMachine, SLOT(endFadeOut()));
 
     connect(&m_race, SIGNAL(finished()), &m_stateMachine, SLOT(finishRace()));
-    connect(&m_race, SIGNAL(messageRequested(QString)), m_messageOverlay, SLOT(addMessage(QString)));
-
-    connect(m_startlights, SIGNAL(messageRequested(QString)), m_messageOverlay, SLOT(addMessage(QString)));
+    if(m_messageOverlay) {
+		connect(&m_race, SIGNAL(messageRequested(QString)), m_messageOverlay, SLOT(addMessage(QString)));
+	    connect(m_startlights, SIGNAL(messageRequested(QString)), m_messageOverlay, SLOT(addMessage(QString)));
+	}
     connect(this, SIGNAL(listenerLocationChanged(float, float)), &m_game.audioWorker(), SLOT(setListenerLocation(float, float)));
 
-
-//    if(!Settings::instance().getDisableRendering()) {
+    if(!Settings::instance().getDisableRendering()) {
 		m_game.audioWorker().connectAudioSource(m_race);
 
 		m_cameraOffset[0] = 0.0;
@@ -143,22 +143,22 @@ Scene::Scene(Game & game, StateMachine & stateMachine, Renderer & renderer)
 		m_world->setMetersPerPixel(METERS_PER_PIXEL);
 
 		MCAssetManager::textureFontManager().font(m_game.fontName()).setShaderProgram(
-			m_renderer.program("text"));
+			m_renderer->program("text"));
 		MCAssetManager::textureFontManager().font(m_game.fontName()).setShadowShaderProgram(
-			m_renderer.program("textShadow"));
+			m_renderer->program("textShadow"));
 
 		const MCGLAmbientLight ambientLight(1.0, 0.9, 0.95, 0.7);
 		const MCGLDiffuseLight diffuseLight(MCVector3dF(1.0, -1.0, -1.0), 1.0, 0.9, 0.85, 0.3);
 		const MCGLDiffuseLight specularLight(MCVector3dF(1.0, -1.0, -1.0), 1.0, 1.0, 1.0, 1.0);
 
-		m_renderer.glScene().setAmbientLight(ambientLight);
-		m_renderer.glScene().setDiffuseLight(diffuseLight);
-		m_renderer.glScene().setSpecularLight(specularLight);
+		m_renderer->glScene().setAmbientLight(ambientLight);
+		m_renderer->glScene().setDiffuseLight(diffuseLight);
+		m_renderer->glScene().setSpecularLight(specularLight);
 
-		m_renderer.setFadeValue(0.0);
+		m_renderer->setFadeValue(0.0);
 
 		if(!Settings::instance().getMenusDisabled()) createMenus();
-//	}
+	}
 
 	m_cameraSmoothing = Settings::instance().getCameraSmoothing();
 }
@@ -207,10 +207,12 @@ void Scene::createCars()
 
 			m_ai.back()->setListeners(&(ListenerBank::instance().getListeners(i)));
 
-            car->setRenderLayer(Layers::Objects);
-            car->shape()->view()->setShaderProgram(m_renderer.program("car"));
+			if(!Settings::instance().getDisableRendering()) {
+		        car->setRenderLayer(Layers::Objects);
+		        car->shape()->view()->setShaderProgram(m_renderer->program("car"));
 
-            setupAudio(*car, i);
+		        setupAudio(*car, i);
+			}
 
             m_cars.push_back(CarPtr(car));
             m_race.addCar(*car);
@@ -340,6 +342,8 @@ void Scene::updateRace()
 
 void Scene::updateCameraLocation(MCCamera & camera, MCFloat & offset, MCObject & object)
 {
+	if(Settings::instance().getDisableRendering()) return;
+
     // Update camera location with respect to the car speed.
     // Make changes a bit smoother so that an abrupt decrease
     // in the speed won't look bad.
@@ -581,7 +585,7 @@ void Scene::setSplitType(MCGLScene::SplitType & p0, MCGLScene::SplitType & p1)
 
 void Scene::renderTrack()
 {
-    const MCFloat fadeValue = m_renderer.fadeValue();
+    const MCFloat fadeValue = m_renderer->fadeValue();
 
     switch (m_stateMachine.state())
     {
@@ -592,7 +596,7 @@ void Scene::renderTrack()
 
         if (m_fadeAnimation->isFading())
         {
-            m_renderer.glScene().setFadeValue(fadeValue);
+            m_renderer->glScene().setFadeValue(fadeValue);
         }
 
         if (m_game.hasTwoHumanPlayers())
@@ -600,14 +604,14 @@ void Scene::renderTrack()
             MCGLScene::SplitType p1, p0;
             setSplitType(p1, p0);
 
-            m_renderer.glScene().setSplitType(p1);
+            m_renderer->glScene().setSplitType(p1);
             m_activeTrack->render(&m_camera[1]);
 
-            m_renderer.glScene().setSplitType(p0);
+            m_renderer->glScene().setSplitType(p0);
             m_activeTrack->render(&m_camera[0]);
 
             // Setup for common scene
-            m_renderer.glScene().setSplitType(MCGLScene::ShowFullScreen);
+            m_renderer->glScene().setSplitType(MCGLScene::ShowFullScreen);
         }
         else
         {
@@ -623,7 +627,7 @@ void Scene::renderTrack()
 
 void Scene::renderObjectShadows()
 {
-    const MCFloat fadeValue = m_renderer.fadeValue();
+    const MCFloat fadeValue = m_renderer->fadeValue();
 
     switch (m_stateMachine.state())
     {
@@ -634,7 +638,7 @@ void Scene::renderObjectShadows()
 
         if (m_fadeAnimation->isFading())
         {
-            m_renderer.glScene().setFadeValue(fadeValue);
+            m_renderer->glScene().setFadeValue(fadeValue);
         }
 
         if (m_game.hasTwoHumanPlayers())
@@ -642,14 +646,14 @@ void Scene::renderObjectShadows()
             MCGLScene::SplitType p1, p0;
             setSplitType(p1, p0);
 
-            m_renderer.glScene().setSplitType(p1);
+            m_renderer->glScene().setSplitType(p1);
             renderPlayerSceneShadows(m_camera[1]);
 
-            m_renderer.glScene().setSplitType(p0);
+            m_renderer->glScene().setSplitType(p0);
             renderPlayerSceneShadows(m_camera[0]);
 
             // Setup for common scene
-            m_renderer.glScene().setSplitType(MCGLScene::ShowFullScreen);
+            m_renderer->glScene().setSplitType(MCGLScene::ShowFullScreen);
         }
         else
         {
@@ -665,13 +669,13 @@ void Scene::renderObjectShadows()
 
 void Scene::renderObjects()
 {
-    const MCFloat fadeValue = m_renderer.fadeValue();
+    const MCFloat fadeValue = m_renderer->fadeValue();
 
     switch (m_stateMachine.state())
     {
     case StateMachine::DoIntro:
 
-        m_renderer.glScene().setSplitType(MCGLScene::ShowFullScreen);
+        m_renderer->glScene().setSplitType(MCGLScene::ShowFullScreen);
         m_intro->setFadeValue(fadeValue);
         m_intro->render();
 
@@ -681,8 +685,8 @@ void Scene::renderObjects()
     case StateMachine::MenuTransitionOut:
     case StateMachine::MenuTransitionIn:
 
-        m_renderer.glScene().setFadeValue(fadeValue);
-        m_renderer.glScene().setSplitType(MCGLScene::ShowFullScreen);
+        m_renderer->glScene().setFadeValue(fadeValue);
+        m_renderer->glScene().setSplitType(MCGLScene::ShowFullScreen);
 
         m_menuManager->render();
 
@@ -695,7 +699,7 @@ void Scene::renderObjects()
 
         if (m_fadeAnimation->isFading())
         {
-            m_renderer.glScene().setFadeValue(fadeValue);
+            m_renderer->glScene().setFadeValue(fadeValue);
         }
 
         if (m_game.hasTwoHumanPlayers())
@@ -703,16 +707,16 @@ void Scene::renderObjects()
             MCGLScene::SplitType p1, p0;
             setSplitType(p1, p0);
 
-            m_renderer.glScene().setSplitType(p1);
+            m_renderer->glScene().setSplitType(p1);
             renderPlayerScene(m_camera[1]);
             m_timingOverlay[1].render();
 
-            m_renderer.glScene().setSplitType(p0);
+            m_renderer->glScene().setSplitType(p0);
             renderPlayerScene(m_camera[0]);
             m_timingOverlay[0].render();
 
             // Setup for common scene
-            m_renderer.glScene().setSplitType(MCGLScene::ShowFullScreen);
+            m_renderer->glScene().setSplitType(MCGLScene::ShowFullScreen);
         }
         else
         {

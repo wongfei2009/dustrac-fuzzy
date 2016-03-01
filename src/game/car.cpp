@@ -270,12 +270,14 @@ void Car::render(MCCamera *p)
 
 bool Car::update()
 {
-    m_particleEffectManager.update();
+	if(!Settings::instance().getDisableRendering()) {
+		m_particleEffectManager.update();
 
-    if (m_soundEffectManager)
-    {
-        m_soundEffectManager->update();
-    }
+		if (m_soundEffectManager)
+		{
+		    m_soundEffectManager->update();
+		}
+	}
 
     m_leftFrontTire->rotateRelative(m_tireAngle - 2.0);
     m_rightFrontTire->rotateRelative(m_tireAngle + 2.0);
@@ -289,8 +291,11 @@ void Car::reset()
 
 void Car::collisionEvent(MCCollisionEvent & event)
 {
-    m_particleEffectManager.collision(event);
-    m_soundEffectManager->collision(event);
+	if(!Settings::instance().getDisableRendering()) {
+		m_particleEffectManager.collision(event);
+		m_soundEffectManager->collision(event);
+	}
+
     event.accept();
 }
 
