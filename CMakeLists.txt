@@ -63,7 +63,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR MINGW OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Cla
 endif()
 
 if("${CMAKE_HOST_SYSTEM}" MATCHES ".*Windows.*")
-    set(PATH_SEP "\\;")
+    set(PATH_SEP "\\\;")
 else()
     set(PATH_SEP ":")
 endif()
@@ -122,7 +122,7 @@ enable_testing()
 # Install paths depend on the build type and target platform
 resolve_install_paths()
 
-to_path_list(PLUGIN_PATH_LIST ${PLUGIN_INSTALL_PATH} ${PLUGIN_PATH})
+#to_path_list(PLUGIN_PATH_LIST ${PLUGIN_INSTALL_PATH} ${PLUGIN_PATH})
 add_definitions(-DPLUGIN_PATH="${PLUGIN_PATH_LIST}")
 
 add_subdirectory(src/editor)
