@@ -13,13 +13,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Dust Racing 2D. If not, see <http://www.gnu.org/licenses/>.
 
+//------------------------------------------------------------------------------
+//-----auxiliary macros used to export symbols to shared library interface------
+//------------------------------------------------------------------------------
+
+#include "export.hpp"
+
 //! Config data for editor and for the game.
-class Config
+class DUSTCOMMON_API Config
 {
 public:
 
     //! Common config data.
-    class Common
+    class DUSTCOMMON_API Common
     {
     public:
 
@@ -35,7 +41,7 @@ public:
     };
 
     //! Editor-specific config data.
-    class Editor
+    class DUSTCOMMON_API Editor
     {
     public:
 
@@ -55,7 +61,7 @@ public:
     };
 
     //! Game-specific config data.
-    class Game
+    class DUSTCOMMON_API Game
     {
     public:
 

@@ -23,7 +23,7 @@
 class TargetNodeBase;
 class TrackTile;
 
-class PIDController: public CarController {
+class DUST_API PIDController: public CarController {
 public:
 	PIDController(Car& car, bool random);
     virtual ~PIDController() = default;

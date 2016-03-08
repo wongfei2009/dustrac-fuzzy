@@ -151,10 +151,12 @@ int main(int argc, char ** argv)
 
 		QCommandLineOption cameraSmoothing(QStringList() << "camera-smoothing", QCoreApplication::translate("main", "Sets camera smoothing."), "(0, 1]", "0.05");
 		parser.addOption(cameraSmoothing);
-	
+
+    MCLogger().info() << "Checking for plugins in path: '" << Config::Game::pluginPath << "'.";
+
 		// load plugins
 		loadPlugins(QString(Config::Game::pluginPath).split(PATH_SEP, QString::KeepEmptyParts));
-	
+
 		// for every plugin, add a CLI argument
 		for(auto& plugin: PluginRegister) {
 			MCLogger().info() << "Loaded plugin " << plugin.second->name << ".";
@@ -198,6 +200,8 @@ int main(int argc, char ** argv)
         // Create the game object and set the renderer
         MCLogger().info() << "Creating game object.";
         Game game(parser.isSet(vsyncOption));
+
+    MCLogger().info() << "Initializing loaded plugins...'";
 
 		// initialize all plugins
 		for(auto& plugin: PluginRegister) {

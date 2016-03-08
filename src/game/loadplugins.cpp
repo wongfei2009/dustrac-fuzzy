@@ -29,7 +29,7 @@
 	#include <windows.h>
 #endif
 
-std::map<std::string, std::shared_ptr<PluginInfo> > PluginRegister;
+DUST_API std::map<std::string, std::shared_ptr<PluginInfo> > PluginRegister;
 
 QStringList makeArgs(QString appName, QString argstr) {
 	QStringList args = QStringList(appName) << argstr.split(" ", QString::SkipEmptyParts);
@@ -105,24 +105,22 @@ void loadPlugins(const QStringList& paths) {
 	}
 }
 
-void initPlugin(const PluginInfo& pluginInfo, const QStringList& args) {
-	auto handle = pluginInfo.handle;
-
+void initPlugin(PluginInfo& pluginInfo, QStringList& args) {
 	#ifdef __unix__
-        if (handle) {
-            void (*init)(Game&, const PluginInfo& pluginInfo, const QStringList& args);
-            *(void **)(&init) = dlsym(handle, "init");
+        if (pluginInfo.handle) {
+            void (*init)(Game&, PluginInfo& pluginInfo, QStringList& args);
+            *(void **)(&init) = dlsym(pluginInfo.handle, "init");
             if(init) (*init)(Game::instance(), pluginInfo, args);
             else MCLogger().error() << "Couldn't initialize plugin '" << pluginInfo.name << "'.";
         } else {
             MCLogger().error() << "Couldn't load plugin '" << pluginInfo.name << "'.";
         }
     #elif defined(_WIN32) || defined(WIN32)
-        if (handle) {
-            typedef void (__stdcall *init_t)(Game&, const PluginInfo& pluginInfo, const QStringList& args);
-            init_t init = (init_t) GetProcAddress((HINSTANCE) handle, "init");
+        if (pluginInfo.handle) {
+            typedef void (__stdcall *init_t)(Game&, PluginInfo& pluginInfo, QStringList& args);
+            init_t init = (init_t) GetProcAddress(pluginInfo.handle, "init");
             if(init) (*init)(Game::instance(), pluginInfo, args);
-            else MCLogger().error() << "Couldn't initialize plugin '" << pluginInfo.name << "'.";
+            else MCLogger().error() << "Couldn't initialize plugin '" << pluginInfo.name << "'.";          
         } else {
             MCLogger().error() << "Couldn't load plugin '" << pluginInfo.name << "'.";
         }

@@ -67,7 +67,6 @@ set(SRC
     keyconfigmenu.cpp
 	loadplugins.cpp
 	listenerbank.cpp
-    main.cpp
     mainmenu.cpp
     map.cpp
     messageoverlay.cpp
@@ -149,12 +148,7 @@ if(MINGW)
     set(SRC ${SRC} ${CMAKE_CURRENT_BINARY_DIR}/windowsrc.o)
 endif()
 
-# The main game executable
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
-add_executable(${GAME_BINARY_NAME} WIN32 ${HDR} ${SRC} ${MOC_SRC} ${RC_SRC} ${QM})
-
 set(COMMON_LIBS
-    ${GAME_BINARY_NAME}
     MiniCore
     MTFH
     STFH
@@ -168,8 +162,25 @@ set(COMMON_LIBS
 	${CMAKE_DL_LIBS} # for linking to ldl
 )
 
+# The main game code as a library
+add_library(dustrac_lib SHARED ${SRC} ${MOC_SRC} ${RC_SRC} ${QM})
+# For Windows: define that dll symbols should be exported.
+set_target_properties(dustrac_lib PROPERTIES COMPILE_DEFINITIONS "DUST_DLL_EXPORTS;DUST_DLL;DUSTCOMMON_DLL_EXPORTS;DUSTCOMMON_DLL")
+qt5_use_modules(dustrac_lib OpenGL Widgets Xml)
+target_link_libraries(dustrac_lib ${COMMON_LIBS})
+
+set_target_properties(dustrac_lib
+    PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+# The main game executable
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+add_executable(${GAME_BINARY_NAME} WIN32 main.cpp)                                  
+target_link_libraries(${GAME_BINARY_NAME} dustrac_lib)                                    
 qt5_use_modules(${GAME_BINARY_NAME} OpenGL Widgets Xml)
-target_link_libraries(${COMMON_LIBS})
+target_link_libraries(${GAME_BINARY_NAME} dustrac_lib ${COMMON_LIBS})
 
 foreach(TS_FILE ${TS})
     # Make targets to copy generated qm files to data dir. This is done the hard

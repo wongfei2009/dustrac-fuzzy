@@ -17,6 +17,7 @@
 #define CARCONTROLLER_HPP
 
 #include <memory>
+#include "config.hpp"
 #include "listenerbank.hpp"
 
 class Car;
@@ -24,7 +25,7 @@ class Track;
 class Route;
 
 //! The base class of car controllers.
-class CarController {
+class DUST_API CarController {
 public:
 	//! @param random Specifies whether the controller will
 	//! have stochastic elements (so that all cars do not do the same).

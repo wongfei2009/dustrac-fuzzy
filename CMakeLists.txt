@@ -1,7 +1,7 @@
 project(DustRacing2D)
 
-cmake_minimum_required(VERSION 2.8.8)
-cmake_policy(VERSION 2.8.8)
+cmake_minimum_required(VERSION 2.8.11)
+cmake_policy(VERSION 2.8.11)
 
 # Global game version
 set(VERSION_MAJOR "1")
@@ -122,7 +122,7 @@ enable_testing()
 # Install paths depend on the build type and target platform
 resolve_install_paths()
 
-#to_path_list(PLUGIN_PATH_LIST ${PLUGIN_INSTALL_PATH} ${PLUGIN_PATH})
+to_path_list(PLUGIN_PATH_LIST ${PLUGIN_INSTALL_PATH} ${PLUGIN_PATH})
 add_definitions(-DPLUGIN_PATH="${PLUGIN_PATH_LIST}")
 
 add_subdirectory(src/editor)

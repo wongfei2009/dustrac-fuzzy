@@ -18,6 +18,7 @@
 #include "usercontroller.hpp"
 
 #include <MCException>
+#include <MCLogger>                 
 
 AIFactory::AIFactory()
 {
@@ -28,7 +29,7 @@ AIFactory::AIFactory()
 	add("pid", [](Car& car){return new PIDController(car, true);});
 }
 
-AIFactory& AIFactory::instance()
+DUST_API AIFactory& AIFactory::instance()
 {
 	static AIFactory aifactory;
 	return aifactory;
@@ -40,7 +41,9 @@ void AIFactory::add(const std::string& name, std::function<CarController* (Car&)
 
 CarController* AIFactory::create(const std::string& name, Car& car) {
 	auto iter = m_register.find(name);
-	if(iter == m_register.end()) throw MCException("No creation function registered under name '" + name + "'.");
+	if(iter == m_register.end()) {
+            throw MCException("No creation function registered under name '" + name + "'.");   
+	}
 	return iter->second(car);
 }
 

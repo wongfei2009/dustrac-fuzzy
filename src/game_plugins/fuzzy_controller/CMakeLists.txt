@@ -14,11 +14,11 @@ if(BUILD_FuzzyController)
 	find_package(fuzzylite REQUIRED)
 	include_directories("${fuzzylite_INCLUDE_DIR}")
 
-	target_link_libraries(FuzzyController ${fuzzylite_LIBRARIES})
+	target_link_libraries(FuzzyController dustrac_lib ${fuzzylite_LIBRARIES})
 
 	# copy/install a default controller file
 	FILE(COPY controller.fis DESTINATION ${CMAKE_BINARY_DIR}/${PLUGIN_PATH}/FuzzyController)
 	install(FILES controller.fis DESTINATION "${PLUGIN_INSTALL_PATH}/FuzzyController")
-
+                                                                                
 	install(TARGETS FuzzyController DESTINATION "${PLUGIN_INSTALL_PATH}/FuzzyController")
 endif()
