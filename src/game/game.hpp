@@ -62,7 +62,7 @@ public:
     };
 
     //! Constructor
-    Game(bool forceNoVSync = false);
+    Game(bool forceNoVSync = false, bool forceNoSounds = false);
 
     //! Destructor
     virtual ~Game();

@@ -146,6 +146,9 @@ int main(int argc, char ** argv)
 		QCommandLineOption disableRendering(QStringList() << "disable-rendering", QCoreApplication::translate("main", "Disables rendering."));
 		parser.addOption(disableRendering);
 
+		QCommandLineOption disableSounds(QStringList() << "disable-sounds", QCoreApplication::translate("main", "Disables sounds."));
+		parser.addOption(disableSounds);
+
 		QCommandLineOption stuckPlayerCheck(QStringList() << "s" << "stuck-player", QCoreApplication::translate("main", "Enables checking whether players' cars are stuck."));
 		parser.addOption(stuckPlayerCheck);
 
@@ -197,7 +200,7 @@ int main(int argc, char ** argv)
 
         // Create the game object and set the renderer
         MCLogger().info() << "Creating game object.";
-        Game game(parser.isSet(vsyncOption));
+        Game game(parser.isSet(vsyncOption), parser.isSet(disableSounds));
 
 		// initialize all plugins
 		for(auto& plugin: PluginRegister) {

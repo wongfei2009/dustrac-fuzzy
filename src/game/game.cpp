@@ -48,7 +48,7 @@ static const unsigned int MAX_PLAYERS = 2;
 
 Game * Game::m_instance = nullptr;
 
-Game::Game(bool forceNoVSync)
+Game::Game(bool forceNoVSync, bool forceNoSounds)
 : m_inputHandler(new InputHandler(MAX_PLAYERS))
 , m_eventHandler(new EventHandler(*m_inputHandler))
 , m_stateMachine(new StateMachine(*m_inputHandler))
@@ -70,7 +70,7 @@ Game::Game(bool forceNoVSync)
 , m_mode(OnePlayerRace)
 , m_splitType(Vertical)
 , m_audioWorker(new AudioWorker(
-      Scene::NUM_CARS, Settings::instance().loadValue(Settings::soundsKey(), true)))
+      Scene::NUM_CARS, forceNoSounds ? false : Settings::instance().loadValue(Settings::soundsKey(), true)))
 {
     assert(!Game::m_instance);
     Game::m_instance = this;
