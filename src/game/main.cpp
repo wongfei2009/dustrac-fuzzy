@@ -179,7 +179,7 @@ int main(int argc, char ** argv)
     // Create the main game object. The game loop starts immediately after
     // the Renderer has been initialized.
     MCLogger().info() << "Creating game object..";
-    Game game(parser.isSet(vsyncOption));
+    Game game(parser.isSet(vsyncOption), parser.isSet(disableSounds));
 
 	MCLogger().info() << "Initializing loaded plugins...'";
 	// initialize all plugins
