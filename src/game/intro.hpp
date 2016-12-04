@@ -32,16 +32,18 @@ public:
     Intro();
 
     //! \reimp
-    void render();
-
-    void setFadeValue(float value);
+    void render() override;
 
     //! \reimp
-    void setDimensions(int width, int height);
+    void setDimensions(int width, int height) override;
+
+    void setFadeValue(float value);
 
 private:
 
     MCSurface & m_back;
+
+    MCTextureFont & m_font;
 };
 
 #endif // INTRO_HPP

@@ -24,8 +24,6 @@
 #include "openaldevice.hpp"
 #include "openalsource.hpp"
 
-#include <MCException>
-
 class AudioSource;
 
 class AudioWorker : public QObject
@@ -68,7 +66,7 @@ public slots:
 
 private:
 
-    void checkFile(QString path) throw (MCException);
+    void checkFile(QString path);
 
     void loadCommonSound(QString handle, QString path);
 

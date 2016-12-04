@@ -1,3 +1,216 @@
+dustrac (1.11.0-3) vivid; urgency=medium
+
+  * Show a red overlay on hard crashes.
+  * Fix unit tests.
+  * Own layer for damage smoke.
+  * Remove misleading comments.
+  * Eliminate copy-paste.
+  * Editor: Fix wrong scale when track given as a CLI argument.
+  * Add body damage system.
+  * Stabilize the steering a bit.
+  * Make difficulty setting affect game speed.
+  * Add difficulty selection.
+  * Refactor settingsmenu.hpp
+  * Refactor steering logic.
+  * Editor: Don't try to open a track if filename is empty.
+  * Use same renderer for all particle batches.
+  * Sparkles as surface particles.
+  * Remove alpha blending from the plant object.
+  * Add screenshots of 1.10.0
+  * Sort particles in place.
+  * Update web/index.html
+
+ -- Jussi Lind <jussi.lind@iki.fi>  Sun, 03 May 2015 20:39:03 +0300
+
+dustrac (1.11.0-2) utopic; urgency=medium
+
+  * Show a red overlay on hard crashes.
+  * Fix unit tests.
+  * Own layer for damage smoke.
+  * Remove misleading comments.
+  * Eliminate copy-paste.
+  * Editor: Fix wrong scale when track given as a CLI argument.
+  * Add body damage system.
+  * Stabilize the steering a bit.
+  * Make difficulty setting affect game speed.
+  * Add difficulty selection.
+  * Refactor settingsmenu.hpp
+  * Refactor steering logic.
+  * Editor: Don't try to open a track if filename is empty.
+  * Use same renderer for all particle batches.
+  * Sparkles as surface particles.
+  * Remove alpha blending from the plant object.
+  * Add screenshots of 1.10.0
+  * Sort particles in place.
+  * Update web/index.html
+
+ -- Jussi Lind <jussi.lind@iki.fi>  Sun, 03 May 2015 20:25:29 +0300
+
+dustrac (1.11.0-1) trusty; urgency=medium
+
+  * Show a red overlay on hard crashes.
+  * Fix unit tests.
+  * Own layer for damage smoke.
+  * Remove misleading comments.
+  * Eliminate copy-paste.
+  * Editor: Fix wrong scale when track given as a CLI argument.
+  * Add body damage system.
+  * Stabilize the steering a bit.
+  * Make difficulty setting affect game speed.
+  * Add difficulty selection.
+  * Refactor settingsmenu.hpp
+  * Refactor steering logic.
+  * Editor: Don't try to open a track if filename is empty.
+  * Use same renderer for all particle batches.
+  * Sparkles as surface particles.
+  * Remove alpha blending from the plant object.
+  * Add screenshots of 1.10.0
+  * Sort particles in place.
+  * Update web/index.html
+
+ -- Jussi Lind <jussi.lind@iki.fi>  Tue, 28 Apr 2015 20:33:04 +0300
+
+dustrac (1.10.0-1) trusty; urgency=medium
+
+  * Remove some needless assert's.
+  * Reduce quadratic drag.
+  * Move brake signs a bit further.
+  * Add a chicane to straight.trk and make it shorter.
+  * Move MCGLScene to MCWorldRenderer.
+  * Common base class for all particle renderers.
+  * Refactor particle rendering.
+  * Smaller tree swing amplitude.
+  * Fix cppcheck warnings.
+  * Mud particles as surface particles.
+  * Make it possible to spin.
+  * Take more car colors in to use.
+  * Simple specular effect for the cars.
+  * Fix specular lighting of the tire object.
+  * No leaf particle when colliding with plants.
+  * Higher z for the plant object.
+  * Implement batching and shadows for MCSurfaceParticles.
+  * New-style signal connections in Game.
+  * Lambda slots for show/hide cursor.
+  * Lambda slot for the update timer.
+  * Eliminate magic numbers.
+  * Add MCSurfaceParticleRenderer.
+  * Longer start grid to Suzuka.
+  * Editor: Implement row and col deletion.
+  * Editor: replace some if's with asserts.
+  * Editor: Fit track properly when loading a track.
+  * More sane use of casts.
+  * C++11 way to disable copy ctor's.
+  * Cosmetic changes to tracktile.hpp.
+  * Editor: Implement row and column insertion.
+  * Refactor Config.
+  * Remove unused class TileTypeDialog.
+  * Editor: Use C++11's override specifier.
+  * Editor: Replace private slots with lambdas in EditorView.
+  * Editor: Cosmetic changes to EditorView.
+  * Use add_compile_options() instead of appending CMAKE_CXX_FLAGS.
+  * Render rect particles as quads if not GLES.
+  * Add MCGLRectParticleRenderer.
+  * Show lap time in message area.
+  * Fix a typo.
+  * Remove obsolete images.
+  * Use GLSL's reflect().
+  * Replace MCException with std::runtime_error.
+  * Use C++11's move semantics in MCBBox and MCBBox3d.
+  * Use C++11's move semantics in MCVector2d and MCVector3d.
+  * Refactor child velocity logic.
+  * Don't set render layer when on bridge.
+  * Render hud after shadows.
+  * Refactor MCSurfaceConfigLoader.
+  * Enable depth test for smoke.
+  * Fix depth test toggling in MCWorldRenderer.
+  * Remove render layers from cars' sub-objects.
+  * Render shadows with depth information.
+  * Update point sizes after resolution change.
+  * Refactor bridge creation.
+  * Fix build with qmake.
+  * Rescue corrupted dev branch.
+  * Set z-offsets for car surfaces.
+  * Add optional z attribute to MCSurface / surface config loader.
+  * Fix exception handling.
+  * Rename textures.conf => surfaces.conf
+  * Add mcvector2d.hh and mcvector3d.hh to CMakeLists.txt
+  * Divide layers into render and collision layers.
+  * Fix depth buffering.
+  * Add option to filter layers to be rendered.
+  * Use C++11 enum class in ResetAction.
+  * Use C++11 enum class in InputHandler.
+  * Use C++11 enum class in Game.
+  * Use C++11 enum class in MTFH::Menu.
+  * Use C++11 enum class for state.
+  * Use C++11 enum class for layers.
+  * Editor: Improve some tile graphics.
+  * Editor: Different colors for brake and brake hard.
+  * Refactor the use of gravity.
+  * Make timing based on frames instead of QTime.
+  * Fix a bug where mouse release outside pressed item caused two items being focused.
+  * Instantly change the virtual resolution between fullscreen modes.
+
+ -- Jussi Lind <jussi.lind@iki.fi>  Tue, 07 Apr 2015 19:56:55 +0300
+
+dustrac (1.9.2-1) trusty; urgency=medium
+
+  * Fix rendering of the windowed mode.
+  * Fix rendering in other than native resolutions.
+  * Take maximum supported texture size into account.
+  * Remove unused code.
+  * Remove commented code.
+  * QGLFramebufferObject => QOpenGLFramebufferObject.
+  * Add camera location support to MCGLShaderProgram.
+  * Simplify FBO shading.
+  * CMake: Check for polices before setting.
+  * Fix some MSVC compilation warnings.
+  * Improve documentaton in mcglscene.hh
+  * Add getters for eyeZ and viewAngle.
+
+ -- Jussi Lind <jussi.lind@iki.fi>  Sun, 18 Jan 2015 22:24:03 +0200
+
+dustrac (1.9.1-1) trusty; urgency=medium
+
+  * Set VSync default to 'ON'.
+  * Force QSettings to .INI-format on Windows.
+  * Show game version in the intro screen.
+  * Fix broken OpenGL scene size on virtual desktops.
+  * Make the code compile with MS Visual C++ 2013.
+  * Adjustable object grid size.
+  * Add unit test for sleep prevention.
+  * Add MCWorldTest.
+  * Fix crash when quitting.
+  * Fix multiple bridge issues.
+  * Fix a bug where tire objects couldn't get on a bridge.
+  * Improve bridge graphics.
+  * Improve tile graphics.
+  * Re-license artwork under CC BY-SA.
+  * Enable vsync menu if QT_VERSION >= 5.3.0
+  * Make shaders able to have pending property changes.
+  * Fix rendering of two-player game.
+  * Darker asphalt tile.
+  * New rotating leaf particles.
+  * Switch to the new QSurface-based graphics stack.
+  * Improve doc of MCSurfaceManager.
+  * Fix MiniCore compatibility with QML.
+  * Fix game.pro
+  * Remove obsolete files.
+  * Not mandatory to give paths to MCAssetManager.
+  * MCObjectTree => MCObjectGrid
+  * Move some MCWorldRenderer methods to private scope.
+  * Update printHelp().
+  * Add support for QOpenGLFunctions.
+  * Move Particles/* to Graphics/
+  * Refactor vertex attribute array stuff from MCGLRectParticle to MCGLObjectBase.
+  * Move some default shaders from the game to engine's side.
+  * Refactor vertex attribute array stuff from child classes to MCGLObjectBase.
+  * Add proxy methods to set shaders for texture fonts.
+  * Refactor CMakeLists.txt
+  * Remove option to build for OpenGL 3.0 because shaders are not up-to-date.
+  * Refactor MiniCore file layout.
+
+ -- Jussi Lind <jussi.lind@iki.fi>  Thu, 01 Jan 2015 19:50:25 +0200
+
 dustrac (1.8.3-1) trusty; urgency=medium
 
   * Fix bug in child object velocity calculation.
@@ -590,7 +803,7 @@ dustrac (1.0.0-1) precise; urgency=low
 
 dustrac (0.16.0-1) precise; urgency=low
 
-  * Fixes typo in textures.conf
+  * Fixes typo in surfaces.conf
   * New grandstand texture.
   * Refactors object creation in TrackLoader.
   * Updates the help text.

@@ -1,5 +1,5 @@
 // This file belongs to the "MiniCore" game engine.
-// Copyright (C) 2012 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -50,7 +50,7 @@ public:
     //! Destructor.
     virtual ~MCGLScene();
 
-    //! Get the singleton instance.
+    //! \return the singleton instance.
     static MCGLScene & instance();
 
     //! Initializes OpenGL and GLEW. Re-implement if desired.
@@ -58,12 +58,12 @@ public:
 
     //! Resize / set projection matrices and viewport. Re-implement if desired.
     virtual void resize(MCUint viewWidth, MCUint viewHeight,
-        MCUint sceneWidth, MCUint sceneHeight, MCFloat viewAngle);
+        MCUint sceneWidth, MCUint sceneHeight, MCFloat viewAngle, MCFloat zNear, MCFloat zFar);
 
     //! Set viewport split type.
     void setSplitType(SplitType splitType = ShowFullScreen);
 
-    //! Get the resulting view projection matrix to be used in shaders.
+    //! \return the resulting view projection matrix to be used in shaders.
     const glm::mat4 & viewProjectionMatrix() const;
 
     /*! Set fade value used in fade in/out animations.
@@ -79,29 +79,26 @@ public:
     /*! Set specular light for all registered shaders. */
     void setSpecularLight(const MCGLDiffuseLight & light);
 
-    //! Get default shader program.
+    //! \return default shader program.
     MCGLShaderProgramPtr defaultShaderProgram();
 
-    //! Get default specular shader program.
+    //! \return default specular shader program.
     MCGLShaderProgramPtr defaultSpecularShaderProgram();
 
-    //! Get default shadow shader program.
+    //! \return default shadow shader program.
     MCGLShaderProgramPtr defaultShadowShaderProgram();
 
-    //! Get default shader program for particles.
-    MCGLShaderProgramPtr defaultParticleShaderProgram();
-
-    //! Get default shader program for point particles.
-    MCGLShaderProgramPtr defaultPointParticleShaderProgram();
-
-    //! Get default shader program for rotated point particles.
-    MCGLShaderProgramPtr defaultPointParticleRotateShaderProgram();
-
-    //! Get default shader program for text.
+    //! \return default shader program for text.
     MCGLShaderProgramPtr defaultTextShaderProgram();
 
-    //! Get default shader program for text shadow.
+    //! \return default shader program for text shadow.
     MCGLShaderProgramPtr defaultTextShadowShaderProgram();
+
+    //! \return current view angle
+    MCFloat viewAngle() const;
+
+    //! \return current eye distance
+    MCFloat eyeZ() const;
 
 protected:
 
@@ -135,6 +132,12 @@ private:
 
     MCFloat m_viewAngle;
 
+    MCFloat m_eyeZ;
+
+    MCFloat m_zNear;
+
+    MCFloat m_zFar;
+
     glm::mat4 m_viewMatrix;
 
     glm::mat4 m_projectionMatrix;
@@ -150,12 +153,6 @@ private:
     MCGLShaderProgramPtr m_defaultSpecularShader;
 
     MCGLShaderProgramPtr m_defaultShadowShader;
-
-    MCGLShaderProgramPtr m_defaultParticleShader;
-
-    MCGLShaderProgramPtr m_defaultPointParticleShader;
-
-    MCGLShaderProgramPtr m_defaultPointParticleRotateShader;
 
     MCGLShaderProgramPtr m_defaultTextShader;
 

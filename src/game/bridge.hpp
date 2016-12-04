@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2014 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -28,24 +28,31 @@ class Bridge : public MCObject
 {
 public:
 
+    static MCFloat zOffset()
+    {
+        return 5.0f;
+    }
+
     Bridge(MCSurface & surface, MCSurface & rail);
 
     //! \reimp
     virtual void collisionEvent(MCCollisionEvent & event);
 
     //! \reimp
-    virtual void stepTime(MCFloat step);
+    virtual void onStepTime(MCFloat step);
+
+    void enterObject(MCObject & object);
 
 private:
 
     std::map<MCObject *, int> m_objectsOnBridge;
 
+    std::map<MCObject *, bool> m_objectsEntered;
+
     int m_tag;
 
     MCObjectPtr m_rail0;
     MCObjectPtr m_rail1;
-    MCObjectPtr m_railLower0;
-    MCObjectPtr m_railLower1;
     MCObjectPtr m_trigger0;
     MCObjectPtr m_trigger1;
 };

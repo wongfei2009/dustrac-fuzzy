@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -34,16 +34,36 @@
 #include "trackdata.hpp"
 #include "tracktile.hpp"
 
+#include <cassert>
+
 EditorView::EditorView(EditorData & editorData, QWidget * parent)
 : QGraphicsView(parent)
 , m_clearComputerHint(nullptr)
 , m_setComputerHintBrakeHard(nullptr)
 , m_setComputerHintBrake(nullptr)
+, m_insertRow(nullptr)
+, m_deleteRow(nullptr)
+, m_insertCol(nullptr)
+, m_deleteCol(nullptr)
 , m_editorData(editorData)
 {
-    createTileContextMenu();
-    createObjectContextMenu();
-    createTargetNodeContextMenu();
+    createTileContextMenuActions();
+    createObjectContextMenuActions();
+    createTargetNodeContextMenuActions();
+}
+
+void EditorView::updateSceneRect()
+{
+    const QRectF newSceneRect(
+        0,
+        0,
+        m_editorData.trackData()->map().cols() * TrackTile::TILE_W,
+        m_editorData.trackData()->map().rows() * TrackTile::TILE_H);
+
+    setSceneRect(newSceneRect);
+
+    assert(scene());
+    scene()->setSceneRect(newSceneRect);
 }
 
 void EditorView::mouseMoveEvent(QMouseEvent * event)
@@ -73,44 +93,124 @@ void EditorView::mouseMoveEvent(QMouseEvent * event)
             tnode->setLocation(mappedPos);
         }
 
-        // Show coordinates in status bar
+        updateCoordinates(mappedPos);
+    }
+}
+
+void EditorView::updateCoordinates(QPointF mappedPos)
+{
+    if (m_editorData.trackData())
+    {
+        const int maxCols = static_cast<int>(m_editorData.trackData()->map().cols());
+        int column = mappedPos.x() / TrackTile::TILE_W;
+        column = column >= maxCols ? maxCols - 1 : column;
+        column = column < 0 ? 0 : column;
+
+        const int maxRows = static_cast<int>(m_editorData.trackData()->map().rows());
+        int row = mappedPos.y() / TrackTile::TILE_H;
+        row = row >= maxRows ? maxRows - 1 : row;
+        row = row < 0 ? 0 : row;
+
+        m_editorData.setActiveRow(static_cast<unsigned int>(row));
+        m_editorData.setActiveColumn(static_cast<unsigned int>(column));
+
         QString coordinates("X: %1 Y: %2 I: %3 J: %4");
-        coordinates = coordinates.arg(
-            mappedPos.x()).arg(
-            mappedPos.y()).arg(
-            static_cast<int>(mappedPos.x() / TrackTile::TILE_W)).arg(
-            static_cast<int>(mappedPos.y() / TrackTile::TILE_H));
+        coordinates = coordinates.arg(mappedPos.x()).arg(mappedPos.y()).arg(column).arg(row);
         MainWindow::instance()->statusBar()->showMessage(coordinates);
     }
 }
 
-void EditorView::createTileContextMenu()
+void EditorView::createTileContextMenuActions()
 {
     const QChar degreeSign(176);
-    const QString dummy1(QString(QWidget::tr("Rotate 90")) +
-        degreeSign + QWidget::tr(" CW.."));
+    const QString dummy1(QString(QWidget::tr("Rotate 90")) + degreeSign + QWidget::tr(" CW.."));
 
     QAction * rotate90CW = new QAction(dummy1, &m_tileContextMenu);
-    QObject::connect(rotate90CW, SIGNAL(triggered()), this, SLOT(doRotateTile90CW()));
+    QObject::connect(rotate90CW, &QAction::triggered, [this] () {
+        if (TrackTile * tile =
+            dynamic_cast<TrackTile *>(scene()->itemAt(mapToScene(m_clickedPos), QTransform())))
+        {
+            const qreal oldRotation = tile->rotation();
+            qreal newRotation;
+            if (tile->rotate90CW(&newRotation))
+            {
+                addRotateUndoStackItem(tile, oldRotation, newRotation);
+            }
+        }
+    });
 
-    const QString dummy2(QString(QWidget::tr("Rotate 90")) +
-        degreeSign + QWidget::tr(" CCW.."));
+    const QString dummy2(QString(QWidget::tr("Rotate 90")) + degreeSign + QWidget::tr(" CCW.."));
 
     QAction * rotate90CCW = new QAction(dummy2, &m_tileContextMenu);
-    QObject::connect(rotate90CCW, SIGNAL(triggered()), this, SLOT(doRotateTile90CCW()));
+    QObject::connect(rotate90CCW, &QAction::triggered, [this] () {
+        if (TrackTile * tile =
+            dynamic_cast<TrackTile *>(scene()->itemAt(mapToScene(m_clickedPos), QTransform())))
+        {
+            const qreal oldRotation = tile->rotation();
+            qreal newRotation;
+            if (tile->rotate90CCW(&newRotation))
+            {
+                addRotateUndoStackItem(tile, oldRotation, newRotation);
+            }
+        }
+    });
 
     m_clearComputerHint = new QAction(QWidget::tr("Clear computer hint"), &m_tileContextMenu);
-    QObject::connect(m_clearComputerHint, SIGNAL(triggered()), this, SLOT(doClearComputerHint()));
+    QObject::connect(m_clearComputerHint, &QAction::triggered, [this] () {
+        setComputerHint(TrackTileBase::CH_NONE);
+    });
 
     m_setComputerHintBrakeHard = new QAction(
         QWidget::tr("Set computer hint 'brake hard'.."), &m_tileContextMenu);
-    QObject::connect(m_setComputerHintBrakeHard, SIGNAL(triggered()), this,
-        SLOT(doSetComputerHintBrakeHard()));
+    QObject::connect(m_setComputerHintBrakeHard, &QAction::triggered, [this] () {
+        setComputerHint(TrackTileBase::CH_BRAKE_HARD);
+    });
 
     m_setComputerHintBrake = new QAction(
         QWidget::tr("Set computer hint 'brake'.."), &m_tileContextMenu);
-    QObject::connect(m_setComputerHintBrake, SIGNAL(triggered()), this,
-        SLOT(doSetComputerHintBrake()));
+    QObject::connect(m_setComputerHintBrake, &QAction::triggered, [this] () {
+        setComputerHint(TrackTileBase::CH_BRAKE);
+    });
+
+    m_insertRow = new QAction(
+        QWidget::tr("Insert row.."), &m_tileContextMenu);
+    QObject::connect(m_insertRow, &QAction::triggered, [this] () {
+        m_editorData.trackData()->insertRow(m_editorData.activeRow());
+        m_editorData.addTilesToScene();
+        updateSceneRect();
+        update();
+    });
+
+    m_deleteRow = new QAction(
+        QWidget::tr("Delete row.."), &m_tileContextMenu);
+    QObject::connect(m_deleteRow, &QAction::triggered, [this] () {
+        auto deleted = m_editorData.trackData()->deleteRow(m_editorData.activeRow());
+        for (auto tile : deleted) {
+            m_editorData.removeTileFromScene(tile);
+        }
+        updateSceneRect();
+        update();
+    });
+
+    m_insertCol = new QAction(
+        QWidget::tr("Insert column.."), &m_tileContextMenu);
+    QObject::connect(m_insertCol, &QAction::triggered, [this] () {
+        m_editorData.trackData()->insertColumn(m_editorData.activeColumn());
+        m_editorData.addTilesToScene();
+        updateSceneRect();
+        update();
+    });
+
+    m_deleteCol = new QAction(
+        QWidget::tr("Delete column.."), &m_tileContextMenu);
+    QObject::connect(m_deleteCol, &QAction::triggered, [this] () {
+        auto deleted = m_editorData.trackData()->deleteColumn(m_editorData.activeColumn());
+        for (auto tile : deleted) {
+            m_editorData.removeTileFromScene(tile);
+        }
+        updateSceneRect();
+        update();
+    });
 
     // Populate the menu
     m_tileContextMenu.addAction(rotate90CW);
@@ -119,23 +219,45 @@ void EditorView::createTileContextMenu()
     m_tileContextMenu.addAction(m_clearComputerHint);
     m_tileContextMenu.addAction(m_setComputerHintBrakeHard);
     m_tileContextMenu.addAction(m_setComputerHintBrake);
+    m_tileContextMenu.addAction(m_insertRow);
+    m_tileContextMenu.addAction(m_deleteRow);
+    m_tileContextMenu.addAction(m_insertCol);
+    m_tileContextMenu.addAction(m_deleteCol);
 }
 
-void EditorView::createObjectContextMenu()
+void EditorView::createObjectContextMenuActions()
 {
     const QString dummy1(QString(QWidget::tr("Rotate..")));
     QAction * rotate = new QAction(dummy1, &m_tileContextMenu);
-    QObject::connect(rotate, SIGNAL(triggered()), this, SLOT(doRotateObject()));
+    QObject::connect(rotate, &QAction::triggered, [this] () {
+        RotateDialog dialog;
+        if (dialog.exec() == QDialog::Accepted)
+        {
+            if (Object * object = m_editorData.selectedObject())
+            {
+                object->setRotation(static_cast<int>(dialog.angle() + object->rotation()) % 360);
+            }
+        }
+    });
 
     // Populate the menu
     m_objectContextMenu.addAction(rotate);
 }
 
-void EditorView::createTargetNodeContextMenu()
+void EditorView::createTargetNodeContextMenuActions()
 {
     const QString dummy1(QString(QWidget::tr("Set size..")));
     QAction * setSize = new QAction(dummy1, &m_targetNodeContextMenu);
-    QObject::connect(setSize, SIGNAL(triggered()), this, SLOT(doSetTargetNodeSize()));
+    QObject::connect(setSize, &QAction::triggered, [this] () {
+        if (TargetNode * tnode = m_editorData.selectedTargetNode())
+        {
+            TargetNodeSizeDlg dialog(tnode->size());
+            if (dialog.exec() == QDialog::Accepted)
+            {
+                tnode->setSize(dialog.targetNodeSize());
+            }
+        }
+    });
 
     // Populate the menu
     m_targetNodeContextMenu.addAction(setSize);
@@ -356,9 +478,9 @@ void EditorView::handleLeftButtonClickOnTile(TrackTile & tile)
     }
 }
 
-void EditorView::handleRightButtonClickOnTile(TrackTile & tile)
+void EditorView::openTileContextMenu(TrackTile & tile)
 {
-    // Enable all hints by default
+    // Enable all hint actions by default
     m_clearComputerHint->setEnabled(true);
     m_setComputerHintBrakeHard->setEnabled(true);
     m_setComputerHintBrake->setEnabled(true);
@@ -378,27 +500,45 @@ void EditorView::handleRightButtonClickOnTile(TrackTile & tile)
         break;
     }
 
-    // Show the context menu
-    QPoint globalPos = mapToGlobal(m_clickedPos);
+    if (m_editorData.trackData())
+    {
+        m_deleteCol->setEnabled(m_editorData.trackData()->map().cols() > 2);
+        m_deleteRow->setEnabled(m_editorData.trackData()->map().rows() > 2);
+    }
+
+    const QPoint globalPos = mapToGlobal(m_clickedPos);
     m_tileContextMenu.exec(globalPos);
+}
+
+void EditorView::handleRightButtonClickOnTile(TrackTile & tile)
+{
+    openTileContextMenu(tile);
+}
+
+void EditorView::openObjectContextMenu()
+{
+    const QPoint globalPos = mapToGlobal(m_clickedPos);
+    m_objectContextMenu.exec(globalPos);
 }
 
 void EditorView::handleRightButtonClickOnObject(Object & object)
 {
     m_editorData.setSelectedObject(&object);
 
-    // Show the context menu
-    QPoint globalPos = mapToGlobal(m_clickedPos);
-    m_objectContextMenu.exec(globalPos);
+    openObjectContextMenu();
+}
+
+void EditorView::openTargetNodeContextMenu()
+{
+    const QPoint globalPos = mapToGlobal(m_clickedPos);
+    m_targetNodeContextMenu.exec(globalPos);
 }
 
 void EditorView::handleRightButtonClickOnTargetNode(TargetNode & tnode)
 {
     m_editorData.setSelectedTargetNode(&tnode);
 
-    // Show the context menu
-    QPoint globalPos = mapToGlobal(m_clickedPos);
-    m_targetNodeContextMenu.exec(globalPos);
+    openTargetNodeContextMenu();
 }
 
 void EditorView::mouseReleaseEvent(QMouseEvent * event)
@@ -515,76 +655,7 @@ void EditorView::handleTargetNodeDragRelease(QMouseEvent * event)
     }
 }
 
-void EditorView::doRotateTile90CW()
-{
-    if (TrackTile * tile =
-        dynamic_cast<TrackTile *>(scene()->itemAt(mapToScene(m_clickedPos), QTransform())))
-    {
-        qreal oldRotation = tile->rotation();
-        qreal newRotation;
-
-        if (tile->rotate90CW(&newRotation))
-        {
-            addRotateUndoStackItem(tile, oldRotation, newRotation);
-        }
-    }
-}
-
-void EditorView::doRotateTile90CCW()
-{
-    if (TrackTile * tile =
-        dynamic_cast<TrackTile *>(scene()->itemAt(mapToScene(m_clickedPos), QTransform())))
-    {
-        qreal oldRotation = tile->rotation();
-        qreal newRotation;
-
-        if (tile->rotate90CCW(&newRotation))
-        {
-            addRotateUndoStackItem(tile, oldRotation, newRotation);
-        }
-    }
-}
-
-void EditorView::doRotateObject()
-{
-    RotateDialog dialog;
-    if (dialog.exec() == QDialog::Accepted)
-    {
-        if (Object * object = m_editorData.selectedObject())
-        {
-            object->setRotation(static_cast<int>(dialog.angle() + object->rotation()) % 360);
-        }
-    }
-}
-
-void EditorView::doSetTargetNodeSize()
-{
-    if (TargetNode * tnode = m_editorData.selectedTargetNode())
-    {
-        TargetNodeSizeDlg dialog(tnode->size());
-        if (dialog.exec() == QDialog::Accepted)
-        {
-            tnode->setSize(dialog.targetNodeSize());
-        }
-    }
-}
-
-void EditorView::doClearComputerHint()
-{
-    doSetComputerHint(TrackTileBase::CH_NONE);
-}
-
-void EditorView::doSetComputerHintBrakeHard()
-{
-    doSetComputerHint(TrackTileBase::CH_BRAKE_HARD);
-}
-
-void EditorView::doSetComputerHintBrake()
-{
-    doSetComputerHint(TrackTileBase::CH_BRAKE);
-}
-
-void EditorView::doSetComputerHint(TrackTileBase::ComputerHint hint)
+void EditorView::setComputerHint(TrackTileBase::ComputerHint hint)
 {
     if (TrackTile * tile =
         dynamic_cast<TrackTile *>(scene()->itemAt(mapToScene(m_clickedPos), QTransform())))
@@ -634,8 +705,7 @@ void EditorView::floodFill(TrackTile & tile, QAction * action, const QString & t
 
         if (x >= 0 && y >= 0)
         {
-            TrackTile * tile = dynamic_cast<TrackTile *>(map.getTile(x, y));
-
+            TrackTile * tile = dynamic_cast<TrackTile *>(map.getTile(x, y).get());
             if (tile != nullptr && tile->tileType() == typeToFill)
             {
                 floodFill(*tile, action, typeToFill, positions);

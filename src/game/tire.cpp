@@ -18,6 +18,7 @@
 
 #include <MCAssetManager>
 #include <MCMathUtil>
+#include <MCPhysicsComponent>
 #include <MCSurface>
 #include <MCTrigonom>
 
@@ -36,19 +37,28 @@ void Tire::setIsOffTrack(bool flag)
     m_isOffTrack = flag;
 }
 
-void Tire::stepTime(MCFloat)
+void Tire::onStepTime(MCFloat)
 {
-    const MCFloat tireNormalAngle = angle() + 90;
-    const MCVector2d<MCFloat> tire(
-        MCTrigonom::cos(tireNormalAngle), MCTrigonom::sin(tireNormalAngle));
-
-    if (velocity().lengthFast() > 0)
+    if (physicsComponent().velocity().lengthFast() > 0)
     {
-        MCVector2d<MCFloat> v = velocity();
-        v.clampFast(0.999); // Clamp instead of normalizing to avoid artifacts on small values
+        const MCFloat tireNormalAngle = angle() + 90;
+        const MCVector2d<MCFloat> tire(
+            MCTrigonom::cos(tireNormalAngle), MCTrigonom::sin(tireNormalAngle));
+        MCVector2d<MCFloat> v = physicsComponent().velocity();
+        v.clampFast(0.999f); // Clamp instead of normalizing to avoid artifacts on small values
         MCVector2d<MCFloat> impulse =
             MCMathUtil::projection(v, tire) *
-                (m_isOffTrack ? m_offTrackFriction : m_friction) * 9.81 * parent().mass() * m_car.tireWearLevel();
-        parent().addForce(-impulse, location());
+                (m_isOffTrack ? m_offTrackFriction : m_friction) *
+                    -MCWorld::instance().gravity().k() * parent().physicsComponent().mass();
+        impulse.clampFast(parent().physicsComponent().mass() * 7.0f * m_car.tireWearFactor());
+        parent().physicsComponent().addForce(-impulse, location());
+
+        if (m_car.isBraking())
+        {
+            MCVector2d<MCFloat> impulse =
+                v * 0.5f * (m_isOffTrack ? m_offTrackFriction : m_friction) *
+                    -MCWorld::instance().gravity().k() * parent().physicsComponent().mass() * m_car.tireWearFactor();
+            parent().physicsComponent().addForce(-impulse, location());
+        }
     }
 }

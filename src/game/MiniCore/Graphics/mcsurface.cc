@@ -1,5 +1,5 @@
 // This file belongs to the "MiniCore" game engine.
-// Copyright (C) 2010 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,23 +21,23 @@
 #include "mccamera.hh"
 #include "mcbbox.hh"
 #include "mcglmaterial.hh"
-#include "mcexception.hh"
 #include "mcglshaderprogram.hh"
 #include "mcglvertex.hh"
 #include "mcgltexcoord.hh"
 #include "mctrigonom.hh"
 #include "mcvector3d.hh"
 
+#include <algorithm>
 #include <cassert>
 
-static const int NUM_VERTICES             = 6;
-static const int NUM_COLOR_COMPONENTS     = 4;
+static const int NUM_VERTICES         = 6;
+static const int NUM_COLOR_COMPONENTS = 4;
 
-static const int VERTEX_DATA_SIZE         = sizeof(MCGLVertex)   * NUM_VERTICES;
-static const int NORMAL_DATA_SIZE         = sizeof(MCGLVertex)   * NUM_VERTICES;
-static const int TEXCOORD_DATA_SIZE       = sizeof(MCGLTexCoord) * NUM_VERTICES;
-static const int COLOR_DATA_SIZE          = sizeof(GLfloat)      * NUM_VERTICES * NUM_COLOR_COMPONENTS;
-static const int TOTAL_DATA_SIZE          =
+static const int VERTEX_DATA_SIZE     = sizeof(MCGLVertex)   * NUM_VERTICES;
+static const int NORMAL_DATA_SIZE     = sizeof(MCGLVertex)   * NUM_VERTICES;
+static const int TEXCOORD_DATA_SIZE   = sizeof(MCGLTexCoord) * NUM_VERTICES;
+static const int COLOR_DATA_SIZE      = sizeof(GLfloat)      * NUM_VERTICES * NUM_COLOR_COMPONENTS;
+static const int TOTAL_DATA_SIZE      =
     VERTEX_DATA_SIZE + NORMAL_DATA_SIZE + TEXCOORD_DATA_SIZE + COLOR_DATA_SIZE;
 
 MCSurface::MCSurface(
@@ -45,6 +45,9 @@ MCSurface::MCSurface(
     MCFloat z0, MCFloat z1, MCFloat z2, MCFloat z3)
 {
     init(material, width, height);
+
+    m_minZ = std::min(std::min(z0, z1), std::min(z2, z3));
+    m_maxZ = std::max(std::max(z0, z1), std::max(z2, z3));
 
     // Init vertice data for two triangles.
     const MCGLVertex vertices[NUM_VERTICES] =
@@ -93,18 +96,22 @@ MCSurface::MCSurface(
         {1, 1}
     };
 
-    const GLfloat colors[COLOR_DATA_SIZE] =
+    const MCGLColor colors[NUM_VERTICES] =
     {
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1
+        MCGLColor(),
+        MCGLColor(),
+        MCGLColor(),
+        MCGLColor(),
+        MCGLColor(),
+        MCGLColor()
     };
 
     initVBOs(vertices, normals, texCoords, colors);
 }
+
+MCSurface::MCSurface(MCGLMaterialPtr material, MCFloat width, MCFloat height, MCFloat z)
+    : MCSurface(material, width, height, z, z, z, z)
+{}
 
 MCSurface::MCSurface(
     MCGLMaterialPtr material, MCFloat width, MCFloat height, const MCGLTexCoord texCoords[4])
@@ -142,14 +149,14 @@ MCSurface::MCSurface(
         texCoords[2]
     };
 
-    const GLfloat colors[NUM_VERTICES * NUM_COLOR_COMPONENTS] =
+    const MCGLColor colors[NUM_VERTICES] =
     {
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1,
-        1, 1, 1, 1
+        MCGLColor(),
+        MCGLColor(),
+        MCGLColor(),
+        MCGLColor(),
+        MCGLColor(),
+        MCGLColor()
     };
 
     initVBOs(vertices, normals, texCoordsAll, colors);
@@ -163,10 +170,10 @@ void MCSurface::init(MCGLMaterialPtr material, MCFloat width, MCFloat height)
     m_w2             = width / 2;
     m_h              = height;
     m_h2             = height / 2;
+    m_minZ           = 0;
+    m_maxZ           = 0;
     m_center         = MCVector2dF(m_w2, m_h2);
     m_centerSet      = false;
-    m_alphaFunc      = GL_ALWAYS;
-    m_alphaThreshold = 0.0;
     m_useAlphaBlend  = false;
     m_src            = GL_SRC_ALPHA;
     m_dst            = GL_ONE_MINUS_SRC_ALPHA;
@@ -180,7 +187,7 @@ void MCSurface::initVBOs(
     const MCGLVertex   * vertices,
     const MCGLVertex   * normals,
     const MCGLTexCoord * texCoords,
-    const GLfloat      * colors)
+    const MCGLColor    * colors)
 {
     initBufferData(TOTAL_DATA_SIZE, GL_STATIC_DRAW);
 
@@ -202,12 +209,11 @@ void MCSurface::setCenter(MCVector2dFR center)
     m_center    = center;
 }
 
-void MCSurface::setAlphaBlend(
-    bool useAlphaBlend, GLenum src, GLenum dst)
+void MCSurface::setAlphaBlend(bool useAlphaBlend, GLenum src, GLenum dst)
 {
-    m_useAlphaBlend  = useAlphaBlend;
-    m_src            = src;
-    m_dst            = dst;
+    m_useAlphaBlend = useAlphaBlend;
+    m_src           = src;
+    m_dst           = dst;
 }
 
 void MCSurface::doAlphaBlend()
@@ -279,7 +285,6 @@ void MCSurface::release()
 
 void MCSurface::releaseShadow()
 {
-
 }
 
 void MCSurface::render()
@@ -323,7 +328,7 @@ void MCSurface::render(MCCamera * camera, MCVector3dFR pos, MCFloat angle, bool 
     }
 }
 
-void MCSurface::renderShadow(MCCamera * camera, MCVector2dFR pos, MCFloat angle, bool autoBind)
+void MCSurface::renderShadow(MCCamera * camera, MCVector3dFR pos, MCFloat angle, bool autoBind)
 {
     if (autoBind)
     {
@@ -332,15 +337,15 @@ void MCSurface::renderShadow(MCCamera * camera, MCVector2dFR pos, MCFloat angle,
 
     MCFloat x = pos.i();
     MCFloat y = pos.j();
-    MCFloat z = 0;
 
     if (camera)
     {
         camera->mapToCamera(x, y);
     }
 
-    shadowShaderProgram()->bind();
     shadowShaderProgram()->setScale(m_sx, m_sy, m_sz);
+
+    const MCFloat z = pos.k();
 
     if (m_centerSet)
     {
@@ -368,6 +373,16 @@ MCFloat MCSurface::width() const
 MCFloat MCSurface::height() const
 {
     return m_h;
+}
+
+MCFloat MCSurface::minZ() const
+{
+    return m_minZ;
+}
+
+MCFloat MCSurface::maxZ() const
+{
+    return m_maxZ;
 }
 
 MCVector2dF MCSurface::center() const

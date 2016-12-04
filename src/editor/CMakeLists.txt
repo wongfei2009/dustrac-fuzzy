@@ -1,5 +1,5 @@
 # Translation files in src/editor/translations (without .ts)
-set(TS dustrac-editor_fi dustrac-editor_it dustrac-editor_cs dustrac-editor_fr)
+set(TS dustrac-editor_fi dustrac-editor_it dustrac-editor_cs dustrac-editor_fr dustrac-editor_de)
 set(TS_FILES)
 set(QM_FILES)
 foreach(TS_FILE ${TS})
@@ -23,7 +23,6 @@ set(SRC
     rotatetileundostackitem.cpp
     targetnode.cpp
     targetnodesizedlg.cpp
-    tiletypedialog.cpp
     tiletypeundostackitem.cpp
     tileanimator.cpp
     trackdata.cpp
@@ -39,8 +38,6 @@ set(SRC
     ../common/trackdatabase.cpp
     ../common/tracktilebase.cpp
 	../common/pathresolver.cpp)
-
-#set(UIS ui/about.ui ui/settings.ui)
 
 set(RCS ${CMAKE_SOURCE_DIR}/data/images/editor.qrc ${CMAKE_SOURCE_DIR}/data/icons/icons.qrc)
 
@@ -82,7 +79,7 @@ endif()
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 add_executable(${EDITOR_BINARY_NAME} WIN32 ${SRC} ${MOC_SRC} ${RC_SRC} ${UI_HDRS} ${QM})
 
-qt5_use_modules(${EDITOR_BINARY_NAME} Widgets Xml)
+target_link_libraries(${EDITOR_BINARY_NAME} Qt5::Widgets Qt5::Xml)
 
 foreach(TS_FILE ${TS})
     # Make targets to copy generated qm files to data dir. This is done the hard

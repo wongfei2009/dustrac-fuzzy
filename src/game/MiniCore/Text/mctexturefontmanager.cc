@@ -26,6 +26,7 @@
 #include "mcsurfacemanager.hh"
 
 #include <cassert>
+#include <exception>
 
 MCTextureFontManager::MCTextureFontManager(
     const MCSurfaceManager & surfaceManager)
@@ -35,7 +36,7 @@ MCTextureFontManager::MCTextureFontManager(
 }
 
 void MCTextureFontManager::load(
-    const std::string & fileName) throw (MCException)
+    const std::string & fileName)
 {
     MCTextureFontConfigLoader loader;
     loader.setConfigPath(fileName);
@@ -53,7 +54,7 @@ void MCTextureFontManager::load(
     else
     {
         // Throw an exception
-        throw MCException("Parsing '" + fileName + "' failed!");
+        throw std::runtime_error("Parsing '" + fileName + "' failed!");
     }
 }
 
@@ -105,13 +106,13 @@ void MCTextureFontManager::createFontFromData(const MCTextureFontData & data)
 }
 
 MCTextureFont & MCTextureFontManager::font(
-    const std::string & name) const throw (MCException)
+    const std::string & name) const
 {
     // Try to find existing texture for the surface
     if (m_fontHash.count(name) == 0)
     {
         // No:
-        throw MCException("Cannot find font object called '" + name + "'");
+        throw std::runtime_error("Cannot find font object called '" + name + "'");
     }
 
     MCTextureFont * font = m_fontHash.find(name)->second;

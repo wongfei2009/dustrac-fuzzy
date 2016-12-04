@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -75,8 +75,128 @@ void TrackData::enlargeVerSize()
     m_map.resize(m_map.cols(), m_map.rows() + 1);
 }
 
-TrackData::~TrackData()
+void TrackData::insertColumn(unsigned int at)
 {
+    m_map.insertColumn(at);
+
+    moveObjectsAfterColumnInsertion(at);
+
+    moveTargetNodesAfterColumnInsertion(at);
+}
+
+void TrackData::insertRow(unsigned int at)
+{
+    m_map.insertRow(at);
+
+    moveObjectsAfterRowInsertion(at);
+
+    moveTargetNodesAfterRowInsertion(at);
+}
+
+std::vector<TrackTilePtr> TrackData::deleteColumn(unsigned int at)
+{
+    moveObjectsAfterColumnDeletion(at);
+
+    moveTargetNodesAfterColumnDeletion(at);
+
+    return m_map.deleteColumn(at);
+}
+
+std::vector<TrackTilePtr> TrackData::deleteRow(unsigned int at)
+{
+    moveObjectsAfterRowDeletion(at);
+
+    moveTargetNodesAfterRowDeletion(at);
+
+    return m_map.deleteRow(at);
+}
+
+void TrackData::moveObjectsAfterColumnInsertion(unsigned int at)
+{
+    for (auto object : m_objects)
+    {
+        if (object->location().x() > TrackTile::TILE_W * at)
+        {
+            object->setLocation(QPointF(object->location().x() + TrackTile::TILE_W, object->location().y()));
+        }
+    }
+}
+
+void TrackData::moveObjectsAfterRowInsertion(unsigned int at)
+{
+    for (auto object : m_objects)
+    {
+        if (object->location().y() > TrackTile::TILE_H * at)
+        {
+            object->setLocation(QPointF(object->location().x(), object->location().y() + TrackTile::TILE_H));
+        }
+    }
+}
+
+void TrackData::moveTargetNodesAfterColumnInsertion(unsigned int at)
+{
+    for (auto tnode : m_route)
+    {
+        if (tnode->location().x() > TrackTile::TILE_W * at)
+        {
+            tnode->setLocation(QPointF(tnode->location().x() + TrackTile::TILE_W, tnode->location().y()));
+        }
+    }
+}
+
+void TrackData::moveTargetNodesAfterRowInsertion(unsigned int at)
+{
+    for (auto tnode : m_route)
+    {
+        if (tnode->location().y() > TrackTile::TILE_H * at)
+        {
+            tnode->setLocation(QPointF(tnode->location().x(), tnode->location().y() + TrackTile::TILE_H));
+        }
+    }
+}
+
+void TrackData::moveObjectsAfterColumnDeletion(unsigned int at)
+{
+    for (auto object : m_objects)
+    {
+        if (object->location().x() > TrackTile::TILE_W * at)
+        {
+            object->setLocation(QPointF(object->location().x() - TrackTile::TILE_W, object->location().y()));
+        }
+    }
+}
+
+void TrackData::moveObjectsAfterRowDeletion(unsigned int at)
+{
+    for (auto object : m_objects)
+    {
+        if (object->location().y() > TrackTile::TILE_H * at)
+        {
+            object->setLocation(QPointF(object->location().x(), object->location().y() - TrackTile::TILE_H));
+        }
+    }
+}
+
+void TrackData::moveTargetNodesAfterColumnDeletion(unsigned int at)
+{
+    for (auto tnode : m_route)
+    {
+        if (tnode->location().x() > TrackTile::TILE_W * at)
+        {
+            tnode->setLocation(QPointF(tnode->location().x() - TrackTile::TILE_W, tnode->location().y()));
+        }
+    }
+}
+
+void TrackData::moveTargetNodesAfterRowDeletion(unsigned int at)
+{
+    for (auto tnode : m_route)
+    {
+        if (tnode->location().y() > TrackTile::TILE_H * at)
+        {
+            tnode->setLocation(QPointF(tnode->location().x(), tnode->location().y() - TrackTile::TILE_H));
+        }
+    }
 }
 
 void TrackData::addItemToUndoStack(UndoStackItemBase * item)
@@ -113,4 +233,8 @@ bool TrackData::redo(const ObjectModelLoader & loader)
     }
 
     return m_undoStackPosition != end;
+}
+
+TrackData::~TrackData()
+{
 }

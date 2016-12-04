@@ -1,5 +1,5 @@
 // This file belongs to the "MiniCore" game engine.
-// Copyright (C) 2010 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -46,22 +46,22 @@ public:
     virtual ~MCRectShape();
 
     //! \reimp
-    virtual void translate(const MCVector3dF & p);
+    virtual void translate(const MCVector3dF & p) override;
 
     //! \reimp
-    virtual void rotate(MCFloat a);
+    virtual void rotate(MCFloat a) override;
 
     //! \reimp
-    virtual MCBBoxF bbox() const;
+    virtual MCBBoxF bbox() const override;
 
     //! \reimp
-    virtual bool contains(const MCVector2dF & p) const;
+    virtual bool contains(const MCVector2dF & p) const override;
 
     //! \reimp
-    virtual int interpenetrationDepth(const MCSegmentF & p, MCVector2dF & contactNormal) const;
+    virtual int interpenetrationDepth(const MCSegmentF & p, MCVector2dF & contactNormal) const override;
 
     //! \reimp
-    virtual MCVector2dF contactNormal(const MCSegmentF & p) const;
+    virtual MCVector2dF contactNormal(const MCSegmentF & p) const override;
 
     //! \brief Resize
     void resize(MCFloat width, MCFloat height);
@@ -76,13 +76,13 @@ public:
     static MCUint typeID();
 
     //! \reimp
-    virtual MCUint instanceTypeID() const;
+    virtual MCUint instanceTypeID() const override;
 
     //! \reimp
-    virtual void render(MCCamera * p);
+    virtual void render(MCCamera * p) override;
 
     //! \reimp
-    virtual void renderScaled(MCFloat wr, MCFloat hr, MCCamera * p);
+    virtual void renderScaled(MCFloat wr, MCFloat hr, MCCamera * p) override;
 
     //! Return approximated radius.
     virtual MCFloat radius() const;
@@ -101,7 +101,6 @@ private:
     static MCUint m_typeID;
     inline MCVector2dF contactNormal(const MCSegmentF & p, const MCEdgeF & e) const;
     MCOBBox<MCFloat> m_obbox;
-    MCFloat m_momentOfInertiaFactor;
     MCFloat m_radius;
     MCFloat m_width;
     MCFloat m_height;

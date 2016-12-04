@@ -17,8 +17,6 @@
 #include "game.hpp"
 #include "usercontroller.hpp"
 
-#include <MCException>
-
 AIFactory::AIFactory()
 {
 	add("user", [this](Car& car){return new UserController(car, Game::instance().inputHandler(), 0);});
@@ -40,7 +38,7 @@ void AIFactory::add(const std::string& name, std::function<CarController* (Car&)
 
 CarController* AIFactory::create(const std::string& name, Car& car) {
 	auto iter = m_register.find(name);
-	if(iter == m_register.end()) throw MCException("No creation function registered under name '" + name + "'.");
+	if(iter == m_register.end()) throw std::runtime_error("No creation function registered under name '" + name + "'.");
 	return iter->second(car);
 }
 

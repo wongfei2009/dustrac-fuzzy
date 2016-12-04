@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -68,6 +68,18 @@ public:
     //! Enlarge vertical size.
     void enlargeVerSize();
 
+    //! Insert tile column at given index and move objects.
+    void insertColumn(unsigned int at);
+
+    //! Insert tile row at given index and move objects.
+    void insertRow(unsigned int at);
+
+    //! Delete tile column at given index and move objects.
+    std::vector<TrackTilePtr> deleteColumn(unsigned int at);
+
+    //! Delete tile row at given index and move objects.
+    std::vector<TrackTilePtr> deleteRow(unsigned int at);
+
     //! Add item to undo stack.
     void addItemToUndoStack(UndoStackItemBase * item);
 
@@ -79,6 +91,22 @@ public:
 
 private:
 
+    void moveObjectsAfterColumnInsertion(unsigned int at);
+
+    void moveObjectsAfterRowInsertion(unsigned int at);
+
+    void moveTargetNodesAfterColumnInsertion(unsigned int at);
+
+    void moveTargetNodesAfterRowInsertion(unsigned int at);
+
+    void moveObjectsAfterColumnDeletion(unsigned int at);
+
+    void moveObjectsAfterRowDeletion(unsigned int at);
+
+    void moveTargetNodesAfterColumnDeletion(unsigned int at);
+
+    void moveTargetNodesAfterRowDeletion(unsigned int at);
+
     typedef std::vector< std::shared_ptr< UndoStackItemBase > > UndoStack;
 
     QString      m_fileName;
@@ -88,5 +116,7 @@ private:
     UndoStack    m_undoStack;
     UndoStack::iterator m_undoStackPosition;
 };
+
+typedef std::shared_ptr<TrackData> TrackDataPtr;
 
 #endif // TRACKDATA_HPP

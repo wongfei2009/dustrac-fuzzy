@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,13 +21,11 @@
 #include <QPoint>
 #include <QPointF>
 
-#include <cassert>
-
 MapBase::MapBase(TrackDataBase & trackData, unsigned int cols, unsigned int rows)
-  : m_trackData(trackData)
-  , m_cols(cols)
-  , m_rows(rows)
-  , m_map(rows, TrackTileRow(m_cols, nullptr))
+    : m_trackData(trackData)
+    , m_cols(cols)
+    , m_rows(rows)
+    , m_map(rows, TrackTileRow(m_cols, nullptr))
 {}
 
 unsigned int MapBase::cols() const
@@ -59,22 +57,64 @@ void MapBase::resize(unsigned int newCols, unsigned int newRows)
     m_rows = newRows;
 }
 
-bool MapBase::setTile(unsigned int x, unsigned int y, TrackTileBase * pTile)
+bool MapBase::setTile(unsigned int x, unsigned int y, TrackTilePtr tile)
 {
     if (x >= m_cols || y >= m_rows)
         return false;
 
-    m_map[y][x] = pTile;
+    m_map[y][x] = tile;
 
     return true;
 }
 
-TrackTileBase * MapBase::getTile(unsigned int x, unsigned int y) const
+TrackTilePtr MapBase::getTile(unsigned int x, unsigned int y) const
 {
     if (x >= m_cols || y >= m_rows)
         return nullptr;
 
     return m_map[y][x];
+}
+
+void MapBase::insertColumn(unsigned int at)
+{
+    for (auto & row : m_map)
+    {
+        row.insert(row.begin() + at, nullptr);
+    }
+
+    m_cols++;
+}
+
+std::vector<TrackTilePtr> MapBase::deleteColumn(unsigned int at)
+{
+    std::vector<TrackTilePtr> deleted;
+
+    for (auto & row : m_map)
+    {
+        deleted.push_back(*(row.begin() + at));
+        row.erase(row.begin() + at);
+    }
+
+    m_cols--;
+
+    return deleted;
+}
+
+void MapBase::insertRow(unsigned int at)
+{
+    m_map.insert(m_map.begin() + at, TrackTileRow(m_cols, nullptr));
+
+    m_rows++;
+}
+
+std::vector<TrackTilePtr> MapBase::deleteRow(unsigned int at)
+{
+    std::vector<TrackTilePtr> deleted = *(m_map.begin() + at);
+    m_map.erase(m_map.begin() + at);
+
+    m_rows--;
+
+    return deleted;
 }
 
 TrackDataBase & MapBase::trackData()

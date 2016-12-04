@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -58,7 +58,6 @@ MainWindow * MainWindow::m_instance = nullptr;
 namespace
 {
     const char *       SETTINGS_GROUP = "MainWindow";
-    const int          MARGIN         = 0;
     const unsigned int MIN_ZOOM       = 0;
     const unsigned int MAX_ZOOM       = 200;
     const unsigned int INI_ZOOM       = 100;
@@ -75,7 +74,6 @@ MainWindow::MainWindow(QString trackFile)
 , m_saveAction(nullptr)
 , m_saveAsAction(nullptr)
 , m_currentToolBarAction(nullptr)
-, m_clearAllAction(nullptr)
 , m_enlargeHorSize(nullptr)
 , m_enlargeVerSize(nullptr)
 , m_setRouteAction(nullptr)
@@ -83,6 +81,7 @@ MainWindow::MainWindow(QString trackFile)
 , m_scaleSlider(new QSlider(Qt::Horizontal, this))
 , m_toolBar(new QToolBar(this))
 , m_randomRotationCheck(new QCheckBox(tr("Randomly rotate objects"), this))
+, m_argTrackFile(trackFile)
 , m_saved(false)
 {
     if (!m_instance)
@@ -96,7 +95,6 @@ MainWindow::MainWindow(QString trackFile)
 
     setWindowIcon(QIcon(":/dustrac-editor.png"));
 
-    // Init widgets
     init();
 
     console("CWD: " + QDir::currentPath());
@@ -106,17 +104,20 @@ MainWindow::MainWindow(QString trackFile)
         QDir::separator() + QString(Config::Editor::MODEL_CONFIG_FILE_NAME);
     loadObjectModels(objectFilePath);
 
-    if (!trackFile.isEmpty())
+    if (!m_argTrackFile.isEmpty())
     {
-        // Print a welcome message
-        console(tr("Loading '%1'..").arg(trackFile));
-        doOpenTrack(trackFile);
+        QTimer::singleShot(0, this, SLOT(openArgTrack()));
     }
     else
     {
-        // Print a welcome message
         console(tr("Choose 'File -> New' or 'File -> Open' to start."));
     }
+}
+
+void MainWindow::openArgTrack()
+{
+    console(tr("Loading '%1'..").arg(m_argTrackFile));
+    doOpenTrack(m_argTrackFile);
 }
 
 void MainWindow::setVisible(bool visible)
@@ -142,8 +143,7 @@ void MainWindow::init()
 {
     setTitle(tr("New file"));
 
-    QSettings settings(Config::Common::QSETTINGS_COMPANY_NAME,
-        Config::Editor::QSETTINGS_SOFTWARE_NAME);
+    QSettings settings;
 
     // Read dialog size data
     settings.beginGroup(SETTINGS_GROUP);
@@ -317,8 +317,7 @@ void MainWindow::updateScale(int value)
 void MainWindow::closeEvent(QCloseEvent * event)
 {
     // Open settings file
-    QSettings settings(Config::Common::QSETTINGS_COMPANY_NAME,
-        Config::Editor::QSETTINGS_SOFTWARE_NAME);
+    QSettings settings;
 
     // Save window size
     settings.beginGroup(SETTINGS_GROUP);
@@ -382,12 +381,6 @@ void MainWindow::populateMenuBar()
     connect(m_redoAction, SIGNAL(triggered()), this, SLOT(redo()));
     m_redoAction->setEnabled(false);
 
-    // Add "clear all"-action
-    m_clearAllAction = new QAction(tr("&Clear all"), this);
-    editMenu->addAction(m_clearAllAction);
-    connect(m_clearAllAction, SIGNAL(triggered()), this, SLOT(clear()));
-    m_clearAllAction->setEnabled(false);
-
     // Add "enlarge hor size"-action
     m_enlargeHorSize = new QAction(tr("Enlarge hor size"), this);
     editMenu->addAction(m_enlargeHorSize);
@@ -413,6 +406,7 @@ void MainWindow::populateMenuBar()
     m_clearRouteAction = new QAction(tr("Clear &route"), this);
     routeMenu->addAction(m_clearRouteAction);
     connect(m_clearRouteAction, SIGNAL(triggered()), this, SLOT(clearRoute()));
+    m_clearRouteAction->setEnabled(false);
 
     // Add "set order"-action
     m_setRouteAction = new QAction(tr("&Set route.."), this);
@@ -437,18 +431,18 @@ void MainWindow::populateMenuBar()
 void MainWindow::populateToolBar()
 {
     // Add "select"-action
-    QAction * p = new QAction(QIcon(QPixmap(Config::Editor::SELECT_PATH)), tr("Select"), this);
+    QAction * p = new QAction(QIcon(QPixmap(Config::Editor::SELECT_ICON_PATH)), tr("Select"), this);
     p->setData(QVariant(QString("select")));
     m_toolBar->addAction(p);
 
     // Add "erase"-action
     p = new QAction(
-        QIcon(QPixmap(Config::Editor::ERASE_PATH)), tr("Erase object"), this);
+        QIcon(QPixmap(Config::Editor::ERASE_ICON_PATH)), tr("Erase object"), this);
     p->setData(QVariant(QString("erase")));
     m_toolBar->addAction(p);
 
     // Add "clear"-action
-    p = new QAction(QIcon(QPixmap(Config::Editor::CLEAR_PATH)), tr("Clear"), this);
+    p = new QAction(QIcon(QPixmap(Config::Editor::CLEAR_ICON_PATH)), tr("Clear"), this);
     p->setData(QVariant(QString("clear")));
     m_toolBar->addAction(p);
 
@@ -469,8 +463,7 @@ void MainWindow::handleToolBarActionClick(QAction * action)
         // Select-action
         if (action->data() == "select")
         {
-            QApplication::restoreOverrideCursor();
-            m_editorData->setMode(EditorData::EM_NONE);
+            clearEditMode();
         }
         // The user wants to erase an object.
         else if (action->data() == "erase")
@@ -498,15 +491,6 @@ void MainWindow::handleToolBarActionClick(QAction * action)
         else if (m_objectModelLoader->getCategoryByRole(
             action->data().toString()) == "free")
         {
-            ObjectModel objectData = m_objectModelLoader->getObjectModelByRole(
-                action->data().toString());
-
-            unsigned int w = objectData.width;
-            w = w > 0 ? w : objectData.pixmap.width();
-
-            unsigned int h = objectData.height;
-            h = h > 0 ? h : objectData.pixmap.height();
-
             QApplication::restoreOverrideCursor();
             QApplication::setOverrideCursor(QCursor(QPixmap(":/cursor2.png")));
             m_editorData->setMode(EditorData::EM_ADD_OBJECT);
@@ -514,28 +498,29 @@ void MainWindow::handleToolBarActionClick(QAction * action)
     }
     else
     {
-        QApplication::restoreOverrideCursor();
-        m_editorData->setMode(EditorData::EM_NONE);
+        clearEditMode();
         m_currentToolBarAction = nullptr;
     }
 }
 
 void MainWindow::openTrack()
 {
+    clearEditMode();
+
     // Load recent path
-    QSettings settings(Config::Common::QSETTINGS_COMPANY_NAME,
-        Config::Editor::QSETTINGS_SOFTWARE_NAME);
+    QSettings settings;
 
     settings.beginGroup(SETTINGS_GROUP);
     QString path = settings.value("recentPath",
     QStandardPaths::writableLocation(QStandardPaths::HomeLocation)).toString();
     settings.endGroup();
 
-    QString fileName = QFileDialog::getOpenFileName(this,
-                                                    tr("Open a track"),
-                                                    path,
-                                                    tr("Track Files (*.trk)"));
-    doOpenTrack(fileName);
+    const QString fileName = QFileDialog::getOpenFileName(
+        this, tr("Open a track"), path, tr("Track Files (*.trk)"));
+    if (!fileName.isEmpty())
+    {
+        doOpenTrack(fileName);
+    }
 }
 
 void MainWindow::showAboutDlg()
@@ -564,16 +549,11 @@ void MainWindow::redo()
     m_redoAction->setEnabled(hasMoreItemsToRedo);
 }
 
-void MainWindow::clear()
-{
-    assert(m_editorData);
-    m_editorData->clear();
-}
-
 void MainWindow::clearRoute()
 {
     assert(m_editorData);
     m_editorData->clearRoute();
+    m_clearRouteAction->setEnabled(false);
 }
 
 bool MainWindow::doOpenTrack(QString fileName)
@@ -597,8 +577,7 @@ bool MainWindow::doOpenTrack(QString fileName)
         setTitle(fileName);
 
         // Save recent path
-        QSettings settings(Config::Common::QSETTINGS_COMPANY_NAME,
-            Config::Editor::QSETTINGS_SOFTWARE_NAME);
+        QSettings settings;
 
         settings.beginGroup(SETTINGS_GROUP);
         settings.setValue("recentPath", fileName);
@@ -611,21 +590,18 @@ bool MainWindow::doOpenTrack(QString fileName)
         delete m_editorScene;
         m_editorScene = new EditorScene;
 
-        QRectF newSceneRect(-MARGIN, -MARGIN,
-            2 * MARGIN + m_editorData->trackData()->map().cols() * TrackTile::TILE_W,
-            2 * MARGIN + m_editorData->trackData()->map().rows() * TrackTile::TILE_H);
-
-        m_editorScene->setSceneRect(newSceneRect);
-
         m_editorView->setScene(m_editorScene);
-        m_editorView->setSceneRect(newSceneRect);
-        m_editorView->ensureVisible(0, 0, 0, 0);
+        m_editorView->updateSceneRect();
 
         m_editorData->addTilesToScene();
         m_editorData->addObjectsToScene();
         m_editorData->addExistingRouteToScene();
 
+        fitScale();
+
         m_saved = true;
+
+        m_clearRouteAction->setEnabled(m_editorData->trackData()->route().numNodes());
 
         return true;
     }
@@ -640,6 +616,8 @@ bool MainWindow::doOpenTrack(QString fileName)
 
 void MainWindow::saveTrack()
 {
+    QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
+
     if (!m_saved)
     {
         saveAsTrack();
@@ -660,17 +638,24 @@ void MainWindow::saveTrack()
                 tr("Failed to save track '")) + m_editorData->trackData()->fileName() + "'.");
         }
     }
+
+    QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::saveAsTrack()
 {
+    QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
+
     QString fileName = QFileDialog::getSaveFileName(this,
         tr("Save a track"),
         QStandardPaths::writableLocation(QStandardPaths::HomeLocation),
         tr("Track Files (*.trk)"));
 
-    if (!fileName.endsWith(".trk"))
-        fileName += ".trk";
+    const QString trackFileExtension(".trk");
+    if (!fileName.endsWith(trackFileExtension))
+    {
+        fileName += trackFileExtension;
+    }
 
     assert(m_editorData);
     if (m_editorData->saveTrackDataAs(fileName))
@@ -683,10 +668,14 @@ void MainWindow::saveAsTrack()
     {
         console(QString(tr("Failed to save track as '")) + fileName + "'.");
     }
+
+    QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::initializeNewTrack()
 {
+    QApplication::setOverrideCursor(QCursor(Qt::ArrowCursor));
+
     // Show a dialog asking some questions about the track
     NewTrackDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted)
@@ -696,20 +685,13 @@ void MainWindow::initializeNewTrack()
 
         assert(m_editorData);
 
-        m_editorData->removeTilesFromScene();
-        m_editorData->removeObjectsFromScene();
-        m_editorData->setTrackData(new TrackData(dialog.name(), dialog.isUserTrack(), cols, rows));
+        m_editorData->setTrackData(TrackDataPtr(new TrackData(dialog.name(), dialog.isUserTrack(), cols, rows)));
 
         delete m_editorScene;
         m_editorScene = new EditorScene;
 
-        QRectF newSceneRect(-MARGIN, -MARGIN,
-            2 * MARGIN + cols * TrackTile::TILE_W,
-            2 * MARGIN + rows * TrackTile::TILE_H);
-
-        m_editorScene->setSceneRect(newSceneRect);
         m_editorView->setScene(m_editorScene);
-        m_editorView->ensureVisible(0, 0, 0, 0);
+        m_editorView->updateSceneRect();
 
         // Undo stack has been cleared.
         m_undoAction->setEnabled(false);
@@ -717,6 +699,8 @@ void MainWindow::initializeNewTrack()
 
         m_editorData->addTilesToScene();
         m_editorData->addObjectsToScene();
+
+        fitScale();
 
         setActionStatesOnNewTrack();
 
@@ -727,8 +711,12 @@ void MainWindow::initializeNewTrack()
 
         setTitle(tr("New file"));
 
+        m_clearRouteAction->setEnabled(false);
+
         m_saved = false;
     }
+
+    QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::setActionStatesOnNewTrack()
@@ -736,7 +724,6 @@ void MainWindow::setActionStatesOnNewTrack()
     m_saveAction->setEnabled(true);
     m_saveAsAction->setEnabled(true);
     m_toolBar->setEnabled(true);
-    m_clearAllAction->setEnabled(true);
     m_enlargeHorSize->setEnabled(true);
     m_enlargeVerSize->setEnabled(true);
     m_setRouteAction->setEnabled(true);
@@ -747,44 +734,37 @@ void MainWindow::setTrackProperties()
 {
     // Show a dialog to set some properties e.g. lap count.
     assert(m_editorData);
-    TrackPropertiesDialog dialog(m_editorData->trackData()->index(), this);
+    TrackPropertiesDialog dialog(m_editorData->trackData()->name(), m_editorData->trackData()->index(), m_editorData->trackData()->isUserTrack(), this);
     if (dialog.exec() == QDialog::Accepted)
     {
+        m_editorData->trackData()->setName(dialog.name());
         m_editorData->trackData()->setIndex(dialog.index());
-        console(QString(tr("Index set to '%1'."))
-            .arg(m_editorData->trackData()->index()));
+        m_editorData->trackData()->setUserTrack(dialog.isUserTrack());
+        console(QString(tr("Track properties updated.")));
     }
 }
 
 void MainWindow::enlargeHorSize()
 {
     assert(m_editorData);
-    if (TrackData * trackData = m_editorData->trackData())
+    if (m_editorData->trackData())
     {
-        trackData->enlargeHorSize();
+        m_editorData->trackData()->enlargeHorSize();
         m_editorData->addTilesToScene();
 
-        QRectF newSceneRect(-MARGIN, -MARGIN,
-            2 * MARGIN + trackData->map().cols() * TrackTile::TILE_W,
-            2 * MARGIN + trackData->map().rows() * TrackTile::TILE_H);
-
-        m_editorView->setSceneRect(newSceneRect);
+        m_editorView->updateSceneRect();
     }
 }
 
 void MainWindow::enlargeVerSize()
 {
     assert(m_editorData);
-    if (TrackData * trackData = m_editorData->trackData())
+    if (m_editorData->trackData())
     {
-        trackData->enlargeVerSize();
+        m_editorData->trackData()->enlargeVerSize();
         m_editorData->addTilesToScene();
 
-        QRectF newSceneRect(-MARGIN, -MARGIN,
-            2 * MARGIN + trackData->map().cols() * TrackTile::TILE_W,
-            2 * MARGIN + trackData->map().rows() * TrackTile::TILE_H);
-
-        m_editorView->setSceneRect(newSceneRect);
+        m_editorView->updateSceneRect();
     }
 }
 
@@ -820,6 +800,7 @@ void MainWindow::endSetRoute()
 {
     assert(m_editorData);
     m_editorData->endSetRoute();
+    m_clearRouteAction->setEnabled(m_editorData->trackData()->route().numNodes());
     console(tr("Set route: route finished."));
 }
 
@@ -833,6 +814,18 @@ void MainWindow::console(QString text)
 {
     QDateTime date = QDateTime::currentDateTime();
     m_console->append(QString("(") + date.toString("hh:mm:ss") + "): " + text);
+}
+
+void MainWindow::clearEditMode()
+{
+    QApplication::restoreOverrideCursor();
+    m_editorData->setMode(EditorData::EM_NONE);
+}
+
+void MainWindow::fitScale()
+{
+    m_editorView->centerOn(m_editorView->sceneRect().center());
+    m_scaleSlider->setValue(m_editorView->viewport()->height() * 100 / m_editorView->sceneRect().height());
 }
 
 MainWindow::~MainWindow()

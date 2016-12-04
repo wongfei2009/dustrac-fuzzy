@@ -7,7 +7,6 @@
 //#include "../common/targetnodebase.hpp"
 //#include "../common/tracktilebase.hpp"
 
-#include <MCException>
 #include <MCRandom>
 #include <MCTrigonom>
 #include <MCTypes>
@@ -18,7 +17,7 @@ CarController(car), m_data(random)
 }
 
 void PIDController::update(bool isRaceCompleted) {
-	if(!m_track) throw MCException("Track must be set for the PIDController before calling update.");
+	if(!m_track) throw std::runtime_error("Track must be set for the PIDController before calling update.");
 
 	m_car.clearStatuses();
 	m_data.updateErrors(m_car, m_track->trackData().route());
@@ -36,10 +35,12 @@ void PIDController::update(bool isRaceCompleted) {
 	const MCFloat maxControl = 1.5;
 	steerC = std::min(std::max(steerC, -maxControl), maxControl);
 
-	if (steerC >= 0) {
-	    m_car.turnRight(std::abs(steerC));
+	if (steerC > 0) {
+	    m_car.steer(Car::Steer::Right, std::abs(steerC));
 	} else if (steerC < 0) {
-	    m_car.turnLeft(std::abs(steerC));
+	    m_car.steer(Car::Steer::Left, std::abs(steerC));
+	} else {
+		m_car.steer(Car::Steer::Neutral, 0);
 	}
 
 	// accelerate/brake according to speedC

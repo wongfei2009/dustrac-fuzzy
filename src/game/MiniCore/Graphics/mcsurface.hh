@@ -1,5 +1,5 @@
 // This file belongs to the "MiniCore" game engine.
-// Copyright (C) 2010 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -39,8 +39,10 @@ class  MCGLShaderProgram;
 struct MCGLTexCoord;
 class  MCGLVertex;
 
-/*! MCSurface is a renderable object bound to an OpenGL texture handle.
- *  MCSurface can be rendered straightly as a standalone object. */
+/*! MCSurface is a (2D) renderable object bound to an OpenGL texture handle.
+ *  MCSurface can be rendered as a standalone object. Despite being a
+ *  2D object, it's possible to assign Z-values to the vertices in order to
+ *  easily create tilted surfaces. */
 class MCSurface : public MCGLObjectBase
 {
 public:
@@ -55,6 +57,12 @@ public:
     MCSurface(
         MCGLMaterialPtr material, MCFloat width, MCFloat height,
         MCFloat z0 = 0, MCFloat z1 = 0, MCFloat z2 = 0, MCFloat z3 = 0);
+
+    /*! Constructor.
+     *  \param width  Desired width of the surface when rendered 1:1.
+     *  \param height Desired height of the surface when rendered 1:1.
+     *  \param z Z-coordinate common for all vertices. */
+    MCSurface(MCGLMaterialPtr material, MCFloat width, MCFloat height, MCFloat z);
 
     /*! Constructor.
      *  \param width  Desired width of the surface when rendered 1:1.
@@ -78,8 +86,7 @@ public:
      *         if useAlphaBlend equals false.
      *  \param dst Destination alpha function used in the alpha blending. Has no effect
      *         if useAlphaBlend equals false. */
-    void setAlphaBlend(
-        bool useAlphaBlend, GLenum src = GL_SRC_ALPHA, GLenum dst = GL_ONE_MINUS_SRC_ALPHA);
+    void setAlphaBlend(bool useAlphaBlend, GLenum src = GL_SRC_ALPHA, GLenum dst = GL_ONE_MINUS_SRC_ALPHA);
 
     /*! Runs the corresponding GL-commands defined in setAlphaBlend().
      *  This is done automatically, but doAlphaBlend() can be used if
@@ -106,7 +113,7 @@ public:
     void render(MCCamera * camera, MCVector3dFR pos, MCFloat angle, bool autoBind = true);
 
     //! Render (fake) shadow
-    void renderShadow(MCCamera * camera, MCVector2dFR pos, MCFloat angle, bool autoBind = true);
+    void renderShadow(MCCamera * camera, MCVector3dFR pos, MCFloat angle, bool autoBind = true);
 
     //! Render the vertex buffer only. bind() must be called separately.
     void render();
@@ -117,20 +124,26 @@ public:
     //! Get height
     MCFloat height() const;
 
+    //! Get minimum Z
+    MCFloat minZ() const;
+
+    //! Get maximum Z
+    MCFloat maxZ() const;
+
     //! Get center
-    MCVector2d<MCFloat> center() const;
+    MCVector2dF center() const;
 
     //! \reimp
-    virtual void bind();
+    virtual void bind() override;
 
     //! \reimp
-    virtual void bindShadow();
+    virtual void bindShadow() override;
 
     //! \reimp
-    virtual void release();
+    virtual void release() override;
 
     //! \reimp
-    virtual void releaseShadow();
+    virtual void releaseShadow() override;
 
 private:
 
@@ -143,16 +156,16 @@ private:
         const MCGLVertex   * vertices,
         const MCGLVertex   * normals,
         const MCGLTexCoord * texCoords,
-        const GLfloat      * colors);
+        const MCGLColor    * colors);
 
     MCFloat     m_w;
     MCFloat     m_w2;
     MCFloat     m_h;
     MCFloat     m_h2;
+    MCFloat     m_minZ;
+    MCFloat     m_maxZ;
     MCVector2dF m_center;
     bool        m_centerSet;
-    GLenum      m_alphaFunc;
-    GLclampf    m_alphaThreshold;
     bool        m_useAlphaBlend;
     GLenum      m_src;
     GLenum      m_dst;

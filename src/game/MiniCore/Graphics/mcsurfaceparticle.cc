@@ -1,5 +1,5 @@
 // This file belongs to the "MiniCore" game engine.
-// Copyright (C) 2010 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -18,43 +18,62 @@
 //
 
 #include "mcsurfaceparticle.hh"
-#include "mcsurface.hh"
-#include "mcsurfaceview.hh"
-#include "mcshape.hh"
 
-MCSurfaceParticle::MCSurfaceParticle(const std::string & viewId)
-: MCParticle(viewId)
+MCSurfaceParticle::MCSurfaceParticle(const std::string & typeID, MCSurface & surface)
+: MCParticle(typeID)
+, m_color(1.0, 1.0, 1.0, 1.0)
+, m_surface(surface)
+, m_hasShadow(false)
+, m_useAlphaBlend(false)
+, m_src(0)
+, m_dst(0)
 {
-    shape()->setView(std::shared_ptr<MCShapeView>(new MCSurfaceView(viewId, nullptr)));
-    shape()->view()->setHasShadow(false);
-    shape()->view()->setBatchMode(true);
-}
-
-void MCSurfaceParticle::beginBatch()
-{
-    shape()->view()->beginBatch();
-}
-
-void MCSurfaceParticle::endBatch()
-{
-    shape()->view()->endBatch();
 }
 
 void MCSurfaceParticle::setColor(const MCGLColor & color)
 {
-    static_cast<MCSurfaceView *>(shape()->view().get())->surface()->setColor(color);
+    m_color = color;
 }
 
-void MCSurfaceParticle::setSurface(MCSurface & surface)
+const MCGLColor & MCSurfaceParticle::color() const
 {
-    static_cast<MCSurfaceView *>(shape()->view().get())->setSurface(surface);
+    return m_color;
 }
 
-void MCSurfaceParticle::setShaderProgram(MCGLShaderProgramPtr program)
+MCSurface & MCSurfaceParticle::surface()
 {
-    static_cast<MCSurfaceView *>(shape()->view().get())->surface()->setShaderProgram(program);
+    return m_surface;
 }
 
-MCSurfaceParticle::~MCSurfaceParticle()
+void MCSurfaceParticle::setHasShadow(bool hasShadow)
 {
+    m_hasShadow = hasShadow;
 }
+
+bool MCSurfaceParticle::hasShadow() const
+{
+    return m_hasShadow;
+}
+
+void MCSurfaceParticle::setAlphaBlend(bool useAlphaBlend, GLenum src, GLenum dst)
+{
+    m_useAlphaBlend = useAlphaBlend;
+    m_src           = src;
+    m_dst           = dst;
+}
+
+bool MCSurfaceParticle::useAlphaBlend() const
+{
+    return m_useAlphaBlend;
+}
+
+GLenum MCSurfaceParticle::alphaSrc() const
+{
+    return m_src;
+}
+
+GLenum MCSurfaceParticle::alphaDst() const
+{
+    return m_dst;
+}
+

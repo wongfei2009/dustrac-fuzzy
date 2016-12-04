@@ -63,30 +63,45 @@ public:
     //! Return the one-and-only MCWorld instance.
     static MCWorld & instance();
 
+    static bool hasInstance();
+
     //! Remove all objects.
     void clear();
 
-    //! Set dimensions of the world box in pixels.
+    /*! Set dimensions of the world box in units.
+     *
+     *  \param metersPerUnit You could have, for example, a game object that is a
+     *  MCSurface of 10x20 units, but want it to behave like an real-world object
+     *  of 1x2 meters, so the metersPerUnits would be 0.1 in that case.
+     *
+     *  \param gridSize ver and hor size of the object grid. This affects the collision
+     *  detection performance.
+     */
     void setDimensions(
         MCFloat minX, MCFloat maxX, MCFloat minY, MCFloat maxY, MCFloat minZ, MCFloat maxZ,
-        MCFloat metersPerPixel);
+        MCFloat metersPerUnit = 1.0f, int gridSize = 128);
 
-    //! Set how many meters equal one pixel.
-    static void setMetersPerPixel(MCFloat value);
+    /*! Set gravity vector used by default friction generators (on XY-plane).
+     *  The default is [0, 0, -9.81]. Set the gravity (acceleration) for objects
+     *  independently when needed. */
+    void setGravity(const MCVector3dF & gravity);
 
-    //! Get how many meters equal one pixel.
-    static MCFloat metersPerPixel();
+    const MCVector3dF & gravity() const;
 
-    //! Convert pixels to meters.
-    static void toMeters(MCFloat & pixels);
+    //! Set how many meters equal one unit in the scene.
+    static void setMetersPerUnit(MCFloat value);
 
-    //! Convert pixels to meters.
-    static void toMeters(MCVector2dF & pixels);
+    //! Get how many meters equal one unit in the scene.
+    static MCFloat metersPerUnit();
 
-    //! Convert pixels to meters.
-    static void toMeters(MCVector3dF & pixels);
+    //! Convert scene units to meters.
+    static void toMeters(MCFloat & units);
 
-    static MCFloat gravity();
+    //! Convert scene units to meters.
+    static void toMeters(MCVector2dF & units);
+
+    //! Convert scene units to meters.
+    static void toMeters(MCVector3dF & units);
 
     /*! Add object to the world. Object's current location is used.
      *  \param object Object to be added. */
@@ -123,11 +138,15 @@ public:
      *         no any translations or clipping done. */
     virtual void prepareRendering(MCCamera * camera);
 
-    /*! \brief Render all registered objects. */
-    virtual void render(MCCamera * camera);
+    /*! \brief Render all registered objects.
+     *  \param camera Camera box, can be nullptr.
+     *  \param layers Optional list of layer id's to be rendered. */
+    virtual void render(MCCamera * camera, const std::vector<int> & layers = std::vector<int>());
 
-    /*! \brief Render shadows of all registered objects. */
-    virtual void renderShadows(MCCamera * camera);
+    /*! \brief Render shadows of all registered objects.
+     *  \param camera Camera box, can be nullptr.
+     *  \param layers Optional list of layer id's to be rendered. */
+    virtual void renderShadows(MCCamera * camera, const std::vector<int> & layers = std::vector<int>());
 
     //! \return Reference to the objectGrid.
     MCObjectGrid & objectGrid() const;
@@ -136,25 +155,22 @@ public:
     MCWorldRenderer & renderer() const;
 
     //! Get minimum X
-    MCFloat minX() const;
+    MCFloat minx() const;
 
     //! Get maximum X
-    MCFloat maxX() const;
+    MCFloat maxx() const;
 
     //! Get minimum Y
-    MCFloat minY() const;
+    MCFloat miny() const;
 
     //! Get maximum Y
-    MCFloat maxY() const;
+    MCFloat maxy() const;
 
     //! Get minimum Z
     MCFloat minZ() const;
 
     //! Get maximum Z
     MCFloat maxZ() const;
-
-    //! Max number of rendering layers
-    static const int MaxLayers = 32;
 
 protected:
 
@@ -181,8 +197,8 @@ private:
     MCCollisionDetector * m_collisionDetector;
     MCImpulseGenerator  * m_impulseGenerator;
     MCObjectGrid        * m_objectGrid;
-    static MCFloat        m_metersPerPixel;
-    static MCFloat        m_metersPerPixelSquared;
+    static MCFloat        m_metersPerUnit;
+    static MCFloat        m_metersPerUnitSquared;
     MCFloat               m_minX, m_maxX, m_minY, m_maxY, m_minZ, m_maxZ;
     MCWorld::ObjectVector m_objs;
     MCWorld::ObjectVector m_removeObjs;
@@ -193,6 +209,7 @@ private:
     MCUint                m_numCollisions;
     MCUint                m_numResolverLoops;
     MCFloat               m_resolverStep;
+    MCVector3dF           m_gravity;
 };
 
 #endif // MCWORLD_HH

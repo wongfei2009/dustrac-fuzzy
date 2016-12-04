@@ -21,6 +21,7 @@
 #define MCSHAPE_HH
 
 #include "mcbbox.hh"
+#include "mcbbox3d.hh"
 #include "mcmacros.hh"
 #include "mctypes.hh"
 #include "mcvector2d.hh"
@@ -95,7 +96,10 @@ public:
     /*! Set offset for the fake shadow.
      * \param p The new offset.
      */
-    void setShadowOffset(const MCVector2dF & p);
+    void setShadowOffset(const MCVector3dF & p);
+
+    /*! \return Set offset for the fake shadow. */
+    const MCVector3dF & shadowOffset() const;
 
     /*! Rotate.
      * \param a The new rotation angle in degrees
@@ -105,7 +109,7 @@ public:
     //! Return the current angle.
     MCFloat angle() const;
 
-    //! Return non-rotated, translated bounding box of the shape.
+    //! Return non-rotated, translated bounding box of the shape in 2d.
     virtual MCBBoxF bbox() const = 0;
 
     /*! Tests if shape contains the given point.
@@ -150,8 +154,8 @@ private:
 
     static MCUint m_typeCount;
     MCObject * m_pParent;
-    MCVector3d<MCFloat> m_location;
-    MCVector2d<MCFloat> m_shadowOffset;
+    MCVector3dF m_location;
+    MCVector3dF m_shadowOffset;
     MCFloat m_angle;
 
     MCShapeViewPtr m_view;

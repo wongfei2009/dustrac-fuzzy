@@ -23,7 +23,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "mcexception.hh"
 #include "mcmacros.hh"
 
 class  MCTextureFont;
@@ -88,14 +87,14 @@ public:
 
     /*! Loads texture config from the given config file.
      *  \param filePath Path to the XML-based input file. */
-    virtual void load(const std::string & filePath) throw (MCException);
+    virtual void load(const std::string & filePath);
 
     /*! Returns a font object associated with given name.
      *  MCTextureFontManager will keep the ownership.
      *  \param name Name defined in the fonts XML file.
      *  \return Reference to the corresponding MCTextureFont.
-     *  \throws MCException on failure. */
-    MCTextureFont & font(const std::string & name) const throw (MCException);
+     *  \throws std::runtime_error on failure. */
+    MCTextureFont & font(const std::string & name) const;
 
     /*! Creates a new font object from the given data and adds it
      *  to the font hash. */

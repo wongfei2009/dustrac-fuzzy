@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -31,6 +31,9 @@ public:
     //! Constructor.
     Objects();
 
+    Objects(Objects & other) = delete;
+    Objects & operator= (Objects & other) = delete;
+
     //! Add an object.
     void add(ObjectPtr object);
 
@@ -41,7 +44,15 @@ public:
     unsigned int count() const;
 
     //! Return given object.
-    ObjectBase & object(unsigned int index) const;
+    ObjectPtr object(unsigned int index) const;
+
+    ObjectVector::iterator begin();
+
+    ObjectVector::iterator end();
+
+    ObjectVector::const_iterator cbegin() const;
+
+    ObjectVector::const_iterator cend() const;
 
 private:
 

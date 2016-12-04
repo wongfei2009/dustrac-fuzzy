@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
 #define MAPBASE_HPP
 
 #include <vector>
+#include "tracktilebase.hpp"
 
-class TrackTileBase;
 class TrackDataBase;
 
 //! Base class for the tile matrix used by TrackData.
@@ -29,11 +29,11 @@ public:
     //! Constructor.
     MapBase(TrackDataBase & trackData, unsigned int cols, unsigned int rows);
 
+    MapBase(MapBase & other) = delete;
+    MapBase & operator= (MapBase & other) = delete;
+
     //! Destructor.
     virtual ~MapBase();
-
-    //! Get track data.
-    TrackDataBase & trackData();
 
     //! Get column count
     unsigned int cols() const;
@@ -44,19 +44,38 @@ public:
     //! Resize the map.
     virtual void resize(unsigned int newCols, unsigned int newRows);
 
-    //! Set given tile to given coordinates.
-    //! Returns false if impossible coordinates.
-    bool setTile(unsigned int x, unsigned int y, TrackTileBase * pTile);
+    /*! Set given tile to given coordinates.
+     *  Returns false if impossible coordinates. */
+    bool setTile(unsigned int x, unsigned int y, TrackTilePtr tile);
 
-    //! Get tile at given coordinates.
-    //! Returns nullptr if no tile set or impossible coordinates.
-    TrackTileBase * getTile(unsigned int x, unsigned int y) const;
+    /*! Get tile at given coordinates.
+     *  Returns nullptr if no tile set or impossible coordinates. */
+    TrackTilePtr getTile(unsigned int x, unsigned int y) const;
+
+    //! Insert column after given index.
+    virtual void insertColumn(unsigned int at);
+
+    //! Delete column at given index. Return deleted tiles.
+    virtual std::vector<TrackTilePtr> deleteColumn(unsigned int at);
+
+    //! Insert row after given index.
+    virtual void insertRow(unsigned int at);
+
+    //! Delete row at given index. Return deleted tiles.
+    virtual std::vector<TrackTilePtr> deleteRow(unsigned int at);
+
+protected:
+
+    //! Get track data reference.
+    TrackDataBase & trackData();
 
 private:
 
     TrackDataBase & m_trackData;
+
     unsigned int m_cols, m_rows;
-    typedef std::vector<TrackTileBase *> TrackTileRow;
+
+    typedef std::vector<TrackTilePtr> TrackTileRow;
     typedef std::vector<TrackTileRow> TrackTileMap;
     TrackTileMap m_map;
 };

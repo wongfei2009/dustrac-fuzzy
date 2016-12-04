@@ -24,7 +24,7 @@
 #include "mcvector2d.hh"
 #include "mctypes.hh"
 
-//! Bounding box structure
+//! Bounding box structure in 2d
 template <typename T>
 class MCBBox
 {
@@ -51,6 +51,13 @@ public:
     //! Copy constructor
     template <typename U>
     MCBBox(const MCBBox<U> & r) :
+        m_x1(r.x1()), m_y1(r.y1()),
+        m_x2(r.x2()), m_y2(r.y2())
+    {}
+
+    //! Move constructor
+    template <typename U>
+    MCBBox(const MCBBox<U> && r) :
         m_x1(r.x1()), m_y1(r.y1()),
         m_x2(r.x2()), m_y2(r.y2())
     {}
@@ -102,6 +109,18 @@ public:
             m_y1 = r.y1();
             m_y2 = r.y2();
         }
+
+        return *this;
+    }
+
+    //! Move assignment operator
+    template <typename U>
+    MCBBox<T> & operator =(const MCBBox<U> && r)
+    {
+        m_x1 = r.x1();
+        m_x2 = r.x2();
+        m_y1 = r.y1();
+        m_y2 = r.y2();
 
         return *this;
     }

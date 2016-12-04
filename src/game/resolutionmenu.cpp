@@ -16,6 +16,7 @@
 #include "resolutionmenu.hpp"
 #include "confirmationmenu.hpp"
 #include "game.hpp"
+#include "renderer.hpp"
 #include "settings.hpp"
 #include "textmenuitemview.hpp"
 
@@ -29,27 +30,13 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QObject> // for tr()
+#include <QScreen>
 
 #include <sstream>
 
 struct Resolution
 {
     int hRes, vRes;
-};
-
-static Resolution RESOLUTIONS[] =
-{
-    {400,  300},
-    {640,  480},
-    {800,  600},
-    {854,  480},
-    {960,  540},
-    {1024, 768},
-    {1280, 720},
-    {1280, 960},
-    {1366, 768},
-    {1600, 900},
-    {1920, 1080}
 };
 
 class ResolutionItem : public MTFH::MenuItem
@@ -67,18 +54,29 @@ public:
         {
         }
 
+        bool fullScreen() const
+        {
+            return m_fullScreen;
+        }
+
         //! \reimp
         virtual void fire()
         {
-            const int  hRes = m_parent.hRes();
-            const int  vRes = m_parent.vRes();
-            const bool nativeResolution = !hRes && !vRes;
-            Settings::instance().saveResolution(hRes, vRes, nativeResolution, m_fullScreen);
+            const int hRes = m_parent.hRes();
+            const int vRes = m_parent.vRes();
+            Settings::instance().saveResolution(hRes, vRes, m_fullScreen);
             MCLogger().info()
                 << "Resolution set: " << hRes << " " << vRes
-                << " Native: " << nativeResolution
                 << " Full screen: " << m_fullScreen;
-            Game::instance().exitGame();
+
+            if (Game::instance().renderer().fullScreen() && m_fullScreen)
+            {
+                Game::instance().renderer().setResolution(QSize(hRes, vRes));
+            }
+            else
+            {
+                Game::instance().exitGame();
+            }
         }
 
     private:
@@ -106,10 +104,20 @@ public:
     virtual void setSelected(bool flag)
     {
         MenuItem::setSelected(flag);
-        MTFH::MenuManager::instance().pushMenu(m_confirmationMenu.id());
-        m_confirmationMenu.setText(QObject::tr("Restart to change the resolution.").toStdWString());
-        m_confirmationMenu.setAcceptAction(m_saveResolutionAction);
-        m_confirmationMenu.setCurrentIndex(1);
+
+        // Change the virtual resolution immediately if changing from fullscreen to fullscreen
+        if (Game::instance().renderer().fullScreen() &&
+            dynamic_cast<SaveResolutionAction *>(m_saveResolutionAction.get())->fullScreen())
+        {
+            m_saveResolutionAction->fire();
+        }
+        else
+        {
+            MTFH::MenuManager::instance().pushMenu(m_confirmationMenu.id());
+            m_confirmationMenu.setText(QObject::tr("Restart to change the resolution.").toStdWString());
+            m_confirmationMenu.setAcceptAction(m_saveResolutionAction);
+            m_confirmationMenu.setCurrentIndex(1);
+        }
     }
 
     int hRes() const
@@ -135,46 +143,27 @@ ResolutionMenu::ResolutionMenu(
 : SurfaceMenu("settingsBack", id, width, height)
 , m_confirmationMenu(confirmationMenu)
 {
-    const int resolutions = sizeof(RESOLUTIONS) / sizeof(Resolution);
+    const int numResolutions = 8;
+    const int fullHRes = QGuiApplication::primaryScreen()->geometry().width();
+    const int fullVRes = QGuiApplication::primaryScreen()->geometry().height();
+    const int itemHeight = height / (numResolutions + 3);
 
-    int availableResolutions = 0;
-    for (int i = 0; i < resolutions; i++)
+    int itemHRes = fullHRes;
+    int itemVRes = fullVRes;
+    for (int i = 0; i < numResolutions; i++)
     {
-        const int hRes = RESOLUTIONS[i].hRes;
-        const int vRes = RESOLUTIONS[i].vRes;
-
-        if (hRes <= QApplication::desktop()->width() && vRes <= QApplication::desktop()->height())
-        {
-            availableResolutions++;
-        }
-    }
-
-    const int itemHeight = height / (availableResolutions + 2);
-
-    for (int i = 0; i < resolutions; i++)
-    {
-        const int hRes = RESOLUTIONS[i].hRes;
-        const int vRes = RESOLUTIONS[i].vRes;
-
-        if (hRes < QApplication::desktop()->width() && vRes < QApplication::desktop()->height())
-        {
-            std::wstringstream resString;
-            resString << hRes << "x" << vRes;
-            ResolutionItem * resolution =
-                new ResolutionItem(m_confirmationMenu, hRes, vRes, fullScreen, width, itemHeight, resString.str());
+        std::wstringstream resString;
+        resString << itemHRes << "x" << itemVRes;
+        ResolutionItem * resolution =
+            new ResolutionItem(m_confirmationMenu, itemHRes, itemVRes, fullScreen, width, itemHeight, resString.str());
             resolution->setView(MTFH::MenuItemViewPtr(new TextMenuItemView(20, *resolution)));
             addItem(MTFH::MenuItemPtr(resolution));
-        }
+
+        itemHRes -= fullHRes / numResolutions;
+        itemVRes -= fullVRes / numResolutions;
     }
 
-    if (fullScreen)
-    {
-        ResolutionItem * resolution =
-            new ResolutionItem(m_confirmationMenu, 0, 0, true, width, itemHeight,
-                QObject::tr("Native resolution").toStdWString());
-        resolution->setView(MTFH::MenuItemViewPtr(new TextMenuItemView(20, *resolution)));
-        addItem(MTFH::MenuItemPtr(resolution));
-    }
+    reverseItems();
 
     enter();
 }
@@ -188,10 +177,9 @@ void ResolutionMenu::enter()
         {
             int  hRes       = 0;
             int  vRes       = 0;
-            bool native     = false;
             bool fullScreen = false;
 
-            Settings::instance().loadResolution(hRes, vRes, native, fullScreen);
+            Settings::instance().loadResolution(hRes, vRes, fullScreen);
             if (resolution->hRes() == hRes && resolution->vRes() == vRes)
             {
                 setCurrentIndex(resolution->index());

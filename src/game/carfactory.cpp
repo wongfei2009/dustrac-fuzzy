@@ -20,7 +20,7 @@
 CarPtr CarFactory::buildCar(int index, int numCars, Game & game)
 {
     const int   defaultPower = 200000; // This in Watts
-    const float defaultDrag  = 5.0;
+    const float defaultDrag  = 2.5f;
 
     static const int NUM_CARS = numCars;
     static std::map<int, std::string> carImageMap = {
@@ -30,6 +30,10 @@ CarPtr CarFactory::buildCar(int index, int numCars, Game & game)
         {NUM_CARS - 4, "carBlue"     },
         {NUM_CARS - 5, "carDarkGreen"},
         {NUM_CARS - 6, "carBrown"    },
+        {NUM_CARS - 7, "carCyan"     },
+        {NUM_CARS - 8, "carViolet"   },
+        {NUM_CARS - 9, "carGreen"    },
+        {NUM_CARS - 10,"carDarkRed"  },
         {1,            "carGrey"     },
         {0,            "carPink"     }
     };
@@ -46,9 +50,9 @@ CarPtr CarFactory::buildCar(int index, int numCars, Game & game)
     CarPtr car;
     if (index == 0 || (index == 1 && game.hasTwoHumanPlayers()))
     {
-        desc.power                = 0.75 * defaultPower;
+        desc.power                = defaultPower;
         desc.dragQuadratic        = defaultDrag;
-        desc.accelerationFriction = 0.55;
+        desc.accelerationFriction = 0.55f * Game::instance().difficultyProfile().accelerationFrictionMultiplier(true);
 
         car.reset(new Car(desc, MCAssetManager::surfaceManager().surface(carImage), index, true));
     }
@@ -58,9 +62,9 @@ CarPtr CarFactory::buildCar(int index, int numCars, Game & game)
         // slowest cars have less power than the human player and the fastest
         // cars have more power than the human player.
         desc.power                = defaultPower / 2 + (index + 1) * defaultPower / NUM_CARS;
-        desc.accelerationFriction = 0.3 + 0.4 * float(index + 1) / NUM_CARS;
+        desc.accelerationFriction = (0.3f + 0.4f * float(index + 1) / NUM_CARS) *
+            Game::instance().difficultyProfile().accelerationFrictionMultiplier(false);
         desc.dragQuadratic        = defaultDrag;
-        desc.brakingFriction      = 2.0;
 
         car.reset(new Car(desc, MCAssetManager::surfaceManager().surface(carImage), index, false));
     }

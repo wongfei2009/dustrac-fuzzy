@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 #include "mainwindow.hpp"
 #include "object.hpp"
 #include "targetnode.hpp"
-#include "trackdata.hpp"
 #include "tracktile.hpp"
 #include "trackio.hpp"
 
@@ -34,27 +33,35 @@ EditorData::EditorData(MainWindow * mainWindow)
 , m_dragAndDropTargetNode(nullptr)
 , m_dragAndDropSourcePos()
 , m_mainWindow(mainWindow)
+, m_activeColumn(0)
+, m_activeRow(0)
 {}
 
-bool EditorData::loadTrackData(QString fileName)
+void EditorData::clearScene()
 {
     removeTilesFromScene();
     removeObjectsFromScene();
+    removeTargetNodesFromScene();
+}
 
-    m_trackData.reset(TrackIO::open(fileName));
-    return static_cast<bool>(m_trackData.get());
+bool EditorData::loadTrackData(QString fileName)
+{
+    clearScene();
+
+    m_trackData = TrackIO::open(fileName);
+    return static_cast<bool>(m_trackData);
 }
 
 bool EditorData::saveTrackData()
 {
     assert(m_trackData);
-    return TrackIO::save(m_trackData.get(), m_trackData->fileName());
+    return TrackIO::save(m_trackData, m_trackData->fileName());
 }
 
 bool EditorData::saveTrackDataAs(QString fileName)
 {
     assert(m_trackData);
-    if (TrackIO::save(m_trackData.get(), fileName))
+    if (TrackIO::save(m_trackData, fileName))
     {
         m_trackData->setFileName(fileName);
         return true;
@@ -62,9 +69,11 @@ bool EditorData::saveTrackDataAs(QString fileName)
     return false;
 }
 
-void EditorData::setTrackData(TrackData * newTrackData)
+void EditorData::setTrackData(TrackDataPtr trackData)
 {
-    m_trackData.reset(newTrackData);
+    clearScene();
+
+    m_trackData = trackData;
 }
 
 bool EditorData::canRouteBeSet() const
@@ -91,44 +100,49 @@ void EditorData::addExistingRouteToScene()
     // Re-push existing (loaded) target nodes so that route lines
     // and links will be correctly created. A bit stupid,
     // but is enough for now, because the vectors are not long.
-    std::vector<TargetNodeBase *> temp;
+    std::vector<TargetNodePtr> temp;
     m_trackData->route().getAll(temp);
     m_trackData->route().clear();
-    for (TargetNodeBase * tnode : temp)
+    for (TargetNodePtr tnode : temp)
     {
-        pushTargetNodeToRoute(*tnode);
+        pushTargetNodeToRoute(tnode);
     }
 }
 
 void EditorData::pushNewTargetNodeToRoute(QPointF pos)
 {
     // Push location to the route
-    TargetNodeBase * tnode = new TargetNode;
+    TargetNodePtr tnode(new TargetNode);
     tnode->setLocation(pos);
-    pushTargetNodeToRoute(*tnode);
+    pushTargetNodeToRoute(tnode);
 }
 
-void EditorData::pushTargetNodeToRoute(TargetNodeBase & tnode)
+void EditorData::pushTargetNodeToRoute(TargetNodePtr tnode)
 {
     Route & route = trackData()->route();
 
     if (route.numNodes())
     {
-        TargetNode & prev = static_cast<TargetNode &>(route.get(route.numNodes() - 1));
-        prev.setNext(&tnode);
-        tnode.setPrev(&prev);
-        prev.updateRouteLine();
+        TargetNodePtr prev = route.get(route.numNodes() - 1);
+
+        prev->setNext(tnode);
+        tnode->setPrev(prev);
+
+        dynamic_cast<TargetNode *>(prev.get())->updateRouteLine();
     }
 
     const bool loopClosed = route.push(tnode);
 
     QGraphicsLineItem * routeLine = new QGraphicsLineItem;
-    static_cast<TargetNode &>(tnode).setRouteLine(routeLine);
+    TargetNode * ptr = dynamic_cast<TargetNode *>(tnode.get());
+    ptr->setRouteLine(routeLine);
 
-    m_mainWindow->editorScene().addItem(&static_cast<TargetNode &>(tnode));
+    m_mainWindow->editorScene().addItem(ptr);
     m_mainWindow->editorScene().addItem(routeLine);
-    static_cast<TargetNode &>(tnode).setZValue(10);
-    routeLine->setZValue(10);
+
+    const int routeLineZ = 10;
+    ptr->setZValue(routeLineZ);
+    routeLine->setZValue(routeLineZ);
 
     // Check if we might have a loop => end
     if (loopClosed)
@@ -136,31 +150,33 @@ void EditorData::pushTargetNodeToRoute(TargetNodeBase & tnode)
         setMode(EditorData::EM_NONE);
         m_mainWindow->endSetRoute();
 
-        static_cast<TargetNode &>(route.get(route.numNodes() - 1)).setLocation(
-            static_cast<TargetNode &>(route.get(0)).location());
+        TargetNodePtr firstNode = route.get(0);
+        route.get(route.numNodes() - 1)->setLocation(firstNode->location());
 
-        tnode.setNext(&route.get(0));
-        route.get(0).setPrev(&tnode);
+        tnode->setNext(firstNode);
+        firstNode->setPrev(tnode);
     }
 }
 
 void EditorData::removeRouteFromScene()
 {
-    for (unsigned int i = 0; i < m_trackData->route().numNodes(); i++)
+    for (auto tnodePtr : m_trackData->route())
     {
-        TargetNodeBase * tnode = &m_trackData->route().get(i);
-        m_mainWindow->editorScene().removeItem(static_cast<TargetNode *>(tnode));
-        m_mainWindow->editorScene().removeItem(static_cast<TargetNode *>(tnode)->routeLine());
-        delete static_cast<TargetNode *>(tnode)->routeLine();
-        delete tnode;
+        TargetNode * tnode = dynamic_cast<TargetNode *>(tnodePtr.get());
+        assert(tnode);
+
+        m_mainWindow->editorScene().removeItem(tnode);
+        m_mainWindow->editorScene().removeItem(tnode->routeLine());
+
+        delete tnode->routeLine();
     }
 
     m_mainWindow->editorView().update();
 }
 
-TrackData * EditorData::trackData()
+TrackDataPtr EditorData::trackData()
 {
-    return m_trackData.get();
+    return m_trackData;
 }
 
 EditorData::EditorMode EditorData::mode() const
@@ -244,19 +260,21 @@ void EditorData::addTilesToScene()
     {
         for (unsigned int j = 0; j < rows; j++)
         {
-            if (TrackTile * tile = static_cast<TrackTile *>(m_trackData->map().getTile(i, j)))
+            TrackTile * tile = dynamic_cast<TrackTile *>(m_trackData->map().getTile(i, j).get());
+            assert(tile);
+
+            if (!tile->added())
             {
-                if (!tile->added())
-                {
-                    m_mainWindow->editorScene().addItem(tile);
-                    tile->setAdded(true);
-                }
+                m_mainWindow->editorScene().addItem(tile);
+                tile->setAdded(true);
             }
         }
     }
 
-    if (m_trackData->map().getTile(0, 0))
-        static_cast<TrackTile *>(m_trackData->map().getTile(0, 0))->setActive(true);
+    TrackTile * tile = dynamic_cast<TrackTile *>(m_trackData->map().getTile(0, 0).get());
+    assert(tile);
+
+    tile->setActive(true);
 }
 
 void EditorData::addObjectsToScene()
@@ -265,12 +283,22 @@ void EditorData::addObjectsToScene()
 
     for (unsigned int i = 0; i < m_trackData->objects().count(); i++)
     {
-        if (Object * object = dynamic_cast<Object *>(&m_trackData->objects().object(i)))
-        {
-            m_mainWindow->editorScene().addItem(object);
-            object->setZValue(10);
-        }
+        Object * object = dynamic_cast<Object *>(m_trackData->objects().object(i).get());
+        assert(object);
+
+        m_mainWindow->editorScene().addItem(object);
+        object->setZValue(10);
     }
+}
+
+void EditorData::removeTileFromScene(TrackTilePtr trackTile)
+{
+    TrackTile::setActiveTile(nullptr);
+
+    TrackTile * tile = dynamic_cast<TrackTile *>(trackTile.get());
+    assert(tile);
+
+    m_mainWindow->editorScene().removeItem(tile);
 }
 
 void EditorData::removeTilesFromScene()
@@ -286,11 +314,10 @@ void EditorData::removeTilesFromScene()
         {
             for (unsigned int j = 0; j < rows; j++)
             {
-                if (TrackTile * tile = static_cast<TrackTile *>(m_trackData->map().getTile(i, j)))
-                {
-                    m_mainWindow->editorScene().removeItem(tile);
-                    delete tile;
-                }
+                TrackTile * tile = dynamic_cast<TrackTile *>(m_trackData->map().getTile(i, j).get());
+                assert(tile);
+
+                m_mainWindow->editorScene().removeItem(tile);
             }
         }
     }
@@ -302,12 +329,10 @@ void EditorData::removeObjectsFromScene()
     {
         for (unsigned int i = 0; i < m_trackData->objects().count(); i++)
         {
-            if (Object * object =
-                    dynamic_cast<Object *>(&m_trackData->objects().object(i)))
-            {
-                m_mainWindow->editorScene().removeItem(object);
-                delete object;
-            }
+            Object * object = dynamic_cast<Object *>(m_trackData->objects().object(i).get());
+            assert(object);
+
+            m_mainWindow->editorScene().removeItem(object);
         }
     }
 
@@ -315,30 +340,18 @@ void EditorData::removeObjectsFromScene()
     m_dragAndDropObject = nullptr;
 }
 
-void EditorData::clear()
+void EditorData::removeTargetNodesFromScene()
 {
-    assert(m_trackData);
-
-    const unsigned int cols = m_trackData->map().cols();
-    const unsigned int rows = m_trackData->map().rows();
-
-    for (unsigned int i = 0; i < cols; i++)
+    if (m_trackData)
     {
-        for (unsigned int j = 0; j < rows; j++)
+        for (auto tnodePtr : m_trackData->route())
         {
-            if (TrackTile * pTile = static_cast<TrackTile *>(m_trackData->map().getTile(i, j)))
-            {
-                pTile->setTileType("clear");
-            }
+            TargetNode * tnode = dynamic_cast<TargetNode *>(tnodePtr.get());
+            assert(tnode);
+
+            m_mainWindow->editorScene().removeItem(tnode);
         }
     }
-
-    m_mainWindow->console(QString(QObject::tr("Tiles cleared.")));
-
-    clearRoute();
-
-    m_selectedObject    = nullptr;
-    m_dragAndDropObject = nullptr;
 }
 
 void EditorData::clearRoute()
@@ -353,24 +366,30 @@ void EditorData::clearRoute()
 
 bool EditorData::undo(const ObjectModelLoader & loader)
 {
-    TrackData * track = m_trackData.get();
-
-    if (track != NULL)
-    {
-        return track->undo(loader);
-    }
-
-    return false;
+    return m_trackData ? m_trackData->undo(loader) : false;
 }
 
 bool EditorData::redo(const ObjectModelLoader & loader)
 {
-    TrackData * track = m_trackData.get();
+    return m_trackData ? m_trackData->redo(loader) : false;
+}
 
-    if (track != NULL)
-    {
-        return track->redo(loader);
-    }
+void EditorData::setActiveColumn(unsigned int column)
+{
+    m_activeColumn = column;
+}
 
-    return false;
+unsigned int EditorData::activeColumn() const
+{
+    return m_activeColumn;
+}
+
+void EditorData::setActiveRow(unsigned int row)
+{
+    m_activeRow = row;
+}
+
+unsigned int EditorData::activeRow() const
+{
+    return m_activeRow;
 }

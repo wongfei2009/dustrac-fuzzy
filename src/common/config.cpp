@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,27 +15,29 @@
 
 #include "config.hpp"
 
-// **** Common variables ****
+namespace Config {
 
-// This is the main data path and should come as a define
-// from the build system.
-const char * Config::Common::dataPath                    = DATA_PATH;
-const char * Config::Common::QSETTINGS_COMPANY_NAME      = "dustrac";
-const char * Config::Common::TRACK_SEARCH_PATH           = "DustRacingTracks";
+const QString Common::dataPath                = DATA_PATH;
 
-// **** Editor variables ****
-const char * Config::Editor::SELECT_PATH                 = ":/cursor.png";
-const char * Config::Editor::ERASE_PATH                  = ":/cross.png";
-const char * Config::Editor::CLEAR_PATH                  = ":/clear.png";
-const char * Config::Editor::EDITOR_NAME                 = "Dust Racing 2D Track Editor";
-const char * Config::Editor::EDITOR_VERSION              = VERSION;
-const char * Config::Editor::MODEL_CONFIG_FILE_NAME      = "editorModels.conf";
-const char * Config::Editor::QSETTINGS_SOFTWARE_NAME     = "Editor";
+const QString Common::COPYRIGHT               = "Copyright (c) 2011-2015 Jussi Lind.";
+const QString Common::QSETTINGS_COMPANY_NAME  = "dustrac";
+const QString Common::TRACK_SEARCH_PATH       = "DustRacingTracks";
+const QString Common::WEB_SITE_URL            = "http://juzzlin.github.io/DustRacing2D";
 
-// **** Game variables ****
-const char       * Config::Game::GAME_NAME               = "Dust Racing 2D";
-const char       * Config::Game::GAME_VERSION            = VERSION;
+const QString Editor::SELECT_ICON_PATH        = ":/cursor.png";
+const QString Editor::ERASE_ICON_PATH         = ":/cross.png";
+const QString Editor::CLEAR_ICON_PATH         = ":/clear.png";
+const QString Editor::EDITOR_NAME             = "Dust Racing 2D Track Editor";
+const QString Editor::EDITOR_VERSION          = VERSION;
+const QString Editor::MODEL_CONFIG_FILE_NAME  = "editorModels.conf";
+const QString Editor::QSETTINGS_SOFTWARE_NAME = "Editor";
+
+const QString Game::GAME_NAME                 = "Dust Racing 2D";
+const QString Game::GAME_VERSION              = VERSION;
+const QString Game::QSETTINGS_SOFTWARE_NAME   = "Game";
+
 const unsigned int Config::Game::WINDOW_WIDTH            = 1024;
 const unsigned int Config::Game::WINDOW_HEIGHT           = 768;
-const char       * Config::Game::QSETTINGS_SOFTWARE_NAME = "Game";
 const char * Config::Game::pluginPath                    = PLUGIN_PATH;
+
+} // Config

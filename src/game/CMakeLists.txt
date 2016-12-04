@@ -25,7 +25,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/STFH")
 include_directories(${OPENAL_INCLUDE_DIR})
 
 # Translation files in src/game/translations (without .ts)
-set(TS dustrac-game_fi dustrac-game_it dustrac-game_cs dustrac-game_fr)
+set(TS dustrac-game_fi dustrac-game_it dustrac-game_cs dustrac-game_fr dustrac-game_de)
 set(TS_FILES)
 set(QM_FILES)
 foreach(TS_FILE ${TS})
@@ -42,7 +42,8 @@ set(HDR
 
 # Set sources
 set(SRC
-	aifactory.cpp
+    aifactory.cpp
+    application.cpp
     audioworker.cpp
     audiosource.cpp
     bridge.cpp
@@ -51,11 +52,14 @@ set(SRC
 	carcontroller.cpp
     carfactory.cpp
     carparticleeffectmanager.cpp
+    carphysicscomponent.cpp
     carsoundeffectmanager.cpp
     carstatusview.cpp
     checkeredflag.cpp
     confirmationmenu.cpp
+    crashoverlay.cpp
     credits.cpp
+    difficultyprofile.cpp
     eventhandler.cpp
     fadeanimation.cpp
     fontfactory.cpp
@@ -154,7 +158,6 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 add_executable(${GAME_BINARY_NAME} WIN32 ${HDR} ${SRC} ${MOC_SRC} ${RC_SRC} ${QM})
 
 set(COMMON_LIBS
-    ${GAME_BINARY_NAME}
     MiniCore
     MTFH
     STFH
@@ -162,14 +165,12 @@ set(COMMON_LIBS
     ${OPENGL_glu_LIBRARY}
     ${OPENAL_LIBRARY}
     ${VORBISFILE_LIBRARIES}
-    ${VORBISFILE_STATIC_LIB} # Valid only if static lib was used
-    ${VORBIS_STATIC_LIB}     # Valid only if static lib was used
-    ${OGG_STATIC_LIB}       # Valid only if static lib was used
-	${CMAKE_DL_LIBS} # for linking to ldl
-)
+    ${VORBISFILE_LIB} # Valid only with MSVC
+    ${VORBIS_LIB}     # Valid only with MSVC
+    ${OGG_LIB}       # Valid only with MSVC
+    ${CMAKE_DL_LIBS}) # for linking to ldl
 
-qt5_use_modules(${GAME_BINARY_NAME} OpenGL Widgets Xml)
-target_link_libraries(${COMMON_LIBS})
+target_link_libraries(${GAME_BINARY_NAME} ${COMMON_LIBS} Qt5::OpenGL Qt5::Xml)
 
 foreach(TS_FILE ${TS})
     # Make targets to copy generated qm files to data dir. This is done the hard

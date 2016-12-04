@@ -25,6 +25,7 @@
 #include <MCLogger>
 #include <MCObject>
 #include <MCObjectFactory>
+#include <MCPhysicsComponent>
 #include <MCShape>
 #include <MCShapeView>
 #include <MCSurface>
@@ -49,7 +50,7 @@ TrackObject * TrackObjectFactory::build(
         data.setRestitution(0.5);
         data.setMass(1000);
         data.setSurfaceId(role.toStdString());
-        data.setRenderLayer(Layers::Objects);
+        data.setRenderLayer(static_cast<int>(Layers::Render::Objects));
 
         object = m_objectFactory.build(data);
         object->shape()->view()->setShaderProgram(Renderer::instance().program("defaultSpecular"));
@@ -60,12 +61,12 @@ TrackObject * TrackObjectFactory::build(
     else if (role == "bushArea")
     {
         MCSurfaceObjectData data(role.toStdString());
-        data.setInitialLocation(MCVector3dF(location) + MCVector3dF(0, 0, 10));
+        data.setInitialLocation(location);
         data.setInitialAngle(angle);
         data.setBatchMode(true);
         data.setIsStationary(true);
         data.setSurfaceId(role.toStdString());
-        data.setRenderLayer(Layers::Tree);
+        data.setRenderLayer(static_cast<int>(Layers::Render::Objects));
 
         object = m_objectFactory.build(data);
         object->setIsPhysicsObject(false);
@@ -81,7 +82,7 @@ TrackObject * TrackObjectFactory::build(
         data.setMeshId(role.toStdString());
         data.setSurfaceId(role.toStdString());
         data.setRestitution(0.9);
-        data.setRenderLayer(Layers::Objects);
+        data.setRenderLayer(static_cast<int>(Layers::Render::Objects));
 
         object = m_objectFactory.build(data);
     }
@@ -95,7 +96,7 @@ TrackObject * TrackObjectFactory::build(
         data.setRestitution(0.5);
         data.setIsStationary(true);
         data.setSurfaceId(role.toStdString());
-        data.setRenderLayer(Layers::GrandStands);
+        data.setRenderLayer(static_cast<int>(Layers::Render::Objects));
 
         object = m_objectFactory.build(data);
         object->shape()->view()->setShaderProgram(Renderer::instance().program("defaultSpecular"));
@@ -113,7 +114,7 @@ TrackObject * TrackObjectFactory::build(
         data.setRestitution(0.5);
         data.setIsStationary(true);
         data.setSurfaceId(role.toStdString());
-        data.setRenderLayer(Layers::GrandStands);
+        data.setRenderLayer(static_cast<int>(Layers::Render::Objects));
 
         object = m_objectFactory.build(data);
     }
@@ -131,7 +132,7 @@ TrackObject * TrackObjectFactory::build(
         data.setRestitution(0.25);
         data.setShapeWidth(plantBodyRadius);
         data.setShapeHeight(plantBodyRadius);
-        data.setRenderLayer(Layers::Tree);
+        data.setRenderLayer(static_cast<int>(Layers::Render::Objects));
 
         object = m_objectFactory.build(data);
     }
@@ -145,7 +146,7 @@ TrackObject * TrackObjectFactory::build(
         data.setMass(5000);
         data.setSurfaceId(role.toStdString());
         data.setRestitution(0.9);
-        data.setRenderLayer(Layers::Walls);
+        data.setRenderLayer(static_cast<int>(Layers::Render::Objects));
 
         object = m_objectFactory.build(data);
     }
@@ -160,7 +161,7 @@ TrackObject * TrackObjectFactory::build(
         data.setBatchMode(true);
         data.setIsStationary(true);
         data.setSurfaceId(role.toStdString());
-        data.setRenderLayer(Layers::Ground);
+        data.setRenderLayer(static_cast<int>(Layers::Render::Ground));
 
         object = m_objectFactory.build(data);
         object->setIsPhysicsObject(false);
@@ -171,8 +172,8 @@ TrackObject * TrackObjectFactory::build(
         object = MCObjectPtr(new Pit(MCAssetManager::surfaceManager().surface("pit")));
         object->setInitialLocation(location);
         object->setInitialAngle(angle);
-        object->setMass(1, true); // Stationary
-        object->setRenderLayer(Layers::Ground);
+        object->physicsComponent().setMass(1, true); // Stationary
+        object->setRenderLayer(static_cast<int>(Layers::Render::Ground));
         object->setIsPhysicsObject(false);
         object->setIsTriggerObject(true);
         object->shape()->view()->setHasShadow(false);
@@ -190,9 +191,10 @@ TrackObject * TrackObjectFactory::build(
         data.setMass(500); // Exaggerate the mass on purpose
         data.setSurfaceId(role.toStdString());
         data.setXYFriction(0.25);
-        data.setRenderLayer(Layers::Walls);
+        data.setRenderLayer(static_cast<int>(Layers::Render::Objects));
 
         object = m_objectFactory.build(data);
+        object->shape()->view()->setShaderProgram(Renderer::instance().program("defaultSpecular"));
 
         // Wrap the MCObject in a TrackObject
         return new TrackObject(category, role, object);
@@ -211,7 +213,7 @@ TrackObject * TrackObjectFactory::build(
         data.setRestitution(0.25);
         data.setShapeWidth(treeBodyRadius);
         data.setShapeHeight(treeBodyRadius);
-        data.setRenderLayer(Layers::Tree);
+        data.setRenderLayer(static_cast<int>(Layers::Render::Objects));
 
         // Create a custom view.
         MCShapeViewPtr view(new TreeView(
@@ -231,7 +233,7 @@ TrackObject * TrackObjectFactory::build(
         data.setIsStationary(true);
         data.setSurfaceId(role.toStdString());
         data.setRestitution(0.9);
-        data.setRenderLayer(Layers::Walls);
+        data.setRenderLayer(static_cast<int>(Layers::Render::Objects));
         data.setInitialLocation(MCVector3dF(location.i(), location.j(), 8));
 
         object = m_objectFactory.build(data);

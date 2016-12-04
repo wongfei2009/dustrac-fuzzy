@@ -14,33 +14,35 @@
 // along with Dust Racing 2D. If not, see <http://www.gnu.org/licenses/>.
 
 #include "bridgetrigger.hpp"
+#include "bridge.hpp"
 #include "layers.hpp"
 
-#include "MCCollisionEvent"
-#include "MCRectShape"
+#include <MCCollisionEvent>
+#include <MCRectShape>
+#include <MCPhysicsComponent>
 
 static const char * BRIDGE_TRIGGER_ID = "bridgeTrigger";
 
-BridgeTrigger::BridgeTrigger()
+BridgeTrigger::BridgeTrigger(Bridge & bridge)
 : MCObject(BRIDGE_TRIGGER_ID)
+, m_bridge(bridge)
 {
     MCRectShape * shape = new MCRectShape(nullptr, 8, 224);
     setShape(MCShapePtr(shape));
 
-    setRenderLayer(Layers::Bridge);
+    setRenderLayer(static_cast<int>(Layers::Render::Objects));
     setCollisionLayer(-1);
 
     setIsPhysicsObject(false);
     setIsTriggerObject(true);
 
-    setMass(0, true);
+    physicsComponent().setMass(0, true);
 }
 
 void BridgeTrigger::collisionEvent(MCCollisionEvent & event)
 {
-    if (!event.collidingObject().stationary())
+    if (!event.collidingObject().physicsComponent().isStationary())
     {
-        event.collidingObject().setCollisionLayer(Layers::BridgeRails);
-        event.collidingObject().setRenderLayer(Layers::BridgeRails);
+        m_bridge.enterObject(event.collidingObject());
     }
 }

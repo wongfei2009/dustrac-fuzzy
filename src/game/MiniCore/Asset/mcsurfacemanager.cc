@@ -31,6 +31,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <exception>
 
 MCSurfaceManager::MCSurfaceManager()
 {
@@ -153,12 +154,19 @@ static void convertToGLFormatHelper(QImage &dst, const QImage &img, GLenum textu
     }
 }
 
-MCSurface & MCSurfaceManager::createSurfaceFromImage(
-    const MCSurfaceMetaData & data, const QImage & image) throw (MCException)
+MCSurface & MCSurfaceManager::createSurfaceFromImage(const MCSurfaceMetaData & data, QImage image)
 {
     // Store original width of the image
     int origH = data.height.second ? data.height.first : image.height();
     int origW = data.width.second  ? data.width.first  : image.width();
+
+    // Take maximum supported texture size into account
+    GLint maxTextureSize;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+    while (image.width() > maxTextureSize || image.height() > maxTextureSize)
+    {
+        image = image.scaled(image.width() / 2, image.height() / 2);
+    }
 
     // Create material. Possible secondary textures are taken from surfaces
     // that are initialized before this surface.
@@ -248,6 +256,24 @@ GLuint MCSurfaceManager::create2DTextureFromImage(
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     }
 
+    if (data.wrapS.second)
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, data.wrapS.first);
+    }
+    else
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    }
+
+    if (data.wrapT.second)
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, data.wrapT.first);
+    }
+    else
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
+
     // Edit image data using the information textureImage gives us
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
         glFormattedImage.width(), glFormattedImage.height(),
@@ -297,7 +323,7 @@ MCSurfaceManager::~MCSurfaceManager()
 }
 
 void MCSurfaceManager::load(
-    const std::string & configFilePath, const std::string & baseDataPath) throw (MCException)
+    const std::string & configFilePath, const std::string & baseDataPath)
 {
     MCSurfaceConfigLoader loader;
 
@@ -317,7 +343,7 @@ void MCSurfaceManager::load(
             QFile imageFile(path);
             if (!imageFile.open(QIODevice::ReadOnly))
             {
-                throw MCException("Cannot read file '" + path.toStdString() + "'");
+                throw std::runtime_error("Cannot read file '" + path.toStdString() + "'");
             }
             QByteArray blob = imageFile.readAll();
 
@@ -329,16 +355,16 @@ void MCSurfaceManager::load(
     else
     {
         // Throw an exception
-        throw MCException("Parsing '" + configFilePath + "' failed!");
+        throw std::runtime_error("Parsing '" + configFilePath + "' failed!");
     }
 }
 
-MCSurface & MCSurfaceManager::surface(const std::string & id) const throw (MCException)
+MCSurface & MCSurfaceManager::surface(const std::string & id) const
 {
     // Try to find existing texture for the surface
     if (m_surfaceMap.count(id) == 0)
     {
-        throw MCException("Cannot find texture object for handle '" + id + "'");
+        throw std::runtime_error("Cannot find texture object for handle '" + id + "'");
     }
 
     // Yes: return handle for the texture

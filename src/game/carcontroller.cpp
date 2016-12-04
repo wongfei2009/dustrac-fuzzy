@@ -25,10 +25,12 @@ void CarController::update(bool isRaceCompleted) {
 	const MCFloat maxControl = 1.5;
 	steerC = std::min(std::max(steerC, -maxControl), maxControl);
 
-	if (steerC >= 0) {
-	    m_car.turnRight(std::abs(steerC));
+	if (steerC > 0) {
+	    m_car.steer(Car::Steer::Right, std::abs(steerC));
 	} else if (steerC < 0) {
-	    m_car.turnLeft(std::abs(steerC));
+	    m_car.steer(Car::Steer::Left, std::abs(steerC));
+	} else {
+		m_car.steer(Car::Steer::Neutral, 0);
 	}
 
 	// accelerate/brake according to speedC

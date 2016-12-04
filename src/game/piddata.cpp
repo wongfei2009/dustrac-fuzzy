@@ -46,7 +46,7 @@ void PIDData::updateErrors(const Car& car, const Route& route)
 		m_lastTargetNodeIndex = targetNodeIndex;
 	}
 
-	TargetNodeBase & targetNode     = route.get(targetNodeIndex);
+	TargetNodeBase & targetNode     = *route.get(targetNodeIndex);
 	MCVector3dF target(targetNode.location().x(), targetNode.location().y());
 
 	// add random tolerance and make the target relative to the current pos

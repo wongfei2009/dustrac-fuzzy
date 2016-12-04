@@ -16,6 +16,7 @@
 #ifndef SETTINGS_HPP
 #define SETTINGS_HPP
 
+#include "difficultyprofile.hpp"
 #include "inputhandler.hpp"
 
 #include <map>
@@ -37,28 +38,36 @@ public:
     int loadLapRecord(const Track & track) const;
     void resetLapRecords();
 
-    void saveRaceRecord(const Track & track, int msecs, int lapCount);
-    int loadRaceRecord(const Track & track, int lapCount) const;
+    void saveRaceRecord(const Track & track, int msecs, int lapCount, DifficultyProfile::Difficulty difficulty);
+    int loadRaceRecord(const Track & track, int lapCount, DifficultyProfile::Difficulty difficulty) const;
     void resetRaceRecords();
 
-    void saveBestPos(const Track & track, int pos, int lapCount);
-    int loadBestPos(const Track & track, int lapCount) const;
+    void saveBestPos(const Track & track, int pos, int lapCount, DifficultyProfile::Difficulty difficulty);
+    int loadBestPos(const Track & track, int lapCount, DifficultyProfile::Difficulty difficulty) const;
     void resetBestPos();
 
-    void saveTrackUnlockStatus(const Track & track, int lapCount);
-    bool loadTrackUnlockStatus(const Track & track, int lapCount) const;
+    void saveTrackUnlockStatus(const Track & track, int lapCount, DifficultyProfile::Difficulty difficulty);
+    bool loadTrackUnlockStatus(const Track & track, int lapCount, DifficultyProfile::Difficulty difficulty) const;
     void resetTrackUnlockStatuses();
 
-    void saveResolution(int hRes, int vRes, bool nativeResolution, bool fullScreen);
-    void loadResolution(int & hRes, int & vRes, bool & nativeResolution, bool & fullScreen);
-    void getResolution(int & hRes, int & vRes, bool & nativeResolution, bool & fullScreen);
+    void saveResolution(int hRes, int vRes, bool fullScreen);
+    void loadResolution(int & hRes, int & vRes, bool & fullScreen);
+    void getResolution(int & hRes, int & vRes, bool & fullScreen);
 
-    void saveKeyMapping(int player, InputHandler::InputAction action, int key);
-    int loadKeyMapping(int player, InputHandler::InputAction action);
+    void saveKeyMapping(int player, InputHandler::Action action, int key);
+    int loadKeyMapping(int player, InputHandler::Action action);
+
+    void saveDifficulty(DifficultyProfile::Difficulty difficulty);
+    DifficultyProfile::Difficulty loadDifficulty() const;
+
+    void saveVSync(int value);
+    int loadVSync();
 
     void saveValue(QString key, int value);
     int loadValue(QString key, int defaultValue = 0);
 
+    static QString difficultyKey();
+    static QString lapCountKey();
     static QString soundsKey();
     static QString vsyncKey();
 
@@ -150,13 +159,14 @@ private:
     bool m_useTermResolution = false;
 
     bool m_disableRendering = false;
-	bool m_resetStuckPlayer = false;
+    bool m_resetStuckPlayer = false;
 
-	float m_cameraSmoothing = 0.05;
+    float m_cameraSmoothing = 0.05;
 
-private:
-    QString combineActionAndPlayer(int player, InputHandler::InputAction action);
-    std::map<InputHandler::InputAction, QString> m_actionToStringMap;
+    QString combineActionAndPlayer(int player, InputHandler::Action action);
+
+    static Settings * m_instance;
+    std::map<InputHandler::Action, QString> m_actionToStringMap;
 };
 
 #endif // SETTINGS_HPP

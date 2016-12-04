@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2012 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 #include "settingsmenu.hpp"
 
 #include "audioworker.hpp"
+#include "difficultyprofile.hpp"
 #include "game.hpp"
 #include "renderer.hpp"
 #include "settings.hpp"
@@ -35,6 +36,13 @@
 
 #include <QObject> // For QObject::tr()
 
+// Swap interval supported only in Qt 5.3+, see also game.cpp
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 3, 0))
+#define VSYNC_MENU
+#endif
+
+static const QString LAP_COUNT_KEY(Settings::lapCountKey());
+
 static const int ITEM_HEIGHT_DIV = 10;
 static const int ITEM_TEXT_SIZE  = 20;
 
@@ -42,9 +50,14 @@ class ResetAction : public MTFH::MenuItemAction
 {
 public:
 
-    enum ResetType {RT_TIMES, RT_POSITIONS, RT_TRACKS};
+    enum class Type
+    {
+        Times,
+        Positions,
+        Tracks
+    };
 
-    ResetAction(ResetType type, ConfirmationMenu & menu)
+    ResetAction(Type type, ConfirmationMenu & menu)
     : m_type(type)
     , m_confirmationMenu(menu)
     {
@@ -59,7 +72,7 @@ private:
 
         switch (m_type)
         {
-        case RT_POSITIONS:
+        case Type::Positions:
             MenuManager::instance().pushMenu(m_confirmationMenu.id());
             m_confirmationMenu.setText(QObject::tr("Reset best positions?").toStdWString());
             m_confirmationMenu.setAcceptAction(
@@ -71,7 +84,7 @@ private:
             m_confirmationMenu.setCurrentIndex(1);
             break;
 
-        case RT_TIMES:
+        case Type::Times:
             MenuManager::instance().pushMenu(m_confirmationMenu.id());
             m_confirmationMenu.setText(QObject::tr("Reset record times?").toStdWString());
             m_confirmationMenu.setAcceptAction(
@@ -84,7 +97,7 @@ private:
             m_confirmationMenu.setCurrentIndex(1);
             break;
 
-        case RT_TRACKS:
+        case Type::Tracks:
             MenuManager::instance().pushMenu(m_confirmationMenu.id());
             m_confirmationMenu.setText(QObject::tr("Reset unlocked tracks?").toStdWString());
             m_confirmationMenu.setAcceptAction(
@@ -109,11 +122,13 @@ private:
         }
     }
 
-    ResetType          m_type;
+    Type m_type;
+
     ConfirmationMenu & m_confirmationMenu;
 };
 
 static const char * CONFIRMATION_MENU_ID           = "confirmationMenu";
+static const char * DIFFICULTY_MENU_ID             = "difficultyMenu";
 static const char * FULL_SCREEN_RESOLUTION_MENU_ID = "fullScreenResolutionMenu";
 static const char * GAME_MODE_MENU_ID              = "gameModeMenu";
 static const char * GFX_MENU_ID                    = "gfxMenu";
@@ -126,20 +141,22 @@ static const char * VSYNC_MENU_ID                  = "vsyncMenu";
 static const char * WINDOWED_RESOLUTION_MENU_ID    = "windowedResolutionMenu";
 
 SettingsMenu::SettingsMenu(std::string id, int width, int height)
-: SurfaceMenu("settingsBack", id, width, height, Menu::MS_VERTICAL_LIST)
+: SurfaceMenu("settingsBack", id, width, height, Menu::Style::VerticalList)
 , m_confirmationMenu(CONFIRMATION_MENU_ID, width, height)
 , m_fullScreenResolutionMenu(m_confirmationMenu, FULL_SCREEN_RESOLUTION_MENU_ID, width, height, true)
 , m_windowedResolutionMenu(m_confirmationMenu, WINDOWED_RESOLUTION_MENU_ID, width, height, false)
-, m_gameModeMenu("settingsBack",  GAME_MODE_MENU_ID,  width, height, Menu::MS_VERTICAL_LIST)
-, m_gfxMenu("settingsBack",       GFX_MENU_ID,        width, height, Menu::MS_VERTICAL_LIST)
-, m_lapCountMenu("settingsBack",  LAP_COUNT_MENU_ID,  width, height, Menu::MS_VERTICAL_LIST)
-, m_resetMenu("settingsBack",     RESET_MENU_ID,      width, height, Menu::MS_VERTICAL_LIST)
-, m_sfxMenu("settingsBack",       SFX_MENU_ID,        width, height, Menu::MS_VERTICAL_LIST)
-, m_splitTypeMenu("settingsBack", SPLIT_TYPE_MENU_ID, width, height, Menu::MS_VERTICAL_LIST)
-, m_vsyncMenu(m_confirmationMenu, VSYNC_MENU_ID,      width, height)
+, m_difficultyMenu("settingsBack", DIFFICULTY_MENU_ID, width, height, Menu::Style::VerticalList)
+, m_gameModeMenu("settingsBack", GAME_MODE_MENU_ID, width, height, Menu::Style::VerticalList)
+, m_gfxMenu("settingsBack", GFX_MENU_ID, width, height, Menu::Style::VerticalList)
+, m_lapCountMenu("settingsBack", LAP_COUNT_MENU_ID, width, height, Menu::Style::VerticalList)
+, m_resetMenu("settingsBack", RESET_MENU_ID, width, height, Menu::Style::VerticalList)
+, m_sfxMenu("settingsBack", SFX_MENU_ID, width, height, Menu::Style::VerticalList)
+, m_splitTypeMenu("settingsBack", SPLIT_TYPE_MENU_ID, width, height, Menu::Style::VerticalList)
+, m_vsyncMenu(m_confirmationMenu, VSYNC_MENU_ID, width, height)
 , m_keyConfigMenu(KEY_CONFIG_MENU_ID, width, height)
 {
     populate              (width, height);
+    populateDifficultyMenu(width, height);
     populateGameModeMenu  (width, height);
     populateGfxMenu       (width, height);
     populateLapCountMenu  (width, height);
@@ -150,6 +167,7 @@ SettingsMenu::SettingsMenu(std::string id, int width, int height)
     using MTFH::MenuManager;
 
     MenuManager::instance().addMenu(m_confirmationMenu);
+    MenuManager::instance().addMenu(m_difficultyMenu);
     MenuManager::instance().addMenu(m_fullScreenResolutionMenu);
     MenuManager::instance().addMenu(m_gameModeMenu);
     MenuManager::instance().addMenu(m_gfxMenu);
@@ -158,7 +176,9 @@ SettingsMenu::SettingsMenu(std::string id, int width, int height)
     MenuManager::instance().addMenu(m_resetMenu);
     MenuManager::instance().addMenu(m_sfxMenu);
     MenuManager::instance().addMenu(m_splitTypeMenu);
+#ifdef VSYNC_MENU
     MenuManager::instance().addMenu(m_vsyncMenu);
+#endif
     MenuManager::instance().addMenu(m_windowedResolutionMenu);
 }
 
@@ -179,6 +199,10 @@ void SettingsMenu::populate(int width, int height)
     MenuItem * lapCount = new MenuItem(width, itemHeight, QObject::tr("Lap Count >").toStdWString());
     lapCount->setView(MenuItemViewPtr(new TextMenuItemView(textSize, *lapCount)));
     lapCount->setMenuOpenAction(LAP_COUNT_MENU_ID);
+
+    MenuItem * difficulty = new MenuItem(width, itemHeight, QObject::tr("Difficulty >").toStdWString());
+    difficulty->setView(MenuItemViewPtr(new TextMenuItemView(textSize, *difficulty)));
+    difficulty->setMenuOpenAction(DIFFICULTY_MENU_ID);
 
     MenuItem * sfx = new MenuItem(width, itemHeight, QObject::tr("Sounds >").toStdWString());
     sfx->setView(MenuItemViewPtr(new TextMenuItemView(textSize, *sfx)));
@@ -202,6 +226,7 @@ void SettingsMenu::populate(int width, int height)
     addItem(MenuItemPtr(configureKeys));
     addItem(MenuItemPtr(sfx));
     addItem(MenuItemPtr(gfx));
+    addItem(MenuItemPtr(difficulty));
     addItem(MenuItemPtr(lapCount));
     addItem(MenuItemPtr(gameMode));
 }
@@ -221,7 +246,7 @@ void SettingsMenu::populateGameModeMenu(int width, int height)
         []()
         {
             MCLogger().info() << "Two player race selected.";
-            Game::instance().setMode(Game::TwoPlayerRace);
+            Game::instance().setMode(Game::Mode::TwoPlayerRace);
             MenuManager::instance().popMenu();
         });
 
@@ -231,7 +256,7 @@ void SettingsMenu::populateGameModeMenu(int width, int height)
         []()
         {
             MCLogger().info() << "One player race selected.";
-            Game::instance().setMode(Game::OnePlayerRace);
+            Game::instance().setMode(Game::Mode::OnePlayerRace);
             MenuManager::instance().popMenu();
         });
 
@@ -241,7 +266,7 @@ void SettingsMenu::populateGameModeMenu(int width, int height)
         []()
         {
             MCLogger().info() << "Time Trial selected.";
-            Game::instance().setMode(Game::TimeTrial);
+            Game::instance().setMode(Game::Mode::TimeTrial);
             MenuManager::instance().popMenu();
         });
 
@@ -251,7 +276,7 @@ void SettingsMenu::populateGameModeMenu(int width, int height)
         []()
         {
             MCLogger().info() << "Duel selected.";
-            Game::instance().setMode(Game::Duel);
+            Game::instance().setMode(Game::Mode::Duel);
             MenuManager::instance().popMenu();
         });
 
@@ -279,7 +304,7 @@ void SettingsMenu::populateSplitTypeMenu(int width, int height)
         []()
         {
             MCLogger().info() << "Vertical split selected.";
-            Game::instance().setSplitType(Game::Vertical);
+            Game::instance().setSplitType(Game::SplitType::Vertical);
             MenuManager::instance().popMenu();
         });
 
@@ -289,12 +314,72 @@ void SettingsMenu::populateSplitTypeMenu(int width, int height)
         []()
         {
             MCLogger().info() << "Horizontal split selected.";
-            Game::instance().setSplitType(Game::Horizontal);
+            Game::instance().setSplitType(Game::SplitType::Horizontal);
             MenuManager::instance().popMenu();
         });
 
     m_splitTypeMenu.addItem(MTFH::MenuItemPtr(horizontal));
     m_splitTypeMenu.addItem(MTFH::MenuItemPtr(vertical));
+}
+
+void SettingsMenu::populateDifficultyMenu(int width, int height)
+{
+    const int itemHeight = height / ITEM_HEIGHT_DIV;
+    const int textSize   = ITEM_TEXT_SIZE;
+
+    using MTFH::MenuItem;
+    using MTFH::MenuManager;
+    using MTFH::MenuItemViewPtr;
+
+    MenuItem * easyItem = new MenuItem(width, itemHeight, QObject::tr("Easy").toStdWString());
+    easyItem->setView(MenuItemViewPtr(new TextMenuItemView(textSize, *easyItem)));
+    easyItem->setAction([] () {
+        MCLogger().info() << "Easy selected.";
+        const DifficultyProfile::Difficulty chosenDifficulty = DifficultyProfile::Difficulty::Easy;
+        Settings::instance().saveDifficulty(chosenDifficulty);
+        Game::instance().difficultyProfile().setDifficulty(chosenDifficulty);
+        MenuManager::instance().popMenu();
+    });
+
+    MenuItem * mediumItem = new MenuItem(width, itemHeight, QObject::tr("Medium").toStdWString());
+    mediumItem->setView(MenuItemViewPtr(new TextMenuItemView(textSize, *mediumItem)));
+    mediumItem->setAction([] () {
+        MCLogger().info() << "Medium selected.";
+        const DifficultyProfile::Difficulty chosenDifficulty = DifficultyProfile::Difficulty::Medium;
+        Settings::instance().saveDifficulty(chosenDifficulty);
+        Game::instance().difficultyProfile().setDifficulty(chosenDifficulty);
+        MenuManager::instance().popMenu();
+    });
+
+    MenuItem * sennaItem = new MenuItem(width, itemHeight, QObject::tr("Senna").toStdWString());
+    sennaItem->setView(MenuItemViewPtr(new TextMenuItemView(textSize, *sennaItem)));
+    sennaItem->setAction([] () {
+        MCLogger().info() << "Senna selected.";
+        const DifficultyProfile::Difficulty chosenDifficulty = DifficultyProfile::Difficulty::Senna;
+        Settings::instance().saveDifficulty(chosenDifficulty);
+        Game::instance().difficultyProfile().setDifficulty(chosenDifficulty);
+        MenuManager::instance().popMenu();
+    });
+
+    m_difficultyMenu.addItem(MTFH::MenuItemPtr(sennaItem));
+    m_difficultyMenu.addItem(MTFH::MenuItemPtr(mediumItem));
+    m_difficultyMenu.addItem(MTFH::MenuItemPtr(easyItem));
+
+    const DifficultyProfile::Difficulty difficulty = Game::instance().difficultyProfile().difficulty();
+    switch (difficulty)
+    {
+    case DifficultyProfile::Difficulty::Easy:
+        m_difficultyMenu.setCurrentIndex(easyItem->index());
+        break;
+
+    case DifficultyProfile::Difficulty::Medium:
+        m_difficultyMenu.setCurrentIndex(mediumItem->index());
+        break;
+
+    case DifficultyProfile::Difficulty::Senna:
+        m_difficultyMenu.setCurrentIndex(sennaItem->index());
+        break;
+    }
 }
 
 void SettingsMenu::populateGfxMenu(int width, int height)
@@ -318,12 +403,12 @@ void SettingsMenu::populateGfxMenu(int width, int height)
     MenuItem * splitType = new MenuItem(width, itemHeight, QObject::tr("Split type >").toStdWString());
     splitType->setView(MenuItemViewPtr(new TextMenuItemView(textSize, *splitType)));
     splitType->setMenuOpenAction(SPLIT_TYPE_MENU_ID);
-
+#ifdef VSYNC_MENU
     MenuItem * vsync = new MenuItem(width, itemHeight, QObject::tr("VSync >").toStdWString());
     vsync->setView(MenuItemViewPtr(new TextMenuItemView(textSize, *vsync)));
     vsync->setMenuOpenAction(VSYNC_MENU_ID);
-
     m_gfxMenu.addItem(MenuItemPtr(vsync));
+#endif
     m_gfxMenu.addItem(MenuItemPtr(splitType));
     m_gfxMenu.addItem(MenuItemPtr(selectWindowedResolution));
     m_gfxMenu.addItem(MenuItemPtr(selectFullScreenResolution));
@@ -388,17 +473,17 @@ void SettingsMenu::populateResetMenu(int width, int height)
     MenuItem * resetRecordTimes = new MenuItem(width, itemHeight, QObject::tr("Reset record times").toStdWString());
     resetRecordTimes->setView(MenuItemViewPtr(new TextMenuItemView(textSize, *resetRecordTimes)));
     resetRecordTimes->setAction(
-        MenuItemActionPtr(new ResetAction(ResetAction::RT_TIMES, m_confirmationMenu)));
+        MenuItemActionPtr(new ResetAction(ResetAction::Type::Times, m_confirmationMenu)));
 
     MenuItem * resetBestPositions = new MenuItem(width, itemHeight, QObject::tr("Reset best positions").toStdWString());
     resetBestPositions->setView(MenuItemViewPtr(new TextMenuItemView(textSize, *resetBestPositions)));
     resetBestPositions->setAction(
-        MenuItemActionPtr(new ResetAction(ResetAction::RT_POSITIONS, m_confirmationMenu)));
+        MenuItemActionPtr(new ResetAction(ResetAction::Type::Positions, m_confirmationMenu)));
 
     MenuItem * resetUnlockedTracks = new MenuItem(width, itemHeight, QObject::tr("Reset unlocked tracks").toStdWString());
     resetUnlockedTracks->setView(MenuItemViewPtr(new TextMenuItemView(textSize, *resetUnlockedTracks)));
     resetUnlockedTracks->setAction(
-        MenuItemActionPtr(new ResetAction(ResetAction::RT_TRACKS, m_confirmationMenu)));
+        MenuItemActionPtr(new ResetAction(ResetAction::Type::Tracks, m_confirmationMenu)));
 
     m_resetMenu.addItem(MenuItemPtr(resetRecordTimes));
     m_resetMenu.addItem(MenuItemPtr(resetBestPositions));

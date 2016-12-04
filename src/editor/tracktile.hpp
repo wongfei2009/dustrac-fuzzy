@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -26,43 +26,41 @@ class QGraphicsLineItem;
 class TileAnimator;
 class TrackData;
 
-//! A race track is built of TrackTiles. The TrackTile class
-//! extends TrackTileBase with features needed to visualize
-//! track tiles in the editor. Note that the track tile instances
-//! do not change. Only their types change when user sets a tile.
+/*! A race track is built of TrackTiles. The TrackTile class
+ *  extends TrackTileBase with features needed to render
+ *  track tiles in editor's scene. Note that the track tile instances
+ *  do not change. Only their types change when user sets a tile. */
 class TrackTile : public QGraphicsItem, public TrackTileBase
 {
 public:
 
-    //! Constructor.
-    //! \param trackData Pointer to the "parent" TrackData.
-    //! \param location Location (coordinates) in the track scene.
-    //! \param matrixLocation Location in the tile matrix.
-    //! \param type Type of the tile. See setType().
+    /*! Constructor.
+     *  \param trackData Pointer to the "parent" TrackData.
+     *  \param location Location (coordinates) in the track scene.
+     *  \param matrixLocation Location in the tile matrix.
+     *  \param type Type of the tile. See setType(). */
     TrackTile(TrackData & trackData, QPointF location, QPoint matrixLocation,
         const QString & type = "clear");
 
     //! Destructor
     virtual ~TrackTile();
 
-    //! \reimp
-    virtual QRectF boundingRect () const;
+    virtual QRectF boundingRect () const override;
 
-    //! \reimp
     virtual void paint(QPainter * painter,
-        const QStyleOptionGraphicsItem * option, QWidget * widget = 0);
+        const QStyleOptionGraphicsItem * option, QWidget * widget = 0) override;
 
     //! Set tile active (a blue collar is drawn)
     void setActive(bool active);
 
-    //! \reimp
-    virtual void setTileType(const QString & type);
+    virtual void setTileType(const QString & type) override;
 
-    //! \reimp
-    virtual void setComputerHint(ComputerHint hint);
+    virtual void setComputerHint(ComputerHint hint) override;
 
-    //! Get current active tile.
-    //! \returns Valid pointer or nullptr if not set.
+    virtual void setLocation(QPointF location) override;
+
+    /*! Get current active tile.
+     * \returns Valid pointer or nullptr if not set. */
     static TrackTile * activeTile();
 
     //! Set the active tile

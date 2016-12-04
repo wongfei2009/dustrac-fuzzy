@@ -11,11 +11,11 @@ float UserController::steerControl(bool isRaceCompleted) {
 	if(isRaceCompleted) return 0;
 
 	// Handle steering
-	if (m_handler.getActionState(m_num_player, InputHandler::IA_LEFT))
+	if (m_handler.getActionState(m_num_player, InputHandler::Action::Left))
 	{
 		return -controlStep;
 	}
-	else if (m_handler.getActionState(m_num_player, InputHandler::IA_RIGHT))
+	else if (m_handler.getActionState(m_num_player, InputHandler::Action::Right))
 	{
 		return controlStep;
 	}
@@ -27,13 +27,13 @@ float UserController::speedControl(bool isRaceCompleted) {
 	if(isRaceCompleted) return 0;
 
 	// Handle braking
-	if (m_handler.getActionState(m_num_player, InputHandler::IA_DOWN))
+	if (m_handler.getActionState(m_num_player, InputHandler::Action::Down))
 	{
 		return -1;
 	}
 
 	// Handle accelerating
-	if (m_handler.getActionState(m_num_player, InputHandler::IA_UP))
+	if (m_handler.getActionState(m_num_player, InputHandler::Action::Up))
 	{
 		return m_car.speedInKmh() + 10;
 	}

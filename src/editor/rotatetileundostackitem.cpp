@@ -40,7 +40,9 @@ void RotateTileUndoStackItem::setRotation(TrackData * track, qreal rotation)
 {
     int x = m_position.x();
     int y = m_position.y();
-    TrackTile * tile = dynamic_cast<TrackTile *>(track->map().getTile(x, y));
 
-    tile->setRotation(rotation);
+    if (TrackTile * tile = dynamic_cast<TrackTile *>(track->map().getTile(x, y).get()))
+    {
+        tile->setRotation(rotation);
+    }
 }

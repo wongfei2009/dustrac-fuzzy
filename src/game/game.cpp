@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 #include "audioworker.hpp"
 #include "graphicsfactory.hpp"
 #include "eventhandler.hpp"
-#include "fontfactory.hpp"
 #include "inputhandler.hpp"
 #include "renderer.hpp"
 #include "scene.hpp"
@@ -32,15 +31,16 @@
 
 #include <MCAssetManager>
 #include <MCCamera>
-#include <MCException>
 #include <MCLogger>
 #include <MCObjectFactory>
+#include <MCWorldRenderer>
 
 #include <QApplication>
-#include <QFontDatabase>
 #include <QDesktopWidget>
 #include <QDir>
 #include <QTime>
+#include <QScreen>
+#include <QSurfaceFormat>
 
 #include <cassert>
 
@@ -49,16 +49,18 @@ static const unsigned int MAX_PLAYERS = 2;
 Game * Game::m_instance = nullptr;
 
 Game::Game(bool forceNoVSync, bool forceNoSounds)
-: m_inputHandler(new InputHandler(MAX_PLAYERS))
+: m_settings(Settings::instance())
+, m_difficultyProfile(m_settings.loadDifficulty())
+, m_inputHandler(new InputHandler(MAX_PLAYERS))
 , m_eventHandler(new EventHandler(*m_inputHandler))
 , m_stateMachine(new StateMachine(*m_inputHandler))
 , m_renderer(nullptr)
 , m_scene(nullptr)
 , m_assetManager(new MCAssetManager(
-    Config::Common::dataPath,
-    std::string(Config::Common::dataPath) + QDir::separator().toLatin1() + "textures.conf",
+    Config::Common::dataPath.toStdString(),
+    (Config::Common::dataPath + QDir::separator().toLatin1() + "surfaces.conf").toStdString(),
     "",
-    std::string(Config::Common::dataPath) + QDir::separator().toLatin1() + "meshes.conf"))
+    (Config::Common::dataPath + QDir::separator().toLatin1() + "meshes.conf").toStdString()))
 , m_objectFactory(new MCObjectFactory(*m_assetManager))
 , m_trackLoader(new TrackLoader(*m_objectFactory))
 , m_updateFps(60)
@@ -67,40 +69,55 @@ Game::Game(bool forceNoVSync, bool forceNoSounds)
 , m_lapCount(m_settings.getLapCount())
 , m_paused(false)
 , m_renderElapsed(0)
-, m_mode(OnePlayerRace)
-, m_splitType(Vertical)
+, m_mode(Mode::OnePlayerRace)
+, m_splitType(SplitType::Vertical)
 , m_audioWorker(new AudioWorker(
       Scene::NUM_CARS, forceNoSounds ? false : Settings::instance().loadValue(Settings::soundsKey(), true)))
 {
     assert(!Game::m_instance);
     Game::m_instance = this;
+	createRenderer(forceNoVSync);
 
     const QString& mode = Settings::instance().getGameMode();
-
-    if(mode == "OnePlayerRace") setMode(OnePlayerRace);
-    else if(mode == "TwoPlayerRace") setMode(TwoPlayerRace);
-    else if(mode == "TimeTrial") setMode(TimeTrial);
-    else if(mode == "Duel") setMode(Duel);
+    if(mode == "OnePlayerRace") setMode(Mode::OnePlayerRace);
+    else if(mode == "TwoPlayerRace") setMode(Mode::TwoPlayerRace);
+    else if(mode == "TimeTrial") setMode(Mode::TimeTrial);
+    else if(mode == "Duel") setMode(Mode::Duel);
     else {
     	MCLogger().warning() << "Unknown game mode '" << mode.toStdString() << "'.";
     }
 
-	createRenderer(forceNoVSync);
-	loadFonts();
-	m_assetManager->textureFontManager().createFontFromData(FontFactory::generateFont());
+	connect(&m_difficultyProfile, &DifficultyProfile::difficultyChanged, [this] () {
+        m_trackLoader->updateLockedTracks(m_lapCount, m_difficultyProfile.difficulty());
+    });
 
 	if(!Settings::instance().getDisableRendering()) {
-		connect(m_eventHandler, SIGNAL(pauseToggled()), this, SLOT(togglePause()));
-		connect(m_eventHandler, SIGNAL(cursorRevealed()), this, SLOT(showCursor()));
-		connect(m_eventHandler, SIGNAL(cursorHid()), this, SLOT(hideCursor()));
-		connect(m_eventHandler, SIGNAL(soundRequested(QString)), m_audioWorker, SLOT(playSound(QString)));
+		connect(m_eventHandler, &EventHandler::pauseToggled, this, &Game::togglePause);
+
+		connect(m_eventHandler, &EventHandler::cursorRevealed, [this] () {
+		    m_renderer->setCursor(Qt::ArrowCursor);
+		});
+
+		connect(m_eventHandler, &EventHandler::cursorHid, [this] () {
+		    m_renderer->setCursor(Qt::BlankCursor);
+		});
 	}
 
-    connect(m_eventHandler, SIGNAL(gameExited()), this, SLOT(exitGame()));
-    connect(&m_updateTimer, SIGNAL(timeout()), this, SLOT(updateFrame()));
-    m_updateTimer.setInterval(0);
+	connect(m_eventHandler, &EventHandler::gameExited, this, &Game::exitGame);
 
-    connect(m_stateMachine, SIGNAL(exitGameRequested()), this, SLOT(exitGame()));
+	connect(m_eventHandler, SIGNAL(soundRequested(QString)), m_audioWorker, SLOT(playSound(QString)));
+
+    connect(&m_updateTimer, &QTimer::timeout, [this] () {
+        m_stateMachine->update();
+        m_scene->updateFrame(m_timeStep);
+        m_scene->updateAnimations();
+        m_scene->updateOverlays();
+        m_renderer->renderNow();
+    });
+
+    m_updateTimer.setInterval(m_updateDelay);
+
+    connect(m_stateMachine, &StateMachine::exitGameRequested, this, &Game::exitGame);
 
     // Add race track search paths
     m_trackLoader->addTrackSearchPath(QString(Config::Common::dataPath) +
@@ -121,23 +138,21 @@ void Game::createRenderer(bool forceNoVSync)
 {
     // Create the main window / renderer
     int hRes, vRes;
-    bool nativeResolution = true;
-    bool fullScreen       = false;
+    bool fullScreen = false;
 
 	if(!Settings::instance().getDisableRendering()) {
+    	m_settings.getResolution(hRes, vRes, fullScreen);
 
-    	m_settings.getResolution(hRes, vRes, nativeResolution, fullScreen);
-
-		if (nativeResolution)
+		if (!hRes || !vRes)
 		{
-		    hRes = QApplication::desktop()->screen(QApplication::desktop()->screenNumber(m_renderer))->width();
-		    vRes = QApplication::desktop()->screen(QApplication::desktop()->screenNumber(m_renderer))->height();
+			hRes = QGuiApplication::primaryScreen()->geometry().width();
+			vRes = QGuiApplication::primaryScreen()->geometry().height();
 		}
 
-	//    adjustSceneSize(hRes, vRes, fullScreen);
+		adjustSceneSize(hRes, vRes);
 
 		MCLogger().info()
-		    << "Resolution: " << hRes << " " << vRes << " " << nativeResolution << " " << fullScreen;
+	        << "Resolution: " << hRes << " " << vRes << " " << fullScreen;
 
 	} else {
 		hRes = 100;
@@ -145,13 +160,12 @@ void Game::createRenderer(bool forceNoVSync)
 	}
 
     MCLogger().info() << "Creating the renderer..";
-    // At least for now the QGLFormat needs to be passed to the constructor of QGLWidget,
-    // because setting it afterwards by using QGLWidget::setFormat() resulted in a black
-    // window on Windows 7. It worked on Ubuntu, though.
-    QGLFormat format;
+
+    QSurfaceFormat format;
+
 #ifdef __MC_GL30__
     format.setVersion(3, 0);
-    format.setProfile(QGLFormat::CoreProfile);
+    format.setProfile(QSurfaceFormat::CoreProfile);
 #elif defined(__MC_GLES__)
     format.setVersion(1, 0);
 #else
@@ -159,19 +173,24 @@ void Game::createRenderer(bool forceNoVSync)
 #endif
     format.setSamples(0);
 
+// Supported only in Qt 5.3+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 3, 0))
     if (forceNoVSync)
     {
         format.setSwapInterval(0);
     }
     else
     {
-        format.setSwapInterval(Settings::instance().loadValue(Settings::vsyncKey(), 0));
+        format.setSwapInterval(Settings::instance().loadVSync());
     }
+#else
+    Q_UNUSED(forceNoVSync);
+#endif
 
-    m_renderer = new Renderer(format, hRes, vRes, nativeResolution, fullScreen);
+    m_renderer = new Renderer(hRes, vRes, fullScreen, m_world.renderer().glScene());
+    m_renderer->setFormat(format);
 
 	if(!Settings::instance().getDisableRendering()) {
-	    m_renderer->activateWindow();
 
 		if (fullScreen)
 		{
@@ -182,64 +201,37 @@ void Game::createRenderer(bool forceNoVSync)
 		    m_renderer->show();
 		}
 
-		m_renderer->setFocus();
-
-		// Note that this must be called before loading textures in order
-		// to load textures to correct OpenGL context.
-		m_renderer->makeCurrent();
 		m_renderer->setEventHandler(*m_eventHandler);
-
-		connect(m_stateMachine, SIGNAL(renderingEnabled(bool)), m_renderer, SLOT(setEnabled(bool)));
-
+		connect(m_renderer, &Renderer::initialized, this, &Game::init);
+	    connect(m_stateMachine, &StateMachine::renderingEnabled, m_renderer, &Renderer::setEnabled);
 	} else {
 		m_renderer->show();
-
-		m_renderer->makeCurrent();
+		//m_renderer->makeCurrent();
 		m_renderer->setEventHandler(*m_eventHandler);
-
-		connect(m_stateMachine, SIGNAL(renderingEnabled(bool)), m_renderer, SLOT(setEnabled(bool)));
-
-//		m_renderer->setVisible(false);
+		connect(m_renderer, &Renderer::initialized, this, &Game::init);
+		connect(m_stateMachine, &StateMachine::renderingEnabled, m_renderer, &Renderer::setEnabled);
+		//m_renderer->setVisible(false);
 	}
 }
 
-void Game::adjustSceneSize(int hRes, int vRes, bool fullScreen)
+void Game::adjustSceneSize(int hRes, int vRes)
 {
     // Adjust scene height so that view aspect ratio is taken into account.
-    if (fullScreen)
-    {
-        const int newSceneHeight =
-            Scene::width() * QApplication::desktop()->height() / QApplication::desktop()->width();
-        Scene::setSize(Scene::width(), newSceneHeight);
-    }
-    else
-    {
-        const int newSceneHeight = Scene::width() * vRes / hRes;
-        Scene::setSize(Scene::width(), newSceneHeight);
-    }
+    const int newSceneHeight = Scene::width() * vRes / hRes;
+    Scene::setSize(Scene::width(), newSceneHeight);
 }
 
-void Game::showCursor()
+void Game::setMode(Game::Mode mode)
 {
-    m_renderer->setCursor(Qt::ArrowCursor);
+    m_mode = mode;
 }
 
-void Game::hideCursor()
-{
-    m_renderer->setCursor(Qt::BlankCursor);
-}
-
-void Game::setMode(GameMode gameMode)
-{
-    m_mode = gameMode;
-}
-
-Game::GameMode Game::mode() const
+Game::Mode Game::mode() const
 {
     return m_mode;
 }
 
-void Game::setSplitType(SplitType splitType)
+void Game::setSplitType(Game::SplitType splitType)
 {
     m_splitType = splitType;
 }
@@ -252,7 +244,7 @@ Game::SplitType Game::splitType() const
 void Game::setLapCount(int lapCount)
 {
     m_lapCount = lapCount;
-    m_trackLoader->updateLockedTracks(lapCount);
+    m_trackLoader->updateLockedTracks(lapCount, m_difficultyProfile.difficulty());
 }
 
 int Game::lapCount() const
@@ -262,15 +254,15 @@ int Game::lapCount() const
 
 bool Game::hasTwoHumanPlayers() const
 {
-    return m_mode == TwoPlayerRace || m_mode == Duel;
+    return m_mode == Mode::TwoPlayerRace || m_mode == Mode::Duel;
 }
 
 bool Game::hasComputerPlayers() const
 {
-    return m_mode == TwoPlayerRace || m_mode == OnePlayerRace;
+    return m_mode == Mode::TwoPlayerRace || m_mode == Mode::OnePlayerRace;
 }
 
-EventHandler & Game::eventHandler() const
+EventHandler & Game::eventHandler()
 {
     assert(m_eventHandler);
     return *m_eventHandler;
@@ -280,6 +272,11 @@ AudioWorker & Game::audioWorker()
 {
     assert(m_audioWorker);
     return *m_audioWorker;
+}
+
+DifficultyProfile & Game::difficultyProfile()
+{
+    return m_difficultyProfile;
 }
 
 const std::string & Game::fontName() const
@@ -297,35 +294,16 @@ Renderer & Game::renderer() const
 bool Game::loadTracks()
 {
     // Load track data
-    if (int numLoaded = m_trackLoader->loadTracks(m_lapCount))
+    if (int numLoaded = m_trackLoader->loadTracks(m_lapCount, m_difficultyProfile.difficulty()))
     {
         MCLogger().info() << "A total of " << numLoaded << " race track(s) loaded.";
     }
     else
     {
-        throw MCException("No valid race tracks found.");
+        throw std::runtime_error("No valid race tracks found.");
     }
 
     return true;
-}
-
-void Game::loadFonts()
-{
-    const std::vector<QString> fonts = {"UbuntuMono-R.ttf", "UbuntuMono-B.ttf"};
-    for (auto font : fonts)
-    {
-        const QString path =
-            QString(Config::Common::dataPath) + QDir::separator() + "fonts" + QDir::separator() + font;
-        MCLogger().info() << "Loading font " << path.toStdString() << "..";
-
-        QFile fontFile(path);
-        fontFile.open(QFile::ReadOnly);
-        const int appFontId = QFontDatabase::addApplicationFontFromData(fontFile.readAll());
-        if (appFontId < 0)
-        {
-            MCLogger().warning() << "Failed to load font " << path.toStdString() << "..";
-        }
-    }
 }
 
 void Game::initScene()
@@ -333,7 +311,7 @@ void Game::initScene()
     assert(m_stateMachine);
 
     // Create the scene
-    m_scene = new Scene(*this, *m_stateMachine, m_renderer);
+    m_scene = new Scene(*this, *m_stateMachine, *m_renderer, m_world);
 
     // Add tracks to the menu.
     for (unsigned int i = 0; i < m_trackLoader->tracks(); i++)
@@ -346,7 +324,7 @@ void Game::initScene()
     if(m_renderer) m_renderer->setScene(*m_scene);
 }
 
-bool Game::init()
+void Game::init()
 {
     Settings& settings = Settings::instance();
 
@@ -365,8 +343,7 @@ bool Game::init()
     	TrackData* t_data = m_trackLoader->loadTrack(settings.getCustomTrackFile(), false);
 
     	if(!t_data) {
-    		MCLogger().error() << "Track data not found.";
-    		return false;
+    		throw std::runtime_error("Couldn't load tracks.");
     	}
 
     	_customTrack = std::shared_ptr<Track>(new Track(t_data));
@@ -378,18 +355,18 @@ bool Game::init()
 
 	} else {
 
-	    if (loadTracks())
-	    {
-	        initScene();
-	    }
-	    else
-	    {
-	        return false;
-	    }
+		if (loadTracks())
+		{
+		    initScene();
+		}
+		else
+		{
+		    throw std::runtime_error("Couldn't load tracks.");
+		}
 
 	}
 
-    return true;
+    start();
 }
 
 void Game::start()
@@ -427,27 +404,6 @@ void Game::exitGame()
     m_audioThread.wait();
 
     QApplication::quit();
-}
-
-void Game::updateFrame()
-{
-    const int TUNE = 2;
-    if (m_elapsed.elapsed() >= m_updateDelay - m_renderElapsed - TUNE)
-    {
-        m_stateMachine->update();
-        m_scene->updateFrame(m_timeStep);
-        m_scene->updateAnimations();
-        m_scene->updateOverlays();
-        m_elapsed.restart();
-        m_renderElapsed = 0;
-    }
-    else
-    {
-        static QTime elapsed;
-        elapsed.restart();
-        m_renderer->updateGL();
-        m_renderElapsed = elapsed.elapsed();
-    }
 }
 
 Game::~Game()

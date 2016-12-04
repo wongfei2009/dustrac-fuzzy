@@ -66,7 +66,7 @@ function(setup_install_targets BIN_PATH DATA_PATH PLUGIN_INSTALL_PATH DOC_PATH)
     install(FILES data/editorModels.conf DESTINATION ${DATA_PATH})
     install(FILES data/fonts.conf DESTINATION ${DATA_PATH})
     install(FILES data/meshes.conf DESTINATION ${DATA_PATH})
-    install(FILES data/textures.conf DESTINATION ${DATA_PATH})
+    install(FILES data/surfaces.conf DESTINATION ${DATA_PATH})
     install(FILES AUTHORS CHANGELOG COPYING README DESTINATION ${DOC_PATH})
     install(DIRECTORY data/images DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.jpg")
     install(DIRECTORY data/images DESTINATION ${DATA_PATH} FILES_MATCHING PATTERN "*.png")
@@ -80,6 +80,9 @@ function(setup_install_targets BIN_PATH DATA_PATH PLUGIN_INSTALL_PATH DOC_PATH)
         # Install .desktop files
         install(FILES ${CMAKE_BINARY_DIR}/dustrac-game.desktop DESTINATION share/applications)
         install(FILES ${CMAKE_BINARY_DIR}/dustrac-editor.desktop DESTINATION share/applications)
+
+        # Install app store meta data
+        install(FILES src/dustrac.appdata.xml DESTINATION share/appdata)
 
         # Install icons
         install(FILES data/icons/dustrac-game.png DESTINATION share/pixmaps)

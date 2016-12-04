@@ -21,39 +21,37 @@
 
 #include "eventhandler.hpp"
 
-#include <QGLWidget>
+#include <QWindow>
+#include <QOpenGLFunctions>
 
 #include <memory>
 #include <string>
 #include <unordered_map>
 
 class InputHandler;
-class MCGLScene;
 class QKeyEvent;
+class QOpenGLFramebufferObject;
 class QPaintEvent;
 class Scene;
+class MCGLScene;
 
 //! The singleton renderer widget and the main "window".
-class Renderer : public QGLWidget
+class Renderer : public QWindow, protected QOpenGLFunctions
 {
     Q_OBJECT
 
 public:
 
     //! Constructor.
-    Renderer(
-        const QGLFormat & qglFormat,
-        int hRes,
-        int vRes,
-        bool nativeResolution,
-        bool fullScreen,
-        QWidget * parent = nullptr);
+    Renderer(int hRes, int vRes, bool fullScreen, MCGLScene & glScene);
 
     //! Destructor.
     virtual ~Renderer();
 
     //! \return the single instance.
     static Renderer & instance();
+
+    void initialize();
 
     //! Set game scene to be rendered.
     void setScene(Scene & scene);
@@ -64,27 +62,24 @@ public:
     //! \return shader program object by the given id string.
     MCGLShaderProgramPtr program(const std::string & id);
 
-    //! \return current scene.
-    MCGLScene & glScene();
-
     //! \return scene face factor 0.0..1.0.
     float fadeValue() const;
 
-    //! \return horizontal resolution.
-    int hRes() const
+    QSize resolution() const
     {
-        return m_hRes;
+        return QSize(m_hRes, m_vRes);
     }
 
-    //! \return vertical resolution.
-    int vRes() const
+    bool fullScreen() const
     {
-        return m_vRes;
+        return m_fullScreen;
     }
 
 signals:
 
     void closed();
+
+    void initialized();
 
 public slots:
 
@@ -92,22 +87,28 @@ public slots:
 
     void setFadeValue(float value);
 
+    void setResolution(QSize resolution);
+
+    void renderLater();
+
+    void renderNow();
+
 protected:
 
     //! \reimp
-    virtual void initializeGL();
+    bool event(QEvent *);
 
     //! \reimp
-    virtual void resizeGL(int viewWidth, int viewHeight);
+    void exposeEvent(QExposeEvent *);
 
     //! \reimp
-    virtual void paintGL();
+    void resizeEvent(QResizeEvent *);
 
     //! \reimp
-    virtual void keyPressEvent(QKeyEvent * event);
+    void keyPressEvent(QKeyEvent * event);
 
     //! \reimp
-    virtual void keyReleaseEvent(QKeyEvent * event);
+    void keyReleaseEvent(QKeyEvent * event);
 
     //! \reimp
     void mousePressEvent(QMouseEvent * event);
@@ -126,24 +127,49 @@ private:
     //! Load vertex and fragment shaders.
     void loadShaders();
 
+    void loadFonts();
+
     void createProgramFromSource(std::string handle, std::string vshSource, std::string fshSource);
 
     void render();
 
+    void resizeGL(int viewWidth, int viewHeight);
+
     typedef std::unordered_map<std::string, MCGLShaderProgramPtr > ShaderHash;
 
-    Scene           * m_scene;
-    MCGLScene       * m_glScene;
-    EventHandler    * m_eventHandler;
-    const float       m_viewAngle;
-    float             m_fadeValue;
-    ShaderHash        m_shaderHash;
-    bool              m_enabled;
-    int               m_hRes;
-    int               m_vRes;
-    bool              m_nativeResolution;
-    bool              m_fullScreen;
+    QOpenGLContext  * m_context;
+
+    Scene * m_scene;
+
+    EventHandler * m_eventHandler;
+
+    const float m_viewAngle;
+
+    float m_fadeValue;
+
+    ShaderHash m_shaderHash;
+
+    bool m_enabled;
+
+    int m_hRes;
+
+    int m_vRes;
+
+    int m_fullHRes;
+
+    int m_fullVRes;
+
+    bool m_fullScreen;
+
+    bool m_updatePending;
+
     static Renderer * m_instance;
+
+    std::unique_ptr<QOpenGLFramebufferObject> m_fbo;
+
+    std::unique_ptr<QOpenGLFramebufferObject> m_shadowFbo;
+
+    MCGLScene & m_glScene;
 };
 
 #endif // RENDERER_HPP

@@ -30,6 +30,7 @@
 #include "mcobject.hh"
 #include "mcobjectgrid.hh"
 #include "mcparticle.hh"
+#include "mcphysicscomponent.hh"
 #include "mcshape.hh"
 #include "mcshapeview.hh"
 #include "mcrectshape.hh"
@@ -39,15 +40,8 @@
 #include <cassert>
 
 MCWorld * MCWorld::m_instance              = nullptr;
-MCFloat   MCWorld::m_metersPerPixel        = 1.0;
-MCFloat   MCWorld::m_metersPerPixelSquared = 1.0;
-
-namespace
-{
-// Set dimensions for minimum objectGrid leaves
-const MCFloat MinLeafWidth  = 64;
-const MCFloat MinLeafHeight = 64;
-}
+MCFloat   MCWorld::m_metersPerUnit        = 1.0;
+MCFloat   MCWorld::m_metersPerUnitSquared = 1.0;
 
 MCWorld::MCWorld()
 : m_renderer(new MCWorldRenderer)
@@ -68,6 +62,7 @@ MCWorld::MCWorld()
 , m_numCollisions(0)
 , m_numResolverLoops(5)
 , m_resolverStep(1.0 / m_numResolverLoops)
+, m_gravity(MCVector3dF(0, 0, -9.81))
 {
     if (!MCWorld::m_instance)
     {
@@ -80,7 +75,7 @@ MCWorld::MCWorld()
     }
 
     // Default dimensions. Creates also MCObjectGrid.
-    setDimensions(0.0, MinLeafWidth, 0.0, MinLeafHeight, 0.0, 1.0, 1.0);
+    setDimensions(0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0);
 }
 
 MCWorld::~MCWorld()
@@ -100,25 +95,20 @@ MCWorld::~MCWorld()
     MCWorld::m_instance = nullptr;
 }
 
-MCFloat MCWorld::gravity()
-{
-    return 9.81;
-}
-
 void MCWorld::integrate(MCFloat step)
 {
     // Integrate and update all registered objects
     m_forceRegistry->update();
-    const MCUint objectCount = m_objs.size();
+    const MCUint objectCount = static_cast<MCUint>(m_objs.size());
     for (MCUint i = 0; i < objectCount; i++)
     {
         MCObject & object(*m_objs[i]);
-        if (object.isPhysicsObject() && !object.stationary())
+        if (object.isPhysicsObject() && !object.physicsComponent().isStationary())
         {
-            object.integrate(step);
+            object.stepTime(step);
         }
 
-        object.stepTime(step);
+        object.onStepTime(step);
     }
 }
 
@@ -143,14 +133,19 @@ void MCWorld::prepareRendering(MCCamera * camera)
     m_renderer->buildBatches(camera);
 }
 
-void MCWorld::render(MCCamera * camera)
+void MCWorld::render(MCCamera * camera, const std::vector<int> & layers)
 {
-    m_renderer->render(camera);
+    m_renderer->render(camera, layers);
 }
 
-void MCWorld::renderShadows(MCCamera * camera)
+void MCWorld::renderShadows(MCCamera * camera, const std::vector<int> & layers)
 {
-    m_renderer->renderShadows(camera);
+    m_renderer->renderShadows(camera, layers);
+}
+
+bool MCWorld::hasInstance()
+{
+    return MCWorld::m_instance;
 }
 
 MCWorld & MCWorld::instance()
@@ -172,7 +167,7 @@ void MCWorld::clear()
     for (MCObject * object : m_objs)
     {
         object->deleteContacts();
-        object->resetMotion();
+        object->physicsComponent().reset();
         object->setIndex(-1);
 
         if (object->isParticle())
@@ -189,13 +184,13 @@ void MCWorld::clear()
 
 void MCWorld::setDimensions(
     MCFloat minX, MCFloat maxX, MCFloat minY, MCFloat maxY, MCFloat minZ, MCFloat maxZ,
-    MCFloat metersPerPixel)
+    MCFloat metersPerUnit, int gridSize)
 {
-    // TODO: MinLeafWidth and MinLeafHeight should be dynamic
-    assert(maxX - minX >= MinLeafWidth);
-    assert(maxY - minY >= MinLeafHeight);
+    assert(maxX - minX > 0);
+    assert(maxY - minY > 0);
+    assert(maxZ - minZ > 0);
 
-    MCWorld::setMetersPerPixel(metersPerPixel);
+    MCWorld::setMetersPerUnit(metersPerUnit);
 
     // Set dimensions
     m_minX = minX;
@@ -206,11 +201,13 @@ void MCWorld::setDimensions(
     m_maxZ = maxZ;
 
     // Init objectGrid
+    const MCFloat leafWidth = (maxX - minX) / gridSize;
+    const MCFloat leafHeight = (maxY - minY) / gridSize;
     delete m_objectGrid;
     m_objectGrid = new MCObjectGrid(
         m_minX, m_minY,
         m_maxX, m_maxY,
-        MinLeafWidth, MinLeafHeight);
+        leafWidth, leafHeight);
 
     // Create "wall" objects
     const MCFloat w = m_maxX - m_minX;
@@ -222,10 +219,12 @@ void MCWorld::setDimensions(
         delete m_leftWallObject;
     }
 
+    const MCFloat wallRestitution = 0.25f;
+
     m_leftWallObject = new MCObject("LEFT_WALL");
     m_leftWallObject->setShape(MCShapePtr(new MCRectShape(nullptr, w, h)));
-    m_leftWallObject->setMass(0, true);
-    m_leftWallObject->setRestitution(0.25);
+    m_leftWallObject->physicsComponent().setMass(0, true);
+    m_leftWallObject->physicsComponent().setRestitution(wallRestitution);
     m_leftWallObject->addToWorld();
     m_leftWallObject->translate(MCVector3dF(-w / 2, h / 2, 0));
 
@@ -237,8 +236,8 @@ void MCWorld::setDimensions(
 
     m_rightWallObject = new MCObject("RIGHT_WALL");
     m_rightWallObject->setShape(MCShapePtr(new MCRectShape(nullptr, w, h)));
-    m_rightWallObject->setMass(0, true);
-    m_rightWallObject->setRestitution(0.25);
+    m_rightWallObject->physicsComponent().setMass(0, true);
+    m_rightWallObject->physicsComponent().setRestitution(wallRestitution);
     m_rightWallObject->addToWorld();
     m_rightWallObject->translate(MCVector3dF(w + w / 2, h / 2, 0));
 
@@ -250,8 +249,8 @@ void MCWorld::setDimensions(
 
     m_topWallObject = new MCObject("TOP_WALL");
     m_topWallObject->setShape(MCShapePtr(new MCRectShape(nullptr, w, h)));
-    m_topWallObject->setMass(0, true);
-    m_topWallObject->setRestitution(0.25);
+    m_topWallObject->physicsComponent().setMass(0, true);
+    m_topWallObject->physicsComponent().setRestitution(wallRestitution);
     m_topWallObject->addToWorld();
     m_topWallObject->translate(MCVector3dF(w / 2, h + h / 2, 0));
 
@@ -263,28 +262,28 @@ void MCWorld::setDimensions(
 
     m_bottomWallObject = new MCObject("BOTTOM_WALL");
     m_bottomWallObject->setShape(MCShapePtr(new MCRectShape(nullptr, w, h)));
-    m_bottomWallObject->setMass(0, true);
-    m_bottomWallObject->setRestitution(0.25);
+    m_bottomWallObject->physicsComponent().setMass(0, true);
+    m_bottomWallObject->physicsComponent().setRestitution(wallRestitution);
     m_bottomWallObject->addToWorld();
     m_bottomWallObject->translate(MCVector3dF(w / 2, -h / 2, 0));
 }
 
-MCFloat MCWorld::minX() const
+MCFloat MCWorld::minx() const
 {
     return m_minX;
 }
 
-MCFloat MCWorld::maxX() const
+MCFloat MCWorld::maxx() const
 {
     return m_maxX;
 }
 
-MCFloat MCWorld::minY() const
+MCFloat MCWorld::miny() const
 {
     return m_minY;
 }
 
-MCFloat MCWorld::maxY() const
+MCFloat MCWorld::maxy() const
 {
     return m_maxY;
 }
@@ -310,7 +309,7 @@ void MCWorld::addObject(MCObject & object)
 
             // Add to object vector (O(1))
             m_objs.push_back(&object);
-            object.setIndex(m_objs.size() - 1);
+            object.setIndex(static_cast<int>(m_objs.size()) - 1);
 
             // Add to ObjectTree
             if ((object.isPhysicsObject() || object.isTriggerObject()) && !object.bypassCollisions())
@@ -319,12 +318,12 @@ void MCWorld::addObject(MCObject & object)
             }
 
             // Add xy friction
-            const MCFloat FrictionThreshold = 0.001;
-            if (object.xyFriction() > FrictionThreshold)
+            const MCFloat FrictionThreshold = 0.001f;
+            if (object.physicsComponent().xyFriction() > FrictionThreshold)
             {
                 m_forceRegistry->addForceGenerator(
                     MCForceGeneratorPtr(new MCFrictionGenerator(
-                        object.xyFriction(), object.xyFriction())), object);
+                        object.physicsComponent().xyFriction(), object.physicsComponent().xyFriction())), object);
             }
         }
     }
@@ -366,7 +365,7 @@ void MCWorld::removeObjectNow(MCObject & object)
 void MCWorld::doRemoveObject(MCObject & object)
 {
     // Reset motion
-    object.resetMotion();
+    object.physicsComponent().reset();
 
     // Remove from the layer map
     m_renderer->removeFromLayerMap(object);
@@ -407,7 +406,7 @@ void MCWorld::restoreObjectToIntegration(MCObject & object)
     {
         // Add to object vector (O(1))
         m_objs.push_back(&object);
-        object.setIndex(m_objs.size() - 1);
+        object.setIndex(static_cast<int>(m_objs.size()) - 1);
     }
 }
 
@@ -478,29 +477,39 @@ MCWorldRenderer & MCWorld::renderer() const
     return *m_renderer;
 }
 
-void MCWorld::setMetersPerPixel(MCFloat value)
+void MCWorld::setGravity(const MCVector3dF & gravity)
 {
-    MCWorld::m_metersPerPixel        = value;
-    MCWorld::m_metersPerPixelSquared = value * value;
+    m_gravity = gravity;
 }
 
-MCFloat MCWorld::metersPerPixel()
+const MCVector3dF & MCWorld::gravity() const
+{
+    return m_gravity;
+}
+
+void MCWorld::setMetersPerUnit(MCFloat value)
+{
+    MCWorld::m_metersPerUnit        = value;
+    MCWorld::m_metersPerUnitSquared = value * value;
+}
+
+MCFloat MCWorld::metersPerUnit()
 {
     assert(MCWorld::m_instance);
-    return MCWorld::m_metersPerPixel;
+    return MCWorld::m_metersPerUnit;
 }
 
-void MCWorld::toMeters(MCFloat & pixels)
+void MCWorld::toMeters(MCFloat & units)
 {
-    pixels *= MCWorld::m_metersPerPixel;
+    units *= MCWorld::m_metersPerUnit;
 }
 
-void MCWorld::toMeters(MCVector2dF & pixels)
+void MCWorld::toMeters(MCVector2dF & units)
 {
-    pixels *= MCWorld::m_metersPerPixel;
+    units *= MCWorld::m_metersPerUnit;
 }
 
-void MCWorld::toMeters(MCVector3dF & pixels)
+void MCWorld::toMeters(MCVector3dF & units)
 {
-    pixels *= MCWorld::m_metersPerPixel;
+    units *= MCWorld::m_metersPerUnit;
 }

@@ -1,5 +1,5 @@
 // This file belongs to the "MiniCore" game engine.
-// Copyright (C) 2010 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -62,28 +62,28 @@ void MCSurfaceView::setShadowShaderProgram(MCGLShaderProgramPtr program)
     m_surface->setShadowShaderProgram(program);
 }
 
-void MCSurfaceView::render(const MCVector3d<MCFloat> & l, MCFloat angle,
+void MCSurfaceView::render(const MCVector3dF & l, MCFloat angle,
     MCCamera * p)
 {
-    m_surface->setScale(1.0, 1.0, 1.0);
+    m_surface->setScale(1.0f, 1.0f, 1.0f);
     m_surface->render(p, l, angle, !batchMode());
 }
 
-void MCSurfaceView::renderShadow(const MCVector3d<MCFloat> & l, MCFloat angle,
+void MCSurfaceView::renderShadow(const MCVector3dF & l, MCFloat angle,
     MCCamera * p)
 {
-    m_surface->setScale(1.0, 1.0, 1.0);
+    m_surface->setScale(1.0f, 1.0f, 1.0f);
     m_surface->renderShadow(p, l, angle, !batchMode());
 }
 
-void MCSurfaceView::renderScaled(const MCVector3d<MCFloat> & l, MCFloat angle,
+void MCSurfaceView::renderScaled(const MCVector3dF & l, MCFloat angle,
     MCFloat w, MCFloat h, MCCamera * p)
 {
     m_surface->setSize(w, h);
     m_surface->render(p, l, angle, !batchMode());
 }
 
-void MCSurfaceView::renderShadowScaled(const MCVector3d<MCFloat> & l,
+void MCSurfaceView::renderShadowScaled(const MCVector3dF & l,
     MCFloat angle, MCFloat w, MCFloat h, MCCamera * p)
 {
     m_surface->setSize(w, h);
@@ -110,7 +110,7 @@ void MCSurfaceView::endShadowBatch()
     m_surface->releaseShadow();
 }
 
-MCBBox<MCFloat> MCSurfaceView::bbox() const
+MCBBox3dF MCSurfaceView::bbox() const
 {
     // TODO: Fix this! The view should know the angle of the
     // shape somehow. Now we just return a naive bbox.
@@ -119,6 +119,6 @@ MCBBox<MCFloat> MCSurfaceView::bbox() const
     const MCFloat h = m_surface->height() / 2;
     const MCFloat r = std::max(w, h);
 
-    return MCBBox<MCFloat>(-r, -r, r, r);
+    return MCBBox3dF(-r, -r, m_surface->minZ(), r, r, m_surface->maxZ());
 }
 

@@ -1,5 +1,5 @@
 // This file belongs to the "MiniCore" game engine.
-// Copyright (C) 2010 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -51,7 +51,7 @@ public:
      *  \param leafMaxW,leafMaxH are the maximum dimensions for leaves. */
     MCObjectGrid(
         MCFloat x1, MCFloat y1, MCFloat x2, MCFloat y2,
-        MCUint leafMaxW, MCUint leafMaxH);
+        MCFloat leafMaxW, MCFloat leafMaxH);
 
     //! Destructor.
     ~MCObjectGrid();
@@ -91,7 +91,8 @@ private:
     void build();
 
     MCBBox<MCFloat> m_bbox;
-    MCUint m_leafMaxW, m_leafMaxH, m_horSize, m_verSize;
+    MCFloat m_leafMaxW, m_leafMaxH;
+    MCUint m_horSize, m_verSize;
     MCUint m_i0, m_i1, m_j0, m_j1;
     MCFloat m_helpHor;
     MCFloat m_helpVer;

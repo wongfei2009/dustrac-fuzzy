@@ -2,23 +2,22 @@
 #include "pythonexception.hpp"
 
 #include <piddata.hpp>
-#include <MCException>
 
 PyDataMaker::PyDataMaker(PyObject* bindingsModule)
 {
 	// pModuleDict is a borrowed reference
-	if(!bindingsModule) throw MCException("NULL pointer to bindings module.");
+	if(!bindingsModule) throw std::runtime_error("NULL pointer to bindings module.");
 	PyObject* pDict = PyModule_GetDict(bindingsModule);
 
 	// PIDData
 	m_dataMethod = PyDict_GetItemString(pDict, "PIDData");
 	if(!m_dataMethod) throw PythonException("Function 'PIDData' not found in the Python module.");
-	if(!PyCallable_Check(m_dataMethod)) throw MCException("Function 'PIDData' is not callable.");
+	if(!PyCallable_Check(m_dataMethod)) throw std::runtime_error("Function 'PIDData' is not callable.");
 
 	// PIDData
 	m_diffMethod = PyDict_GetItemString(pDict, "DiffStore");
 	if(!m_diffMethod) throw PythonException("Function 'DiffStore' not found in the Python module.");
-	if(!PyCallable_Check(m_diffMethod)) throw MCException("Function 'DiffStore' is not callable.");
+	if(!PyCallable_Check(m_diffMethod)) throw std::runtime_error("Function 'DiffStore' is not callable.");
 }
 
 PyDataMaker::~PyDataMaker() {

@@ -1,5 +1,5 @@
 // This file belongs to the "MiniCore" game engine.
-// Copyright (C) 2010 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -33,43 +33,60 @@ class MCSurface;
 /*! \class MCSurfaceParticle
  *  \brief A particle that renders as an MCSurface. Can be inherited.
  *
- *  Use MCObject::setSurface() to set the surface.
+ *  \see MCSurfaceParticleRenderer.
  */
 class MCSurfaceParticle : public MCParticle
 {
 public:
 
-    //! Constructor.
-    MCSurfaceParticle(const std::string & viewId);
-
-    //! \reimp
-    virtual void renderShadow(MCCamera *)
-    {
-        // Do nothing
-    }
-
-    //! Set color.
-    void setColor(const MCGLColor & color);
-
-    //! Set the surface.
-    void setSurface(MCSurface & surface);
-
-    //! Set the shader program to be used.
-    void setShaderProgram(MCGLShaderProgramPtr program);
+    /*! Constructor.
+     *  \param viewId id for the particle. All particles of a same kind should
+     *  use the same id. E.g. batching is carried out based on this id.
+     *  \param surface Surface used by the particle. */
+    MCSurfaceParticle(const std::string & viewId, MCSurface & surface);
 
     //! Destructor.
-    virtual ~MCSurfaceParticle();
+    virtual ~MCSurfaceParticle() {};
 
-    //! \reimp
-    void beginBatch();
+    //! Set color
+    void setColor(const MCGLColor & color);
 
-    //! \reimp
-    void endBatch();
+    //! Get the color.
+    const MCGLColor & color() const;
+
+    MCSurface & surface();
+
+    //! Enable/disable blending.
+    void setAlphaBlend(bool useAlphaBlend, GLenum src = GL_SRC_ALPHA, GLenum dst = GL_ONE_MINUS_SRC_ALPHA);
+
+    bool useAlphaBlend() const;
+
+    GLenum alphaSrc() const;
+
+    GLenum alphaDst() const;
+
+    //! \return Set if shadow needs to be rendered
+    void setHasShadow(bool hasShadow);
+
+    //! \return True if shadow needs to be rendered
+    bool hasShadow() const;
 
 private:
 
     DISABLE_COPY(MCSurfaceParticle);
     DISABLE_ASSI(MCSurfaceParticle);
+
+    MCGLColor m_color;
+
+    MCSurface & m_surface;
+
+    bool m_hasShadow;
+
+    bool m_useAlphaBlend;
+
+    GLenum m_src;
+
+    GLenum m_dst;
 };
 
 #endif // MCSURFACEPARTICLE_HH

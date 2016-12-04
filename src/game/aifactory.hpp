@@ -36,7 +36,7 @@ public:
 	/**
 	* Uses the creation function registered under the specified name
 	* to return a new object.
-	* \exception MCException Throws when there is no creation function
+	* \exception std::runtime_error Throws when there is no creation function
 	* registered under the specified name.
 	**/
 	CarController* create(const std::string& name, Car& car);

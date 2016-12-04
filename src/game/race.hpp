@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ class Race : public AudioSource
 public:
 
     //! Constructor.
-    Race(const Game & game, unsigned int numCars);
+    Race(Game & game, unsigned int numCars);
 
     //! Destructor.
     virtual ~Race();
@@ -84,10 +84,6 @@ signals:
     void tiresChanged(const Car & car);
 
 public slots:
-
-    void setLapRecord(int msecs);
-
-    void setRaceRecord(int msecs);
 
     void start();
 
@@ -150,18 +146,29 @@ private:
     typedef std::unordered_map<int, StuckTileCounter> StuckHash; // Car index to StuckTileCounter.
     StuckHash m_stuckHash;
 
-    int          m_numCars;
-    int          m_lapCount;
-    Timing       m_timing;
-    Track      * m_track;
-    bool         m_started;
-    bool         m_checkeredFlagEnabled;
-    bool         m_winnerFinished;
-    bool         m_isfinishedSignalSent;
-    int          m_bestPos;
-    QTimer       m_offTrackMessageTimer;
-    int          m_offTrackCounter;
-    const Game & m_game;
+    int m_numCars;
+
+    int m_lapCount;
+
+    Timing m_timing;
+
+    Track * m_track;
+
+    bool m_started;
+
+    bool m_checkeredFlagEnabled;
+
+    bool m_winnerFinished;
+
+    bool m_isfinishedSignalSent;
+
+    int m_bestPos;
+
+    QTimer m_offTrackMessageTimer;
+
+    int m_offTrackCounter;
+
+    Game & m_game;
 };
 
 #endif // RACE_HPP

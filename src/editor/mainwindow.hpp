@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -85,21 +85,18 @@ public slots:
     //! End marking the route.
     void endSetRoute();
 
-    //! \reimp
-    void setVisible(bool visible);
+    void setVisible(bool visible) override;
 
     void handleItemAddedToUndoStack();
 
 protected:
 
-    //! \reimp
-    void closeEvent(QCloseEvent * event);
+    void closeEvent(QCloseEvent * event) override;
 
 private slots:
 
     void undo();
     void redo();
-    void clear();
     void clearRoute();
     bool doOpenTrack(QString fileName);
     void enlargeHorSize();
@@ -107,6 +104,7 @@ private slots:
     void handleToolBarActionClick(QAction * action);
     void initializeNewTrack();
     void setTrackProperties();
+    void openArgTrack();
     void openTrack();
     void saveTrack();
     void saveAsTrack();
@@ -118,6 +116,8 @@ private slots:
 private:
 
     void addObjectsToToolBar();
+    void clearEditMode();
+    void fitScale();
     void init();
     bool loadObjectModels(QString objectFilePath);
     void populateMenuBar();
@@ -135,7 +135,6 @@ private:
     QAction           * m_currentToolBarAction;
     QAction           * m_undoAction;
     QAction           * m_redoAction;
-    QAction           * m_clearAllAction;
     QAction           * m_enlargeHorSize;
     QAction           * m_enlargeVerSize;
     QAction           * m_clearRouteAction;
@@ -144,7 +143,7 @@ private:
     QSlider           * m_scaleSlider;
     QToolBar          * m_toolBar;
     QCheckBox         * m_randomRotationCheck;
-
+    QString             m_argTrackFile;
     bool                m_saved;
 
     static MainWindow * m_instance;

@@ -15,7 +15,6 @@
 
 #include "tracktile.hpp"
 #include "trackdata.hpp"
-#include "tiletypedialog.hpp"
 #include "tileanimator.hpp"
 #include "mainwindow.hpp"
 
@@ -65,16 +64,20 @@ void TrackTile::paint(QPainter * painter,
             m_pixmap);
 
         // Mark the tile if it has computer hints set
-        if (computerHint() != TrackTileBase::CH_NONE)
+        if (computerHint() == TrackTile::CH_BRAKE_HARD)
         {
-            painter->fillRect(boundingRect(), QBrush(QColor(255, 0, 0, 64)));
+            painter->fillRect(boundingRect(), QBrush(QColor(255, 0, 0, 128)));
+        }
+        else if (computerHint() == TrackTile::CH_BRAKE)
+        {
+            painter->fillRect(boundingRect(), QBrush(QColor(128, 0, 0, 128)));
         }
     }
     else
     {
         painter->drawPixmap(boundingRect().x(), boundingRect().y(),
             boundingRect().width(), boundingRect().height(),
-            QPixmap(Config::Editor::CLEAR_PATH));
+            QPixmap(Config::Editor::CLEAR_ICON_PATH));
 
         pen.setColor(QColor(0, 0, 0));
         painter->setPen(pen);
@@ -144,6 +147,14 @@ void TrackTile::setTileType(const QString & type)
 void TrackTile::setComputerHint(ComputerHint hint)
 {
     TrackTileBase::setComputerHint(hint);
+    update();
+}
+
+void TrackTile::setLocation(QPointF location)
+{
+    TrackTileBase::setLocation(location);
+
+    setPos(location);
     update();
 }
 

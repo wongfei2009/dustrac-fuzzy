@@ -1,5 +1,5 @@
 // This file belongs to the "MiniCore" game engine.
-// Copyright (C) 2013 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@
 #ifndef MCWORLDRENDERER_HH
 #define MCWORLDRENDERER_HH
 
+#include "mcglscene.hh"
 #include "mcrenderlayer.hh"
 #include "mctypes.hh"
 #include "mcworld.hh"
@@ -30,8 +31,9 @@
 #include <vector>
 
 class MCCamera;
-class MCGLPointParticleRenderer;
 class MCObject;
+
+class MCSurfaceParticleRenderer;
 
 //! Helper class used by MCWorld. Renders all objects in the scene.
 class MCWorldRenderer
@@ -40,20 +42,25 @@ public:
 
     MCWorldRenderer();
 
+    ~MCWorldRenderer();
+
+    //! \return the current OpenGL scene object.
+    MCGLScene & glScene();
+
+    /*! Enables/disables depth test on given render layer. Default is true. */
     void enableDepthTestOnLayer(int layer, bool enable = true);
 
-    /*! Each used MCGLPointParticle should have a corresponding MCGLPointParticleRenderer
-     *  registered in MCWorld. As for rendering, point particles are special cases, because
-     *  they need to be as efficient as possible. This is why a dedicated renderer is needed.
-     *  \param typeId Type id of the point particle. \see MCGLPointParticle.
-     *  \param renderer Reference to the renderer to be used for this type id. */
-    void registerPointParticleRenderer(MCUint typeId, MCGLPointParticleRenderer & renderer);
+    /*! Enables/disables depth mask (write to depth buffer) on given render layer.
+     *  Default is true. */
+    void enableDepthMaskOnLayer(int layer, bool enable = true);
 
-    /*! If a particle gets off all visibility cameras, it'll be killed.
-     *  This is just an optimization. We cannot use just the camera given
-     *  to render(), because there might be multiple cameras and viewports. */
+    /*! If a particle gets outside all visibility cameras, it'll be killed.
+     *  This is just an optimization. The camera given to render()
+     *  cannot be used, because there might be multiple cameras and viewports.
+     *  If no cameras are set, particles will be always drawn. */
     void addParticleVisibilityCamera(MCCamera & camera);
 
+    /*! Remove all particle visibility cameras. */
     void removeParticleVisibilityCameras();
 
 private:
@@ -67,24 +74,28 @@ private:
 
     void removeFromLayerMap(MCObject & object);
 
-    void render(MCCamera * camera);
+    void render(MCCamera * camera, const std::vector<int> & layers);
 
-    void renderBatches(MCCamera * camera = nullptr);
+    void renderBatches(MCCamera * camera = nullptr, const std::vector<int> & layers = std::vector<int>());
 
     void renderObjectBatches(MCCamera * camera, MCRenderLayer & layer);
 
     void renderParticleBatches(MCCamera * camera, MCRenderLayer & layer);
 
-    void renderShadows(MCCamera * camera);
+    void renderShadows(MCCamera * camera, const std::vector<int> & layers);
+
+    void renderObjectShadowBatches(MCCamera * camera, MCRenderLayer & layer);
+
+    void renderParticleShadowBatches(MCCamera * camera, MCRenderLayer & layer);
 
     typedef int LayerId;
     std::map<LayerId, MCRenderLayer> m_layers;
 
     std::vector<MCCamera *> m_visibilityCameras;
 
-    typedef int ParticleTypeId;
-    typedef std::map<ParticleTypeId, MCGLPointParticleRenderer *> ParticleRendererMap;
-    ParticleRendererMap m_particleRenderers;
+    MCSurfaceParticleRenderer * m_surfaceParticleRenderer;
+
+    MCGLScene m_glScene;
 
     friend class MCWorld;
     friend class MCObject;

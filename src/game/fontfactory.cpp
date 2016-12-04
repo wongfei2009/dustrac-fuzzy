@@ -1,4 +1,4 @@
-// This file is part of Dust Racing 2D.
+﻿// This file is part of Dust Racing 2D.
 // Copyright (C) 2014 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
@@ -24,11 +24,14 @@
 #include <MCTextureGlyph>
 
 #include <QFont>
-#include <QFontMetrics>
 #include <QPainter>
 #include <QPixmap>
 
 #include <cassert>
+
+// Note!!: MSVC requires that this file is saved in "UTF-8 with BOM" format
+// in order to make all the wide chars work correctly. On Linux/Unix it doesn't
+// matter whether there's a BOM or not.
 
 static const std::vector<wchar_t> glyphs(
     {L'A', L'B', L'C', L'D', L'E', L'F', L'G', L'H',
@@ -119,8 +122,6 @@ MCTextureFontData FontFactory::generateFont()
 
                 painter.setFont(font);
                 painter.setPen(QColor(255, 255, 255));
-                const QFontMetrics fm = painter.fontMetrics();
-
                 painter.drawText(
                     i * slotWidth,
                     j * slotHeight,

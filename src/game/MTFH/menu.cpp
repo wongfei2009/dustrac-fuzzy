@@ -16,11 +16,12 @@
 #include "menu.hpp"
 #include "menumanager.hpp"
 
+#include <algorithm>
 #include <cassert>
 
 namespace MTFH {
 
-Menu::Menu(std::string id, int width, int height, MenuStyle style)
+Menu::Menu(std::string id, int width, int height, Menu::Style style)
 : m_id(id)
 , m_width(width)
 , m_height(height)
@@ -45,6 +46,18 @@ void Menu::addItem(MenuItemPtr menuItem)
     menuItem->setIndex(m_items.size() - 1);
 
     updateFocus();
+}
+
+void Menu::reverseItems()
+{
+    std::reverse(m_items.begin(), m_items.end());
+    m_currentIndex = (m_items.size() - 1) - m_currentIndex;
+    m_selectedIndex = m_currentIndex;
+
+    for (size_t i = 0; i < m_items.size(); i++)
+    {
+        m_items.at(i)->setIndex(i);
+    }
 }
 
 void Menu::addMouseItem(Menu::MouseItemType type, MenuItemPtr menuItem)
@@ -103,7 +116,7 @@ void Menu::renderItems()
         return;
     }
 
-    if (m_style == Menu::MS_VERTICAL_LIST)
+    if (m_style == Menu::Style::VerticalList)
     {
         // Calculate total height
         int totalHeight = 0;
@@ -121,7 +134,7 @@ void Menu::renderItems()
             startY += item->height();
         }
     }
-    else if (m_style == Menu::MS_HORIZONTAL_LIST)
+    else if (m_style == Menu::Style::HorizontalList)
     {
         // Calculate total height
         int totalWidth = 0;
@@ -139,7 +152,7 @@ void Menu::renderItems()
             startX += item->width();
         }
     }
-    else if (m_style == Menu::MS_SHOW_ONE)
+    else if (m_style == Menu::Style::ShowOne)
     {
         auto item = m_items.at(m_currentIndex);
         item->setPos(m_width / 2, m_height / 2);
@@ -163,12 +176,12 @@ void Menu::renderMouseItems()
     {
         switch (item.type)
         {
-        case Menu::MI_QUIT:
+        case Menu::MouseItemType::Quit:
             item.item->setPos(m_width - item.item->width(), m_height - item.item->height());
             item.item->render();
             break;
 
-        case Menu::MI_PREV:
+        case Menu::MouseItemType::Prev:
             if (isPrevAllowed())
             {
                 item.item->setPos(item.item->width(), m_height / 2);
@@ -176,7 +189,7 @@ void Menu::renderMouseItems()
             }
             break;
 
-        case Menu::MI_NEXT:
+        case Menu::MouseItemType::Next:
             if (isNextAllowed())
             {
                 item.item->setPos(m_width - item.item->width(), m_height / 2);
@@ -248,7 +261,6 @@ bool Menu::checkIfHit(MenuItemPtr item, int x, int y)
 
     if (x >= x1 && x <= x2 && y >= y1 && y <= y2)
     {
-        item->setFocused(true);
         return true;
     }
 
@@ -262,19 +274,28 @@ bool Menu::handleMousePressOnMouseItem(int x, int y)
         auto item = mouseItem.item;
         switch (mouseItem.type)
         {
-        case MI_QUIT:
-            return checkIfHit(item, x, y);
-        case MI_PREV:
-            if (isPrevAllowed())
+        case MouseItemType::Quit:
+            if (checkIfHit(item, x, y))
             {
-                return checkIfHit(item, x, y);
+                item->setFocused(true);
+                return true;
             }
             break;
-        case MI_NEXT:
-            if (isNextAllowed())
+        case MouseItemType::Prev:
+            if (isPrevAllowed() && checkIfHit(item, x, y))
             {
-                return checkIfHit(item, x, y);
+                item->setFocused(true);
+                return true;
             }
+            break;
+        case MouseItemType::Next:
+            if (isNextAllowed() && checkIfHit(item, x, y))
+            {
+                item->setFocused(true);
+                return true;
+            }
+            break;
+        default:
             break;
         }
     }
@@ -294,7 +315,7 @@ bool Menu::handleMousePressOnItem(int x, int y)
         }
     }
 
-    if (m_style != Menu::MS_SHOW_ONE)
+    if (m_style != Menu::Style::ShowOne)
     {
         for (unsigned int i = 0; i < m_items.size(); i++)
         {
@@ -337,18 +358,18 @@ bool Menu::handleMouseReleaseOnMouseItem(int x, int y)
         {
             switch (mouseItem.type)
             {
-            case Menu::MI_QUIT:
+            case Menu::MouseItemType::Quit:
                 exit();
                 return true;
 
-            case Menu::MI_PREV:
+            case Menu::MouseItemType::Prev:
                 if (isPrevAllowed())
                 {
                     left();
                     return true;
                 }
                 break;
-            case Menu::MI_NEXT:
+            case Menu::MouseItemType::Next:
                 if (isNextAllowed())
                 {
                     right();
@@ -364,7 +385,7 @@ bool Menu::handleMouseReleaseOnMouseItem(int x, int y)
 
 bool Menu::handleMouseReleaseOnItem(int x, int y)
 {
-    if (m_style == Menu::MS_SHOW_ONE)
+    if (m_style == Menu::Style::ShowOne)
     {
         auto item = currentItem();
         if (checkIfHit(item, x, y))

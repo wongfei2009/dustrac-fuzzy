@@ -29,14 +29,16 @@
 
 #include <QDir>
 #include <QString>
+
 #include <cassert>
+#include <exception>
 
 MCMeshManager::MCMeshManager()
 {
 }
 
 MCMesh & MCMeshManager::createMesh(
-    const MCMeshMetaData & data, const MCMesh::FaceVector & faces) throw (MCException)
+    const MCMeshMetaData & data, const MCMesh::FaceVector & faces)
 {
     // Create material
     MCGLMaterialPtr material(new MCGLMaterial);
@@ -60,7 +62,7 @@ MCMesh & MCMeshManager::createMesh(
 }
 
 void MCMeshManager::load(
-    const std::string & configFilePath, const std::string & baseDataPath) throw (MCException)
+    const std::string & configFilePath, const std::string & baseDataPath)
 {
     MCMeshConfigLoader configLoader;
     MCMeshLoader       modelLoader;
@@ -82,22 +84,22 @@ void MCMeshManager::load(
             }
             else
             {
-                throw MCException("Loading mesh '" + modelPath.toStdString() + "' failed!");
+                throw std::runtime_error("Loading mesh '" + modelPath.toStdString() + "' failed!");
             }
         }
     }
     else
     {
-        throw MCException("Parsing '" + configFilePath + "' failed!");
+        throw std::runtime_error("Parsing '" + configFilePath + "' failed!");
     }
 }
 
-MCMesh & MCMeshManager::mesh(const std::string & handle) const throw (MCException)
+MCMesh & MCMeshManager::mesh(const std::string & handle) const
 {
     // Try to find existing mesh for the handle
     if (m_meshMap.count(handle) == 0)
     {
-        throw MCException("Cannot find mesh object for handle '" + handle + "'");
+        throw std::runtime_error("Cannot find mesh object for handle '" + handle + "'");
     }
 
     // Yes: return handle for the mesh

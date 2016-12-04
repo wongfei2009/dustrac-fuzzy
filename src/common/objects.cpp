@@ -44,10 +44,31 @@ void Objects::remove(ObjectBase & object)
 
 unsigned int Objects::count() const
 {
-    return m_objects.size();
+    return static_cast<int>(m_objects.size());
 }
 
-ObjectBase & Objects::object(unsigned int index) const
+ObjectPtr Objects::object(unsigned int index) const
 {
-    return *m_objects.at(index);
+    return m_objects.at(index);
 }
+
+Objects::ObjectVector::iterator Objects::begin()
+{
+    return m_objects.begin();
+}
+
+Objects::ObjectVector::iterator Objects::end()
+{
+    return m_objects.end();
+}
+
+Objects::ObjectVector::const_iterator Objects::cbegin() const
+{
+    return m_objects.cbegin();
+}
+
+Objects::ObjectVector::const_iterator Objects::cend() const
+{
+    return m_objects.cend();
+}
+

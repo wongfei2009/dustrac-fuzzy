@@ -18,6 +18,7 @@
 
 #include "carcontroller.hpp"
 #include "car.hpp"
+#include "crashoverlay.hpp"
 #include "race.hpp"
 #include "timingoverlay.hpp"
 
@@ -60,7 +61,7 @@ public:
     static const int NUM_CARS = 12;
 
     //! Constructor.
-    Scene(Game & game, StateMachine & stateMachine, Renderer* renderer);
+    Scene(Game & game, StateMachine & stateMachine, Renderer & renderer, MCWorld & world);
 
     //! Destructor.
     ~Scene();
@@ -91,9 +92,6 @@ public:
     //! Return the active race track.
     Track & activeTrack() const;
 
-    //! Return the world.
-    MCWorld & world() const;
-
     //! Return track selection menu.
     TrackSelectionMenu & trackSelectionMenu() const;
 
@@ -115,8 +113,10 @@ private:
 
     void addCarsToWorld();
     void addTrackObjectsToWorld();
+    void createBridgeObjects();
     void createCars();
     void createMenus();
+    void createNormalObjects();
     void initRace();
     void renderPlayerScene(MCCamera & camera);
     void renderPlayerSceneShadows(MCCamera & camera);
@@ -126,7 +126,7 @@ private:
     void setupCameras(Track & activeTrack);
     void setSplitType(MCGLScene::SplitType & p0, MCGLScene::SplitType & p1);
     void setWorldDimensions();
-    void updateAI();
+    void updateAi();
     void updateCameraLocation(MCCamera & camera, MCFloat & offset, MCObject & object);
     void updateRace();
     void updateWorld(float timeStep);
@@ -139,7 +139,8 @@ private:
     MessageOverlay      * m_messageOverlay;
     Race                  m_race;
     Track               * m_activeTrack;
-    MCWorld             * m_world;
+    MCWorld             & m_world;
+    CrashOverlay          m_crashOverlay[2];
     TimingOverlay         m_timingOverlay[2];
     Startlights         * m_startlights;
     StartlightsOverlay  * m_startlightsOverlay;

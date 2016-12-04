@@ -20,54 +20,39 @@
 #include "mcfrictiongenerator.hh"
 #include "mcmathutil.hh"
 #include "mcobject.hh"
+#include "mcphysicscomponent.hh"
 #include "mcshape.hh"
 
-static const MCFloat ROTATION_DECAY = 0.01;
+#include <cmath>
 
-MCFrictionGenerator::MCFrictionGenerator(
-    MCFloat coeffLin, MCFloat coeffRot, MCFloat gravity)
-: m_coeffLin(coeffLin)
-, m_coeffRot(coeffRot)
-, m_gravity(gravity)
-, m_coeffLinTot(coeffLin * gravity)
-, m_coeffRotTot(coeffRot * gravity * ROTATION_DECAY)
+static const MCFloat ROTATION_DECAY = 0.01f;
+
+MCFrictionGenerator::MCFrictionGenerator(MCFloat coeffLin, MCFloat coeffRot)
+    : m_coeffLinTot(std::fabs(coeffLin * MCWorld::instance().gravity().k()))
+    , m_coeffRotTot(std::fabs(coeffRot * MCWorld::instance().gravity().k() * ROTATION_DECAY))
 {}
 
 void MCFrictionGenerator::updateForce(MCObject & object)
 {
     // Simulated friction caused by linear motion.
-    const MCFloat length = object.velocity().lengthFast();
-    const MCVector2d<MCFloat> v(object.velocity().normalizedFast());
+    MCPhysicsComponent & physicsComponent = object.physicsComponent();
+    const MCFloat length = physicsComponent.velocity().lengthFast();
+    const MCVector2d<MCFloat> v(physicsComponent.velocity().normalizedFast());
     if (length >= 1.0)
     {
-        object.addForce(-v * m_coeffLinTot * object.mass());
+        physicsComponent.addForce(-v * m_coeffLinTot * physicsComponent.mass());
     }
     else
     {
-        object.addForce(-v * length * m_coeffLinTot * object.mass());
+        physicsComponent.addForce(-v * length * m_coeffLinTot * physicsComponent.mass());
     }
 
     // Simulated friction caused by angular torque.
     if (object.shape())
     {
-        const MCFloat a = object.angularVelocity();
-        object.addAngularImpulse(-a * m_coeffRotTot);
+        const MCFloat a = physicsComponent.angularVelocity();
+        physicsComponent.addAngularImpulse(-a * m_coeffRotTot);
     }
-}
-
-MCFloat MCFrictionGenerator::coeffLin() const
-{
-    return m_coeffLin;
-}
-
-MCFloat MCFrictionGenerator::coeffRot() const
-{
-    return m_coeffRot;
-}
-
-MCFloat MCFrictionGenerator::gravity() const
-{
-    return m_gravity;
 }
 
 MCFrictionGenerator::~MCFrictionGenerator()

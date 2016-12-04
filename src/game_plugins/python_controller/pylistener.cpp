@@ -9,17 +9,16 @@
 #include <../common/targetnodebase.hpp>
 #include <../common/tracktilebase.hpp>
 #include <MCTrigonom>
-#include <MCException>
 
 PyListener::PyListener(PyObject* listenerFunc, const PyDataMakerPtr& dataMaker):
 m_data(false), m_dataMaker(dataMaker)
 {
 	m_listenerObj = PyObject_CallObject(listenerFunc, NULL);
-	if(!m_listenerObj) throw MCException("The Python listener creation function has not returned a valid object.");
+	if(!m_listenerObj) throw std::runtime_error("The Python listener creation function has not returned a valid object.");
 	
 	m_reportFunc = PyObject_GetAttrString(m_listenerObj, "report");
 	if(m_reportFunc and !PyCallable_Check(m_reportFunc))
-		throw MCException("Name report did not resolve into a valid method.");
+		throw std::runtime_error("Name report did not resolve into a valid method.");
 }
 
 PyListener::~PyListener() {
@@ -35,7 +34,7 @@ void PyListener::report(
 	bool
 ) {
 	const Route    & route       = track->trackData().route();
-	TargetNodeBase & tnode       = route.get(car.currentTargetNodeIndex());
+	TargetNodeBase & tnode       = *route.get(car.currentTargetNodeIndex());
 
 	// Initial target coordinates
 	MCVector3dF target(tnode.location().x(), tnode.location().y());

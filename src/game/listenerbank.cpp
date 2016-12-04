@@ -1,5 +1,4 @@
 #include "listenerbank.hpp"
-#include <MCException>
 
 ListenerBank& ListenerBank::instance()
 {
@@ -8,7 +7,7 @@ ListenerBank& ListenerBank::instance()
 }
 
 void ListenerBank::add(unsigned int carNum, const ListenerPtr& listener) {
-	if(carNum >= size()) throw MCException("No such car in the ListenerBank. You may have forgotten to call resize.");
+	if(carNum >= size()) throw std::runtime_error("No such car in the ListenerBank. You may have forgotten to call resize.");
 	m_register[carNum].insert(listener);
 }
 

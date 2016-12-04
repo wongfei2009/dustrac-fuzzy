@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,63 +13,70 @@
 // You should have received a copy of the GNU General Public License
 // along with Dust Racing 2D. If not, see <http://www.gnu.org/licenses/>.
 
-//! Config data for editor and for the game.
-class Config
-{
-public:
+#ifndef COMMON_CONFIG_H
+#define COMMON_CONFIG_H
 
-    //! Common config data.
+#include <QString>
+
+//! Config variables for editor and for the game.
+namespace Config
+{
     class Common
     {
     public:
+        //! The base data path given by -DDATA_PATH.
+        static const QString dataPath;
 
-        //! The base data path.
-        static const char * dataPath;
+        static const QString COPYRIGHT;
 
         //! "Company" name used in QSettings.
-        static const char * QSETTINGS_COMPANY_NAME;
+        static const QString QSETTINGS_COMPANY_NAME;
 
-        //! Path used to search "3rd party" race tracks under the home dir:
-        //! ~/TRACK_SEARCH_PATH/
-        static const char * TRACK_SEARCH_PATH;
+        /*! Path used to search "3rd party" race tracks under the home dir:
+         *  ~/TRACK_SEARCH_PATH/ */
+        static const QString TRACK_SEARCH_PATH;
+
+        static const QString WEB_SITE_URL;
     };
 
-    //! Editor-specific config data.
     class Editor
     {
     public:
+        static const QString EDITOR_NAME;
 
-        static const char * EDITOR_NAME;
-        static const char * EDITOR_VERSION;
-        static const char * MODEL_CONFIG_FILE_NAME;
-        static const char * QSETTINGS_SOFTWARE_NAME;
+        static const QString EDITOR_VERSION;
 
-        //! Path to the "select" icon.
-        static const char * SELECT_PATH;
+        static const QString MODEL_CONFIG_FILE_NAME;
 
-        //! Path to the "erase" icon.
-        static const char * ERASE_PATH;
+        static const QString QSETTINGS_SOFTWARE_NAME;
 
-        //! Path to the "clear" tile.
-        static const char * CLEAR_PATH;
+        static const QString SELECT_ICON_PATH;
+
+        static const QString ERASE_ICON_PATH;
+
+        static const QString CLEAR_ICON_PATH;
     };
 
-    //! Game-specific config data.
     class Game
     {
     public:
+        static const QString GAME_NAME;
 
-        static const char * GAME_NAME;
-        static const char * GAME_VERSION;
-        static const char * QSETTINGS_SOFTWARE_NAME;
+        static const QString GAME_VERSION;
 
-        //! Default window width.
+ 	static const QString QSETTINGS_SOFTWARE_NAME;
+
+	//! Default window width.
         static const unsigned int WINDOW_WIDTH;
 
         //! Default window height.
         static const unsigned int WINDOW_HEIGHT;
 
-		//! The path to plugins.
-		static const char * pluginPath;
+	//! The path to plugins.
+	static const char * pluginPath;
     };
-};
+
+} // Config
+
+#endif // COMMON_CONFIG_H
+

@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -48,10 +48,11 @@ void TreeView::render(const MCVector3d<MCFloat> & l, MCFloat, MCCamera * camera)
     int angle        = 0;
     int z            = branchHeight;
 
+    const int amplitudeDivider = 12;
     for (int i = 0; i < m_branches; i++)
     {
-        MCFloat x = l.i() + m_top.i() * branchHeight / 4;
-        MCFloat y = l.j() + m_top.j() * branchHeight / 4;
+        const MCFloat x = l.i() + m_top.i() * branchHeight / amplitudeDivider;
+        const MCFloat y = l.j() + m_top.j() * branchHeight / amplitudeDivider;
 
         surface()->setSize(r * 2, r * 2);
         surface()->render(camera, MCVector3dF(x, y, z), angle, false);
@@ -66,7 +67,7 @@ void TreeView::render(const MCVector3d<MCFloat> & l, MCFloat, MCCamera * camera)
 void TreeView::renderShadow(const MCVector3dF & l, MCFloat angle, MCCamera * p)
 {
     surface()->setSize(m_r0 * 2, m_r0 * 2);
-    surface()->renderShadow(p, l + MCVector3dF(5, -5, 0), angle, false);
+    surface()->renderShadow(p, l + MCVector3dF(5, -5, 1), angle, false);
 }
 
 void TreeView::beginBatch()

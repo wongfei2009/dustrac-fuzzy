@@ -1,5 +1,5 @@
 // This file belongs to the "MiniCore" game engine.
-// Copyright (C) 2012 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
 
 #include <MCGLEW>
 
-#include "mcexception.hh"
 #include "mcglscene.hh"
 #include "mcglambientlight.hh"
 #include "mcgldiffuselight.hh"
@@ -28,6 +27,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <exception>
 
 MCGLScene * MCGLScene::m_instance = nullptr;
 
@@ -38,12 +38,15 @@ MCGLScene::MCGLScene()
 , m_sceneWidth(0)
 , m_sceneHeight(0)
 , m_viewAngle(0)
+, m_eyeZ(0)
+, m_zNear(0.1f)
+, m_zFar(1000.0f)
 , m_updateViewProjection(false)
 {
     if (!MCGLScene::m_instance) {
         MCGLScene::m_instance = this;
     } else {
-        throw MCException("MCGLScene already created!");
+        throw std::runtime_error("MCGLScene already created!");
     }
 }
 
@@ -59,12 +62,18 @@ void MCGLScene::addShaderProgram(MCGLShaderProgram & shader)
     {
         m_shaders.push_back(&shader);
 
+        // For some very "funny" reason we have to bind here after adding or
+        // else the multi-texturing breaks. Like..wtf?
+        shader.bind();
+
         // Ensure current projection
         shader.setViewProjectionMatrix(viewProjectionMatrix());
 
         // Lighting defaults
         shader.setAmbientLight(MCGLAmbientLight(1, 1, 1, 1));
         shader.setFadeValue(1.0);
+
+        shader.release();
     }
 }
 
@@ -84,24 +93,6 @@ MCGLShaderProgramPtr MCGLScene::defaultShadowShaderProgram()
 {
     assert(m_defaultShadowShader.get());
     return m_defaultShadowShader;
-}
-
-MCGLShaderProgramPtr MCGLScene::defaultParticleShaderProgram()
-{
-    assert(m_defaultParticleShader.get());
-    return m_defaultParticleShader;
-}
-
-MCGLShaderProgramPtr MCGLScene::defaultPointParticleShaderProgram()
-{
-    assert(m_defaultPointParticleShader.get());
-    return m_defaultPointParticleShader;
-}
-
-MCGLShaderProgramPtr MCGLScene::defaultPointParticleRotateShaderProgram()
-{
-    assert(m_defaultPointParticleRotateShader.get());
-    return m_defaultPointParticleRotateShader;
 }
 
 MCGLShaderProgramPtr MCGLScene::defaultTextShaderProgram()
@@ -128,7 +119,6 @@ void MCGLScene::initialize()
     MCLogger().info() << "Using GLEW " << glewGetString(GLEW_VERSION);
 #endif
     glShadeModel(GL_SMOOTH);
-    //glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glDepthFunc(GL_LEQUAL);
@@ -155,15 +145,6 @@ void MCGLScene::createDefaultShaderPrograms()
     m_defaultShadowShader.reset(new MCGLShaderProgram(
         MCGLShaderProgram::getDefaultShadowVertexShaderSource(), MCGLShaderProgram::getDefaultShadowFragmentShaderSource()));
 
-    m_defaultParticleShader.reset(new MCGLShaderProgram(
-        MCGLShaderProgram::getDefaultVertexShaderSource(), MCGLShaderProgram::getDefaultParticleFragmentShaderSource()));
-
-    m_defaultPointParticleShader.reset(new MCGLShaderProgram(
-        MCGLShaderProgram::getDefaultPointParticleVertexShaderSource(), MCGLShaderProgram::getDefaultPointParticleFragmentShaderSource()));
-
-    m_defaultPointParticleRotateShader.reset(new MCGLShaderProgram(
-        MCGLShaderProgram::getDefaultPointParticleVertexShaderSource(), MCGLShaderProgram::getDefaultPointParticleRotateFragmentShaderSource()));
-
     m_defaultTextShader.reset(new MCGLShaderProgram(
         MCGLShaderProgram::getDefaultTextVertexShaderSource(), MCGLShaderProgram::getDefaultTextFragmentShaderSource()));
 
@@ -172,13 +153,15 @@ void MCGLScene::createDefaultShaderPrograms()
 }
 
 void MCGLScene::resize(
-    MCUint viewWidth, MCUint viewHeight, MCUint sceneWidth, MCUint sceneHeight, MCFloat viewAngle)
+    MCUint viewWidth, MCUint viewHeight, MCUint sceneWidth, MCUint sceneHeight, MCFloat viewAngle, MCFloat zNear, MCFloat zFar)
 {
     m_viewWidth   = viewWidth;
     m_viewHeight  = viewHeight;
     m_sceneWidth  = sceneWidth;
     m_sceneHeight = sceneHeight;
     m_viewAngle   = viewAngle;
+    m_zNear       = zNear;
+    m_zFar        = zFar;
 
     updateViewport();
 }
@@ -186,14 +169,13 @@ void MCGLScene::resize(
 void MCGLScene::setViewerPosition(MCUint sceneWidth, MCUint sceneHeight, MCFloat viewAngle)
 {
     // Set eye position so that the scene looks like a pure 2D-scene
-    const MCUint  vH2  = sceneHeight / 2;
-    const MCUint  vW2  = sceneWidth  / 2;
-    const MCFloat eyeZ = vH2 /
-        std::tan(static_cast<MCFloat>(MCTrigonom::degToRad(viewAngle / 2)));
+    const MCUint vH2 = sceneHeight / 2;
+    const MCUint vW2 = sceneWidth  / 2;
+    m_eyeZ = vH2 / std::tan(static_cast<MCFloat>(MCTrigonom::degToRad(viewAngle / 2)));
 
     m_viewMatrix  = glm::mat4(1.0);
     m_viewMatrix *= glm::lookAt(
-        glm::vec3(vW2, vH2, eyeZ),
+        glm::vec3(vW2, vH2, m_eyeZ),
         glm::vec3(vW2, vH2, 0),
         glm::vec3(0,   1,   0));
 
@@ -217,21 +199,18 @@ void MCGLScene::setProjection(MCFloat aspectRatio, MCFloat zNear, MCFloat zFar, 
 
 void MCGLScene::updateViewport()
 {
-    static const float zNear = 1.0;
-    static const float zFar  = 1000.0;
-
     switch (m_splitType)
     {
     default:
     case ShowFullScreen:
-        setProjection(static_cast<float>(m_sceneWidth) / m_sceneHeight, zNear, zFar, m_viewAngle);
+        setProjection(static_cast<float>(m_sceneWidth) / m_sceneHeight, m_zNear, m_zFar, m_viewAngle);
         glViewport(0, 0, m_viewWidth, m_viewHeight);
         glDisable(GL_SCISSOR_TEST);
         setViewerPosition(m_sceneWidth, m_sceneHeight, m_viewAngle);
         break;
 
     case ShowOnLeft:
-        setProjection(static_cast<float>(m_sceneWidth / 2) / m_sceneHeight, zNear, zFar, m_viewAngle);
+        setProjection(static_cast<float>(m_sceneWidth / 2) / m_sceneHeight, m_zNear, m_zFar, m_viewAngle);
         glViewport(0, 0, m_viewWidth / 2, m_viewHeight);
         glScissor(0, 0, m_viewWidth / 2, m_viewHeight);
         glEnable(GL_SCISSOR_TEST);
@@ -239,7 +218,7 @@ void MCGLScene::updateViewport()
         break;
 
     case ShowOnRight:
-        setProjection(static_cast<float>(m_sceneWidth / 2) / m_sceneHeight, zNear, zFar, m_viewAngle);
+        setProjection(static_cast<float>(m_sceneWidth / 2) / m_sceneHeight, m_zNear, m_zFar, m_viewAngle);
         glViewport(m_viewWidth / 2, 0, m_viewWidth / 2, m_viewHeight);
         glScissor(m_viewWidth / 2 + 2, 0, m_viewWidth / 2 - 2, m_viewHeight);
         glEnable(GL_SCISSOR_TEST);
@@ -247,7 +226,7 @@ void MCGLScene::updateViewport()
         break;
 
     case ShowOnTop:
-        setProjection(static_cast<float>(m_sceneWidth * 2) / m_sceneHeight, zNear, zFar, m_viewAngle / 2);
+        setProjection(static_cast<float>(m_sceneWidth * 2) / m_sceneHeight, m_zNear, m_zFar, m_viewAngle / 2);
         glViewport(0, m_viewHeight / 2, m_viewWidth, m_viewHeight / 2);
         glScissor(0, m_viewHeight / 2 + 2, m_viewWidth - 2, m_viewHeight / 2);
         glEnable(GL_SCISSOR_TEST);
@@ -255,7 +234,7 @@ void MCGLScene::updateViewport()
         break;
 
     case ShowOnBottom:
-        setProjection(static_cast<float>(m_sceneWidth * 2) / m_sceneHeight, zNear, zFar, m_viewAngle / 2);
+        setProjection(static_cast<float>(m_sceneWidth * 2) / m_sceneHeight, m_zNear, m_zFar, m_viewAngle / 2);
         glViewport(0, 0, m_viewWidth, m_viewHeight / 2);
         glScissor(0, 0, m_viewWidth, m_viewHeight / 2);
         glEnable(GL_SCISSOR_TEST);
@@ -279,56 +258,57 @@ const glm::mat4 & MCGLScene::viewProjectionMatrix() const
 
 void MCGLScene::updateViewProjectionMatrixAndShaders()
 {
-    MCGLShaderProgram::pushProgram();
     for (MCGLShaderProgram * p : m_shaders)
     {
         p->setViewProjectionMatrix(viewProjectionMatrix());
         p->setViewMatrix(m_viewMatrix);
     }
-    MCGLShaderProgram::popProgram();
 }
 
 void MCGLScene::setFadeValue(MCFloat value)
 {
-    MCGLShaderProgram::pushProgram();
     for (MCGLShaderProgram * p : m_shaders)
     {
         p->setFadeValue(value);
     }
-    MCGLShaderProgram::popProgram();
 }
 
 void MCGLScene::setAmbientLight(const MCGLAmbientLight & light)
 {
-    MCGLShaderProgram::pushProgram();
     for (MCGLShaderProgram * p : m_shaders)
     {
         p->setAmbientLight(light);
     }
-    MCGLShaderProgram::popProgram();
 }
 
 void MCGLScene::setDiffuseLight(const MCGLDiffuseLight & light)
 {
-    MCGLShaderProgram::pushProgram();
     for (MCGLShaderProgram * p : m_shaders)
     {
         p->setDiffuseLight(light);
     }
-    MCGLShaderProgram::popProgram();
 }
 
 void MCGLScene::setSpecularLight(const MCGLDiffuseLight & light)
 {
-    MCGLShaderProgram::pushProgram();
     for (MCGLShaderProgram * p : m_shaders)
     {
         p->setSpecularLight(light);
     }
-    MCGLShaderProgram::popProgram();
+}
+
+MCFloat MCGLScene::viewAngle() const
+{
+    return m_viewAngle;
+}
+
+MCFloat MCGLScene::eyeZ() const
+{
+    return m_eyeZ;
 }
 
 MCGLScene::~MCGLScene()
 {
+    MCGLScene::m_instance = nullptr;
 }
 

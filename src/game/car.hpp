@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -35,6 +35,12 @@ class Car : public MCObject, public UpdateableIf
 {
 public:
 
+    enum class Steer {
+        Neutral,
+        Left,
+        Right
+    };
+
     //! Defines the (default) car properties.
     class Description
     {
@@ -42,27 +48,17 @@ public:
 
         //! Constructor.
         Description()
-        : accelerationFriction(0.75)
-        , brakingFriction(1.5)
-        , rollingFrictionOnTrack(0.1)
-        , rotationFriction(1.0)
-        , power(5000.0)
-        , mass(1500.0)
-        , restitution(0.05)
-        , dragLinear(1.0)
-        , dragQuadratic(5.0)
-        , tireWearOutCapacity(100)
-        , numberPos(-5, 0)
-        , leftFrontTirePos(14, 9)
-        , rightFrontTirePos(14, -9)
-        , leftRearTirePos(-14, 9)
-        , rightRearTirePos(-14, -9)
-        , leftBrakeGlowPos(-21, 8)
-        , rightBrakeGlowPos(-21, -8)
+        : accelerationFriction(0.75f)
+        , rollingFrictionOnTrack(0.1f)
+        , rotationFriction(1.0f)
+        , power(5000.0f)
+        , mass(1500.0f)
+        , restitution(0.05f)
+        , dragLinear(1.0f)
+        , dragQuadratic(5.0f)
         {}
 
         float accelerationFriction;
-        float brakingFriction;
         float rollingFrictionOnTrack;
         float rotationFriction;
         float power;
@@ -70,15 +66,6 @@ public:
         float restitution;
         float dragLinear;
         float dragQuadratic;
-        float tireWearOutCapacity;
-
-        MCVector2dF numberPos;
-        MCVector2dF leftFrontTirePos;
-        MCVector2dF rightFrontTirePos;
-        MCVector2dF leftRearTirePos;
-        MCVector2dF rightRearTirePos;
-        MCVector2dF leftBrakeGlowPos;
-        MCVector2dF rightBrakeGlowPos;
     };
 
     //! Constructor.
@@ -93,11 +80,8 @@ public:
     //! Clear statuses before setting any states.
     void clearStatuses();
 
-    //! Turn left.
-    void turnLeft(MCFloat control = 1.0);
-
-    //! Turn right.
-    void turnRight(MCFloat control = 1.0);
+    //! Steer.
+    void steer(Steer direction, MCFloat control = 1.0f);
 
     //! Accelerate.
     void accelerate(bool deccelerate = false);
@@ -111,29 +95,28 @@ public:
 
     void setBrakeLightState(bool state);
 
-    //! User isn't steering.
-    void noSteering();
-
     //! Get estimated speed in km/h. This is used e.g. by the speedometer.
     int speedInKmh() const;
 
     //! Get cached speed.
     MCFloat absSpeed() const;
 
-    //! \reimp
-    virtual void render(MCCamera *p);
+    void addDamage(float damage);
 
     //! \reimp
-    virtual void collisionEvent(MCCollisionEvent & event);
+    virtual void render(MCCamera *p) override;
 
     //! \reimp
-    virtual void stepTime(MCFloat step);
+    virtual void collisionEvent(MCCollisionEvent & event) override;
 
     //! \reimp
-    virtual bool update();
+    virtual void onStepTime(MCFloat step) override;
 
     //! \reimp
-    virtual void reset();
+    virtual bool update() override;
+
+    //! \reimp
+    virtual void reset() override;
 
     void setLeftSideOffTrack(bool state);
 
@@ -173,10 +156,19 @@ public:
 
     bool isHuman() const;
 
-    //! \return Tire wear level. 1.0 means no wear, 0.0 means totally worn-out tires.
+    float tireWearFactor() const;
+
     float tireWearLevel() const;
 
     void resetTireWear();
+
+    float damageFactor() const;
+
+    float damageLevel() const;
+
+    void resetDamage();
+
+    bool hadHardCrash();
 
     void setSoundEffectManager(CarSoundEffectManagerPtr soundEffectManager);
 
@@ -191,18 +183,19 @@ private:
     void wearOutTires(MCFloat step, MCFloat factor);
 
     Description              m_desc;
-    MCForceGeneratorPtr      m_pBrakingFriction;
-    MCForceGeneratorPtr      m_pOnTrackFriction;
+    MCForceGeneratorPtr      m_onTrackFriction;
     bool                     m_leftSideOffTrack;
     bool                     m_rightSideOffTrack;
     bool                     m_accelerating;
     bool                     m_braking;
     bool                     m_reverse;
     bool                     m_skidding;
-    bool                     m_turnLeft;
-    bool                     m_turnRight;
+    Steer                    m_steer;
     MCUint                   m_index;
     float                    m_tireAngle;
+    float                    m_initDamageCapacity;
+    float                    m_damageCapacity;
+    float                    m_initTireWearOutCapacity;
     float                    m_tireWearOutCapacity;
     MCSurface              & m_frontTire;
     MCSurface              & m_brakeGlow;
@@ -220,6 +213,14 @@ private:
     MCObjectPtr              m_rightFrontTire;
     MCObjectPtr              m_leftRearTire;
     MCObjectPtr              m_rightRearTire;
+    MCVector3dF              m_numberPos;
+    MCVector3dF              m_leftFrontTirePos;
+    MCVector3dF              m_rightFrontTirePos;
+    MCVector3dF              m_leftRearTirePos;
+    MCVector3dF              m_rightRearTirePos;
+    MCVector3dF              m_leftBrakeGlowPos;
+    MCVector3dF              m_rightBrakeGlowPos;
+    bool                     m_hadHardCrash;
 };
 
 typedef std::shared_ptr<Car> CarPtr;

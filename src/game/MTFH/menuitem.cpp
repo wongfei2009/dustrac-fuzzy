@@ -31,6 +31,8 @@ MenuItem::MenuItem(int width, int height, std::wstring text, bool selectable)
 , m_selectable(selectable)
 , m_width(width)
 , m_height(height)
+, m_x(0)
+, m_y(0)
 , m_lMargin(1)
 , m_rMargin(1)
 , m_tMargin(1)
@@ -90,7 +92,7 @@ void MenuItem::setAction(MenuItemActionPtr action)
     m_action = action;
 }
 
-void MenuItem::setAction(std::function<void()> actionFunction)
+void MenuItem::setAction(ActionFunction actionFunction)
 {
     m_actionFunction = actionFunction;
 }

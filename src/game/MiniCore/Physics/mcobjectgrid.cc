@@ -18,12 +18,13 @@
 //
 
 #include "mcobjectgrid.hh"
+#include "mcphysicscomponent.hh"
 
 #include <algorithm>
 
 MCObjectGrid::MCObjectGrid(
     MCFloat x1, MCFloat y1, MCFloat x2, MCFloat y2,
-    MCUint leafMaxW, MCUint leafMaxH)
+    MCFloat leafMaxW, MCFloat leafMaxH)
 : m_bbox(x1, y1, x2, y2)
 , m_leafMaxW(leafMaxW)
 , m_leafMaxH(leafMaxH)
@@ -159,7 +160,7 @@ void MCObjectGrid::getBBoxCollisions(MCObjectGrid::CollisionVector & result)
                 if (obj1 != obj2 &&
                     &obj1->parent() != obj2 &&
                     &obj2->parent() != obj1 &&
-                    (!obj1->sleeping() || !obj2->sleeping()) &&
+                    (!obj1->physicsComponent().isSleeping() || !obj2->physicsComponent().isSleeping()) &&
                     (obj1->collisionLayer() == obj2->collisionLayer() || obj1->collisionLayer() == -1) &&
                     (obj1->bbox().intersects(obj2->bbox())))
                 {

@@ -3,7 +3,7 @@
 TEMPLATE = app
 TARGET   = dustrac-game
 
-DEFINES += DATA_PATH=\\\"./data\\\" VERSION=\\\"1.8.3\\\"
+DEFINES += DATA_PATH=\\\"./data\\\" VERSION=\\\"1.11.0\\\"
 QMAKE_CXXFLAGS += -O3 -std=gnu++11 -fomit-frame-pointer -finline-functions -ffast-math
 
 # Qt version check
@@ -15,6 +15,7 @@ contains(QT_VERSION, ^5\\..*) {
 }
 
 DEFINES += GLEW_STATIC GLEW_NO_GLU
+DEFINES += __MC_NO_GLEW__ __MC_QOPENGLFUNCTIONS__
 
 # Sound libraries
 CONFIG += link_pkgconfig
@@ -43,6 +44,7 @@ HEADERS += \
     ../common/trackdatabase.hpp \
     ../common/tracktilebase.hpp \
     ai.hpp \
+    application.hpp \
     audiosource.hpp \
     audioworker.hpp \
     bridge.hpp \
@@ -54,7 +56,9 @@ HEADERS += \
     carstatusview.hpp \
     checkeredflag.hpp \
     confirmationmenu.hpp \
+    crashoverlay.hpp \
     credits.hpp \
+    difficultyprofile.hpp \
     eventhandler.hpp \
     fadeanimation.hpp \
     fontfactory.hpp \
@@ -123,7 +127,6 @@ HEADERS += \
     MiniCore/Core/mcbbox.hh \
     MiniCore/Core/mccast.hh \
     MiniCore/Core/mcevent.hh \
-    MiniCore/Core/mcexception.hh \
     MiniCore/Core/mclogger.hh \
     MiniCore/Core/mcmacros.hh \
     MiniCore/Core/mcmathutil.hh \
@@ -146,7 +149,6 @@ HEADERS += \
     MiniCore/Graphics/mcgldiffuselight.hh \
     MiniCore/Graphics/mcglmaterial.hh \
     MiniCore/Graphics/mcglobjectbase.hh \
-    MiniCore/Graphics/mcglpointparticlerenderer.hh \
     MiniCore/Graphics/mcglscene.hh \
     MiniCore/Graphics/mcglshaderprogram.hh \
     MiniCore/Graphics/mcgltexcoord.hh \
@@ -161,10 +163,10 @@ HEADERS += \
     MiniCore/Graphics/mcsurface.hh \
     MiniCore/Graphics/mcsurfaceview.hh \
     MiniCore/Graphics/mcworldrenderer.hh \
-    MiniCore/Graphics/mcglpointparticle.hh \
-    MiniCore/Graphics/mcglrectparticle.hh \
     MiniCore/Graphics/mcparticle.hh \
+    MiniCore/Graphics/mcparticlerendererbase.hh \
     MiniCore/Graphics/mcsurfaceparticle.hh \
+    MiniCore/Graphics/mcsurfaceparticlerenderer.hh \
     MiniCore/Physics/mccircleshape.hh \
     MiniCore/Physics/mccollisiondetector.hh \
     MiniCore/Physics/mccollisionevent.hh \
@@ -205,6 +207,7 @@ SOURCES += \
     ../common/trackdatabase.cpp \
     ../common/tracktilebase.cpp \
     ai.cpp \
+    application.cpp \
     audiosource.cpp \
     audioworker.cpp \
     bridge.cpp \
@@ -216,7 +219,9 @@ SOURCES += \
     carstatusview.cpp \
     checkeredflag.cpp \
     confirmationmenu.cpp \
+    crashoverlay.cpp \
     credits.cpp \
+    difficultyprofile.cpp \
     eventhandler.cpp \
     fadeanimation.cpp \
     fontfactory.cpp \
@@ -276,7 +281,6 @@ SOURCES += \
     MiniCore/Asset/mcsurfacemanager.cc \
     MiniCore/Asset/mcsurfaceobjectdata.cc \
     MiniCore/Core/mcevent.cc \
-    MiniCore/Core/mcexception.cc \
     MiniCore/Core/mclogger.cc \
     MiniCore/Core/mcobject.cc \
     MiniCore/Core/mcobjectdata.cc \
@@ -291,7 +295,6 @@ SOURCES += \
     MiniCore/Graphics/mcgldiffuselight.cc \
     MiniCore/Graphics/mcglmaterial.cc \
     MiniCore/Graphics/mcglobjectbase.cc \
-    MiniCore/Graphics/mcglpointparticlerenderer.cc \
     MiniCore/Graphics/mcglscene.cc \
     MiniCore/Graphics/mcglshaderprogram.cc \
     MiniCore/Graphics/mcmesh.cc \
@@ -300,10 +303,10 @@ SOURCES += \
     MiniCore/Graphics/mcsurface.cc \
     MiniCore/Graphics/mcsurfaceview.cc \
     MiniCore/Graphics/mcworldrenderer.cc \
-    MiniCore/Graphics/mcglpointparticle.cc \
-    MiniCore/Graphics/mcglrectparticle.cc \
     MiniCore/Graphics/mcparticle.cc \
+    MiniCore/Graphics/mcparticlerendererbase.cc \
     MiniCore/Graphics/mcsurfaceparticle.cc \
+    MiniCore/Graphics/mcsurfaceparticlerenderer.cc \
     MiniCore/Physics/mccircleshape.cc \
     MiniCore/Physics/mccollisiondetector.cc \
     MiniCore/Physics/mccollisionevent.cc \

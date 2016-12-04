@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2012 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,12 +17,14 @@
 #define PARTICLEFACTORY_HPP
 
 #include <MCParticle>
-#include <MCGLPointParticleRenderer>
+#include <MCParticleRendererBase>
 #include <MCTypes>
 #include <MCVector3d>
 
 #include <vector>
 #include <memory>
+
+class MCSurfaceParticle;
 
 //! ParticleFactory takes care of spawning and recycling particles.
 class ParticleFactory
@@ -31,14 +33,15 @@ public:
 
     enum ParticleType
     {
-        Smoke = 0,
+        DamageSmoke = 0,
+        Smoke,
         OffTrackSmoke,
         OnTrackSkidMark,
         OffTrackSkidMark,
         Sparkle,
         Mud,
         Leaf,
-        NumParticles
+        NumParticleTypes
     };
 
     //! Constructor.
@@ -57,6 +60,8 @@ public:
 
 private:
 
+    void doDamageSmoke(MCVector3dFR location, MCVector3dFR velocity) const;
+
     void doSmoke(MCVector3dFR location, MCVector3dFR velocity) const;
 
     void doOffTrackSmoke(MCVector3dFR location) const;
@@ -73,17 +78,16 @@ private:
 
     void preCreateParticles();
 
-    void preCreatePointParticles(int count,
-        std::string typeId, ParticleType typeEnum,
-        const MCGLColor & color);
+    void preCreateSurfaceParticles(
+        int count, std::string typeId, ParticleType typeEnum, MCSurface & surface, bool alphaBlend = false, bool hasShadow = false);
 
-    void preCreateRectParticles(int count, std::string typeId, ParticleType typeEnum);
+    MCSurfaceParticle * newSurfaceParticle(ParticleType typeEnum) const;
 
     // Free lists (recycling) for different types of particles.
-    mutable MCParticle::ParticleFreeList m_freeLists[NumParticles];
+    mutable MCParticle::ParticleFreeList m_freeLists[NumParticleTypes];
 
     // Renderers for different particle types.
-    MCGLPointParticleRenderer m_renderers[NumParticles];
+    MCParticleRendererPtr m_particleRenderers[NumParticleTypes];
 
     // Particles to delete.
     std::vector<std::unique_ptr<MCParticle> > m_delete;

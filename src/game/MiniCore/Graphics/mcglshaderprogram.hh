@@ -111,19 +111,6 @@ public:
     /*! Get the default shadow fragment shader source. Defining __MC_GLES__ will select GLES version. */
     static const char * getDefaultShadowFragmentShaderSource();
 
-    /*! Get the default point particle vertex shader source. Defining __MC_GLES__ will select GLES version. */
-    static const char * getDefaultPointParticleVertexShaderSource();
-
-    /*! Get the default particle fragment shader source. Defining __MC_GLES__ will select GLES version. */
-    static const char * getDefaultParticleFragmentShaderSource();
-
-    /*! Get the default point particle fragment shader source. Defining __MC_GLES__ will select GLES version. */
-    static const char * getDefaultPointParticleFragmentShaderSource();
-
-    /*! Get the default point particle fragment shader source with rotation support.
-     *  Defining __MC_GLES__ will select GLES version. */
-    static const char * getDefaultPointParticleRotateFragmentShaderSource();
-
     /*! Get the default text vertex shader source. Defining __MC_GLES__ will select GLES version. */
     static const char * getDefaultTextVertexShaderSource();
 
@@ -173,8 +160,13 @@ public:
     //! Set specular light.
     virtual void setSpecularLight(const MCGLDiffuseLight & light);
 
-    //! Set point size for point sprites.
-    virtual void setPointSize(GLfloat pointSize);
+    /*! Set camera location. Currently not used by MiniCore, but
+     *  can be used in e.g. fragment shader effects */
+    virtual void setCamera(const MCVector2dF & camera);
+
+    virtual void setUserData1(const MCVector2dF & data);
+
+    virtual void setUserData2(const MCVector2dF & data);
 
 private:
 
@@ -196,8 +188,12 @@ private:
         Model,
         Color,
         Scale,
-        PointSize
+        Camera,
+        UserData1,
+        UserData2,
     };
+
+    void bindPendingMaterial();
 
     void bindTextureUnit(GLuint index, Uniform uniform);
 
@@ -209,8 +205,33 @@ private:
 
     void initUniformLocationCache();
 
+    void setPendingAmbientLight();
+
+    void setPendingCamera();
+
+    void setPendingColor();
+
+    void setPendingDiffuseLight();
+
+    void setPendingFadeValue();
+
+    void setPendingPointSize();
+
+    void setPendingScale();
+
+    void setPendingSpecularLight();
+
+    void setPendingTransform();
+
+    void setPendingUserData1();
+
+    void setPendingUserData2();
+
+    void setPendingViewProjectionMatrix();
+
+    void setPendingViewMatrix();
+
     static MCGLShaderProgram * m_activeProgram;
-    static std::vector<GLuint> m_activeTexture;
 
     static std::vector<MCGLShaderProgram *> m_programStack;
 
@@ -221,10 +242,66 @@ private:
     Uniforms m_uniforms;
 
     MCGLScene & m_scene;
-    bool        m_isBound;
-    GLuint      m_program;
-    GLuint      m_fragmentShader;
-    GLuint      m_vertexShader;
+
+    GLuint m_program;
+
+    GLuint m_fragmentShader;
+
+    GLuint m_vertexShader;
+
+    glm::mat4x4 m_viewProjectionMatrix;
+
+    bool m_viewProjectionMatrixPending;
+
+    glm::mat4x4 m_viewMatrix;
+
+    bool m_viewMatrixPending;
+
+    GLfloat m_angle;
+
+    MCVector3dF m_pos;
+
+    bool m_transformPending;
+
+    MCGLMaterialPtr m_material;
+
+    bool m_materialPending;
+
+    GLfloat m_fadeValue;
+
+    bool m_fadeValuePending;
+
+    MCVector2dF m_camera;
+
+    bool m_cameraPending;
+
+    MCGLColor m_color;
+
+    bool m_colorPending;
+
+    MCVector3dF m_scale;
+
+    bool m_scalePending;
+
+    MCGLDiffuseLight m_diffuseLight;
+
+    bool m_diffuseLightPending;
+
+    MCGLDiffuseLight m_specularLight;
+
+    bool m_specularLightPending;
+
+    MCGLAmbientLight m_ambientLight;
+
+    bool m_ambientLightPending;
+
+    MCVector2dF m_userData1;
+
+    bool m_userData1Pending;
+
+    MCVector2dF m_userData2;
+
+    bool m_userData2Pending;
 };
 
 typedef std::shared_ptr<MCGLShaderProgram> MCGLShaderProgramPtr;

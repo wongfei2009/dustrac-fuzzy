@@ -1,5 +1,5 @@
 // This file is part of Dust Racing 2D.
-// Copyright (C) 2011 Jussi Lind <jussi.lind@iki.fi>
+// Copyright (C) 2015 Jussi Lind <jussi.lind@iki.fi>
 //
 // Dust Racing 2D is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -37,69 +37,102 @@ public:
 
     explicit EditorView(EditorData & editorData, QWidget * parent = 0);
 
+    void updateSceneRect();
+
 signals:
 
     void itemAddedToUndoStack();
 
 protected:
 
-    //! \reimp
-    void mouseMoveEvent(QMouseEvent * event);
+    void mouseMoveEvent(QMouseEvent * event) override;
 
-    //! \reimp
-    void mousePressEvent(QMouseEvent * event);
+    void mousePressEvent(QMouseEvent * event) override;
 
-    //! \reimp
-    void mouseReleaseEvent(QMouseEvent * event);
+    void mouseReleaseEvent(QMouseEvent * event) override;
 
-    //! \reimp
-    void keyPressEvent(QKeyEvent * event);
-
-private slots:
-
-    void doRotateTile90CW();
-    void doRotateTile90CCW();
-    void doRotateObject();
-    void doClearComputerHint();
-    void doSetComputerHintBrakeHard();
-    void doSetComputerHintBrake();
-    void doSetTargetNodeSize();
+    void keyPressEvent(QKeyEvent * event) override;
 
 private:
 
     void addCurrentToolBarObjectToScene();
-    void createTileContextMenu();
-    void createObjectContextMenu();
-    void createTargetNodeContextMenu();
-    void eraseObjectAtCurrentClickedPos();
-    void handleMousePressEventOnTile(QMouseEvent & event, TrackTile & tile);
-    void handleLeftButtonClickOnTile(TrackTile & tile);
-    void handleRightButtonClickOnTile(TrackTile & tile);
-    void handleMousePressEventOnObject(QMouseEvent & event, Object & object);
-    void handleLeftButtonClickOnObject(Object & object);
-    void handleRightButtonClickOnObject(Object & object);
-    void handleMousePressEventOnTargetNode(QMouseEvent & event, TargetNode & tnode);
-    void handleLeftButtonClickOnTargetNode(TargetNode & tnode);
-    void handleRightButtonClickOnTargetNode(TargetNode & tnode);
-    void handleTileDragRelease(QMouseEvent * event);
-    void handleObjectDragRelease(QMouseEvent * event);
-    void handleTargetNodeDragRelease(QMouseEvent * event);
-    void doSetComputerHint(TrackTileBase::ComputerHint hint);
-    void doFloodFill(TrackTile & tile, QAction * action, QString typeToFill);
-    void floodFill(TrackTile & tile, QAction * action, const QString & typeToFill, std::vector<QPoint> & positions);
-    void changeTileType(TrackTile & tile, QAction * action);
+
     void addRotateUndoStackItem(TrackTile * tile, qreal oldRotation, qreal newRotation);
+
+    void changeTileType(TrackTile & tile, QAction * action);
+
+    void createTileContextMenuActions();
+
+    void createObjectContextMenuActions();
+
+    void createTargetNodeContextMenuActions();
+
+    void doFloodFill(TrackTile & tile, QAction * action, QString typeToFill);
+
+    void eraseObjectAtCurrentClickedPos();
+
+    void floodFill(TrackTile & tile, QAction * action, const QString & typeToFill, std::vector<QPoint> & positions);
+
+    void handleMousePressEventOnTile(QMouseEvent & event, TrackTile & tile);
+
+    void handleLeftButtonClickOnTile(TrackTile & tile);
+
+    void handleRightButtonClickOnTile(TrackTile & tile);
+
+    void handleMousePressEventOnObject(QMouseEvent & event, Object & object);
+
+    void handleLeftButtonClickOnObject(Object & object);
+
+    void handleRightButtonClickOnObject(Object & object);
+
+    void handleMousePressEventOnTargetNode(QMouseEvent & event, TargetNode & tnode);
+
+    void handleLeftButtonClickOnTargetNode(TargetNode & tnode);
+
+    void handleRightButtonClickOnTargetNode(TargetNode & tnode);
+
+    void handleTileDragRelease(QMouseEvent * event);
+
+    void handleObjectDragRelease(QMouseEvent * event);
+
+    void handleTargetNodeDragRelease(QMouseEvent * event);
+
+    void openObjectContextMenu();
+
+    void openTargetNodeContextMenu();
+
+    void openTileContextMenu(TrackTile & tile);
+
+    void setComputerHint(TrackTileBase::ComputerHint hint);
+
+    void updateCoordinates(QPointF mappedPos);
 
     static void setTileType(TrackTile & tile, QAction * action);
 
-    QMenu        m_tileContextMenu;
-    QMenu        m_objectContextMenu;
-    QMenu        m_targetNodeContextMenu;
-    QPoint       m_clickedPos;
-    QPointF      m_clickedScenePos;
-    QAction    * m_clearComputerHint;
-    QAction    * m_setComputerHintBrakeHard;
-    QAction    * m_setComputerHintBrake;
+    QMenu m_tileContextMenu;
+
+    QMenu m_objectContextMenu;
+
+    QMenu m_targetNodeContextMenu;
+
+    QPoint m_clickedPos;
+
+    QPointF m_clickedScenePos;
+
+    QAction * m_clearComputerHint;
+
+    QAction * m_setComputerHintBrakeHard;
+
+    QAction * m_setComputerHintBrake;
+
+    QAction * m_insertRow;
+
+    QAction * m_deleteRow;
+
+    QAction * m_insertCol;
+
+    QAction * m_deleteCol;
+
     EditorData & m_editorData;
 };
 

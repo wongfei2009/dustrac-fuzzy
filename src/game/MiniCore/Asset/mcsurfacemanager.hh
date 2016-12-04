@@ -23,7 +23,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "mcexception.hh"
 #include "mcmacros.hh"
 #include "mcsurfacemetadata.hh"
 
@@ -42,7 +41,8 @@ class MCSurface;
  *
  * Texture surfaces will also be flipped about X-axis if desired.
  *
- * MCSurface objects can be accessed via handles specified in the XML-based mapping file.
+ * MCSurface objects can be accessed via handles specified in the XML-based mapping file
+ * and are loaded with MCSurfaceManager::load().
  *
  * Example mapping file:
  *
@@ -65,6 +65,8 @@ class MCSurface;
  *   <surface handle="WINDOW_ICON" image="logo_v2.bmp"/>
  * </surfaces>
  *
+ * Another option is to use MCSurfaceManager::createSurfaceFromImage() directly.
+ *
  */
 class MCSurfaceManager
 {
@@ -82,7 +84,7 @@ public:
      *  baseDataPath + baseImagePath + fileName. baseImagePath and the fileName are
      *  defined in the input file. */
     virtual void load(
-        const std::string & configFilePath, const std::string & baseDataPath) throw (MCException);
+        const std::string & configFilePath, const std::string & baseDataPath);
 
     /*! Returns a surface object associated with given strId.
      *  Corresponding OpenGL texture handle can be obtained
@@ -90,14 +92,13 @@ public:
      *  MCSurfaceManager will keep the ownership.
      *  \param handle Handle defined in the textures XML file.
      *  \return Reference to the corresponding MCSurface.
-     *  \throws MCException on failure. */
+     *  \throws std::runtime_error on failure. */
     MCSurface & surface(
-        const std::string & handle) const throw (MCException);
+        const std::string & handle) const;
 
     /*! Creates an MCSurface containing an OpenGL texture from a QImage + texture meta data.
      *  MCSurfaceManager keeps the ownership. */
-    MCSurface & createSurfaceFromImage(
-        const MCSurfaceMetaData & data, const QImage & image) throw (MCException);
+    MCSurface & createSurfaceFromImage(const MCSurfaceMetaData & data, QImage image);
 
 private:
 

@@ -24,7 +24,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "mcexception.hh"
 #include "mcmacros.hh"
 #include "mcmesh.hh"
 #include "mcmeshmetadata.hh"
@@ -65,19 +64,19 @@ public:
     //! baseDataPath + baseModelPath + fileName. baseModelPath and the fileName are
     //! defined in the input file.
     virtual void load(
-        const std::string & configFilePath, const std::string & baseDataPath) throw (MCException);
+        const std::string & configFilePath, const std::string & baseDataPath);
 
     //! Returns a mesh object associated with given strId.
     //! MCMeshManager will keep the ownership.
     //! \param handle Handle defined in the mesh config file.
     //! \return Reference to the corresponding MCMesh.
-    //! \throws MCException on failure.
+    //! \throws std::runtime_error on failure.
     MCMesh & mesh(
-        const std::string & handle) const throw (MCException);
+        const std::string & handle) const;
 
     //! Create a mesh from given meta data and face vector.
     MCMesh & createMesh(
-        const MCMeshMetaData & data, const MCMesh::FaceVector & faces) throw (MCException);
+        const MCMeshMetaData & data, const MCMesh::FaceVector & faces);
 
 private:
 
