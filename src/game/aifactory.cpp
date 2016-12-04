@@ -26,7 +26,7 @@ AIFactory::AIFactory()
 	add("pid", [](Car& car){return new PIDController(car, true);});
 }
 
-AIFactory& AIFactory::instance()
+DUST_API AIFactory& AIFactory::instance()
 {
 	static AIFactory aifactory;
 	return aifactory;

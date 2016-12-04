@@ -10,4 +10,5 @@ set(MTFHSRC
     menuitemview.cpp)
 
 add_library(MTFH ${MTFHSRC})
+set_property(TARGET MTFH PROPERTY POSITION_INDEPENDENT_CODE ON)
 

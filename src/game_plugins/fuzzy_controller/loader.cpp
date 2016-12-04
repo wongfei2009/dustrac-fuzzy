@@ -13,7 +13,7 @@ std::shared_ptr<PluginInfo> pluginInfo() {
 	return info;
 }
 
-void init(Game&, const PluginInfo& info, const QStringList& args) {
+void init(Game&, PluginInfo& info, QStringList& args) {
 	QCommandLineParser parser;
 	QCommandLineOption pathOption(QStringList() << "p" << "controller-path", QCoreApplication::translate("main", "Path to the controller file (if any)."), "file", "controller.fis");
 	parser.addOption(pathOption);

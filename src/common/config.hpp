@@ -17,11 +17,12 @@
 #define COMMON_CONFIG_H
 
 #include <QString>
+#include "export.hpp"
 
 //! Config variables for editor and for the game.
 namespace Config
 {
-    class Common
+    class DUSTCOMMON_API Common
     {
     public:
         //! The base data path given by -DDATA_PATH.
@@ -39,7 +40,8 @@ namespace Config
         static const QString WEB_SITE_URL;
     };
 
-    class Editor
+    //! Editor-specific config data.
+    class DUSTCOMMON_API Editor
     {
     public:
         static const QString EDITOR_NAME;
@@ -57,7 +59,8 @@ namespace Config
         static const QString CLEAR_ICON_PATH;
     };
 
-    class Game
+    //! Game-specific config data.
+    class DUSTCOMMON_API Game
     {
     public:
         static const QString GAME_NAME;

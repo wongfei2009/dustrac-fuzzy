@@ -21,12 +21,12 @@ macro(add_plugin NAME)
 	option("BUILD_${NAME}" "Enable support for plugin ${NAME}." OFF)
 
 	if(BUILD_${NAME})
-		add_library(${NAME} SHARED ${ARGN})
+		add_library(${NAME} MODULE ${ARGN})
 		set_target_properties(${NAME}
-			 PROPERTIES
+			 PROPERTIES   
 			 PREFIX ""
 			 SUFFIX ".dpl"
-			 LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PLUGIN_PATH}/${NAME}
+			 LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${PLUGIN_PATH}/${NAME}"
 		)
 		# Some Qt deps.
 		qt5_use_modules(${NAME} Widgets Xml)

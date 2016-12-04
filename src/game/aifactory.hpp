@@ -16,17 +16,18 @@
 #ifndef AIFACTORY_HPP
 #define AIFACTORY_HPP
 
+#include "config.hpp"
 #include "pidcontroller.hpp"
 #include <map>
 #include <functional>
 #include <string>
 
-class AIFactory {
+class DUST_API AIFactory {
 private:
 	AIFactory();
 
 public:
-	static AIFactory& instance();
+	DUST_API static AIFactory& instance();
 
 public:
 	//! Adds the creation function to the factory under the specified name.

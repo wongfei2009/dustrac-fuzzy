@@ -73,7 +73,7 @@ elseif(MSVC)
 endif()
 
 if("${CMAKE_HOST_SYSTEM}" MATCHES ".*Windows.*")
-    set(PATH_SEP "\\;")
+    set(PATH_SEP "\\\;")
 else()
     set(PATH_SEP ":")
 endif()

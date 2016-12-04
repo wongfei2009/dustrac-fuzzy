@@ -25,6 +25,7 @@
 #include <memory>
 #include <MCWorld>
 
+#include "config.hpp"
 #include "settings.hpp"
 
 class AudioWorker;
@@ -42,7 +43,7 @@ class MCObjectFactory;
 class MCAssetManager;
 
 //! The main game class.
-class Game : public QObject
+class DUST_API Game : public QObject
 {
     Q_OBJECT
 

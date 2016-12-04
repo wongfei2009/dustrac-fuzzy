@@ -20,26 +20,27 @@
 #include <string>
 #include <QString>
 
+#include "config.hpp"
 #include "plugininterface.hpp"
 
-extern std::map<std::string, std::shared_ptr<PluginInfo> > PluginRegister;
+DUST_API extern std::map<std::string, std::shared_ptr<PluginInfo> > PluginRegister;
 
 /**
 * Loads all plugins (shared libs with extension .dpl) at the
 * specified path and store their handles along with their PluginInfo in the
 * plugin register.
 **/
-void loadPlugins(const QStringList& paths);
+void DUST_API loadPlugins(const QStringList& paths);
 
 /**
 * Splits an argument string into its standard argc, argv form.
 **/
-QStringList makeArgs(QString appName, QString argstr);
+QStringList DUST_API makeArgs(QString appName, QString argstr);
 
 /**
 * Initializes the plugin by calling init(Game&, const QStringList&).
 * Argument args is the list of command line arguments.
 **/
-void initPlugin(const PluginInfo& pluginInfo, const QStringList& args);
+void DUST_API initPlugin(PluginInfo& pluginInfo, QStringList& args);
 
 #endif // LOADPLUGINS

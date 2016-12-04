@@ -20,6 +20,7 @@
 #include <MCObject>
 #include <MCVector2d>
 
+#include "config.hpp"
 #include "updateableif.hpp"
 #include "carparticleeffectmanager.hpp"
 #include "carsoundeffectmanager.hpp"
@@ -31,7 +32,7 @@ class MCFrictionGenerator;
 class Route;
 
 //! Base class for race cars.
-class Car : public MCObject, public UpdateableIf
+class DUST_API Car : public MCObject, public UpdateableIf
 {
 public:
 

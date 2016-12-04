@@ -5,8 +5,17 @@
 
 #include "../common/pathresolver.hpp"
 
+#ifdef __unix__
+	#include <dlfcn.h>
+  typedef void* HandleType;
+#elif defined(_WIN32) || defined(WIN32)
+	#include <windows.h>
+  typedef HINSTANCE HandleType;
+#endif
+
 struct PluginInfo {
-	void* handle = nullptr;
+  HandleType handle = nullptr;
+  
 	std::string name;
 	std::string path;
 	std::string filename;

@@ -16,6 +16,7 @@
 #ifndef SETTINGS_HPP
 #define SETTINGS_HPP
 
+#include "config.hpp"
 #include "difficultyprofile.hpp"
 #include "inputhandler.hpp"
 
@@ -25,7 +26,7 @@
 class Track;
 
 //! Singleton settings class that wraps the use of QSettings.
-class Settings
+class DUST_API Settings
 {
 private:
     //! Constructor.

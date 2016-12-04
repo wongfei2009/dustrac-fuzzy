@@ -3,8 +3,9 @@
 
 #include <QString>
 #include <QStringList>
+#include "export.hpp"
 
-class PathResolver {
+class DUSTCOMMON_API PathResolver {
 private:
 	//! The list of paths to search.
 	QStringList _paths;
