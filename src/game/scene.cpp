@@ -208,6 +208,8 @@ void Scene::createCars()
                 m_ai.push_back(AIPtr(new PIDController(*car, true)));
             }
 
+			m_ai.back()->setListeners(&(ListenerBank::instance().getListeners(i)));
+
 			if(!Settings::instance().getDisableRendering()) {
 		        car->setRenderLayer(static_cast<int>(Layers::Render::Objects));
 	            car->shape()->view()->setShaderProgram(m_renderer->program("car"));
