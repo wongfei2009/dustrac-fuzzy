@@ -2,7 +2,7 @@
 #include "inputhandler.hpp"
 #include "car.hpp"
 
-const float UserController::controlStep = 0.5;
+const float UserController::controlStep = 0.75;
 
 UserController::UserController(Car& car, InputHandler& handler, unsigned int numPlayer):
 	CarController(car), m_handler(handler), m_num_player(numPlayer) {}

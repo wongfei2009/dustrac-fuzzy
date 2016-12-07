@@ -156,15 +156,7 @@ void Car::steer(Steer direction, MCFloat control)
     else
     {
         const float maxAngle = 15.0f * (direction == Steer::Left ? 1 : -1);
-
-        if (!m_isHuman)
-        {
             m_tireAngle = static_cast<int>(maxAngle * control);
-        }
-        else
-        {
-            m_tireAngle = m_tireAngle + (maxAngle - m_tireAngle) * 0.15f;
-        }
     }
 
     m_steer = direction;
