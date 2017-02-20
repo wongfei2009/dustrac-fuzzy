@@ -24,6 +24,8 @@ function(resolve_install_paths)
 
 	# export the path to plugins into the parent scope
 	set(PLUGIN_INSTALL_PATH ${PLUGIN_INSTALL_PATH} PARENT_SCOPE)
+	set(BIN_PATH ${BIN_PATH} PARENT_SCOPE)
+	set(LIB_PATH ${LIB_PATH} PARENT_SCOPE)
 
 endfunction()
 

@@ -78,8 +78,13 @@ endif()
 # Add the executable
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 add_executable(${EDITOR_BINARY_NAME} WIN32 ${SRC} ${MOC_SRC} ${RC_SRC} ${UI_HDRS} ${QM})
-
 target_link_libraries(${EDITOR_BINARY_NAME} Qt5::Widgets Qt5::Xml)
+
+# installation rule
+install(TARGETS ${EDITOR_BINARY_NAME}
+  RUNTIME DESTINATION "${BIN_PATH}" COMPONENT bin
+  LIBRARY DESTINATION "${LIB_PATH}" COMPONENT shlib
+)
 
 foreach(TS_FILE ${TS})
     # Make targets to copy generated qm files to data dir. This is done the hard

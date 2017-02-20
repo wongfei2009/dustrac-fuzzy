@@ -12,6 +12,9 @@ function(resolve_install_paths)
     if(NOT BIN_PATH)
         set(BIN_PATH bin)
     endif()
+    if(NOT LIB_PATH)
+        set(LIB_PATH lib)
+    endif()
     if(NOT DOC_PATH)
         set(DOC_PATH ${CMAKE_INSTALL_PREFIX}/${DEFAULT_DATA_PATH_BASE}/)
     endif()
@@ -21,6 +24,7 @@ function(resolve_install_paths)
         if(USC)
             message(STATUS "Installing to /opt.")
             set(BIN_PATH /opt/dustrac)
+            set(LIB_PATH /opt/dustrac)
             set(DATA_PATH /opt/dustrac/data)
 			set(PLUGIN_INSTALL_PATH /opt/dustrac/${PLUGIN_PATH})
             set(DOC_PATH /opt/dustrac/)
@@ -28,6 +32,7 @@ function(resolve_install_paths)
     else()
         message(STATUS "Linux development build with local install targets.")
         set(BIN_PATH .)
+        set(LIB_PATH .)
         set(DATA_PATH ./data)
         set(PLUGIN_INSTALL_PATH ./${PLUGIN_PATH})
         set(DOC_PATH .)
@@ -43,6 +48,7 @@ function(resolve_install_paths)
     endif()
 
     message(STATUS "BIN_PATH: " ${BIN_PATH})
+    message(STATUS "LIB_PATH: " ${LIB_PATH})
     message(STATUS "DATA_PATH: " ${DATA_PATH})
     message(STATUS "PLUGIN_INSTALL_PATH: " ${PLUGIN_INSTALL_PATH})
     message(STATUS "DOC_PATH:" ${DOC_PATH})
@@ -50,19 +56,19 @@ function(resolve_install_paths)
     # This is the main data path given to the game and editor binaries.
     add_definitions(-DDATA_PATH="${DATA_PATH}")
 
-    setup_install_targets(${BIN_PATH} ${DATA_PATH} ${PLUGIN_INSTALL_PATH} ${DOC_PATH})
+    setup_install_targets(${BIN_PATH} ${LIB_PATH} ${DATA_PATH} ${PLUGIN_INSTALL_PATH} ${DOC_PATH})
 
 	# export the path to plugins into the parent scope
 	set(PLUGIN_INSTALL_PATH ${PLUGIN_INSTALL_PATH} PARENT_SCOPE)
+	set(BIN_PATH ${BIN_PATH} PARENT_SCOPE)
+	set(LIB_PATH ${LIB_PATH} PARENT_SCOPE)
 
 endfunction()
 
 # **** Install targets for Linux ****
-function(setup_install_targets BIN_PATH DATA_PATH PLUGIN_INSTALL_PATH DOC_PATH)
+function(setup_install_targets BIN_PATH LIB_PATH DATA_PATH PLUGIN_INSTALL_PATH DOC_PATH)
 
-    # Install binaries and game data
-    install(PROGRAMS ${CMAKE_BINARY_DIR}/${GAME_BINARY_NAME} DESTINATION ${BIN_PATH})
-    install(PROGRAMS ${CMAKE_BINARY_DIR}/${EDITOR_BINARY_NAME} DESTINATION ${BIN_PATH})
+    # Install game data
     install(FILES data/editorModels.conf DESTINATION ${DATA_PATH})
     install(FILES data/fonts.conf DESTINATION ${DATA_PATH})
     install(FILES data/meshes.conf DESTINATION ${DATA_PATH})

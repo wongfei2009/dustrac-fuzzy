@@ -29,6 +29,8 @@ option(DATA_PATH "Optional DATA_PATH for Linux release build." "")
 
 option(BIN_PATH "Optional BIN_PATH for Linux release build." "")
 
+option(LIB_PATH "Optional LIB_PATH for Linux release build." "")
+
 option(DOC_PATH "Optional DOC_PATH for Linux release build." "")
 
 option(GLES "Build for OpenGL ES 2.0" OFF)
@@ -90,6 +92,7 @@ endfunction()
 add_definitions(-DPATH_SEP="${PATH_SEP}")
 
 set(GAME_BINARY_NAME "dustrac-game")
+set(GAME_LIBRARY_NAME "dustrac_lib")
 set(EDITOR_BINARY_NAME "dustrac-editor")
 
 add_definitions(-DVERSION="${VERSION}")
@@ -137,6 +140,7 @@ enable_testing()
 # Install paths depend on the build type and target platform
 resolve_install_paths()
 
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIB_PATH}")
 to_path_list(PLUGIN_PATH_LIST ${PLUGIN_INSTALL_PATH} ${PLUGIN_PATH})
 add_definitions(-DPLUGIN_PATH="${PLUGIN_PATH_LIST}")
 

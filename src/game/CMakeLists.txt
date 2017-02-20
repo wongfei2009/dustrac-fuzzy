@@ -166,21 +166,32 @@ set(COMMON_LIBS
     ${CMAKE_DL_LIBS}) # for linking to ldl
 
 # The main game code as a library
-add_library(dustrac_lib SHARED ${SRC} ${MOC_SRC} ${RC_SRC} ${QM})
+add_library(${GAME_LIBRARY_NAME} SHARED ${SRC} ${MOC_SRC} ${RC_SRC} ${QM})
 # For Windows: define that dll symbols should be exported.
-set_target_properties(dustrac_lib PROPERTIES COMPILE_DEFINITIONS "DUST_DLL_EXPORTS;DUST_DLL;DUSTCOMMON_DLL_EXPORTS;DUSTCOMMON_DLL")
-set_target_properties(dustrac_lib
+set_target_properties(${GAME_LIBRARY_NAME} PROPERTIES COMPILE_DEFINITIONS "DUST_DLL_EXPORTS;DUST_DLL;DUSTCOMMON_DLL_EXPORTS;DUSTCOMMON_DLL")
+set_target_properties(${GAME_LIBRARY_NAME}
     PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+target_link_libraries(${GAME_LIBRARY_NAME} ${COMMON_LIBS} Qt5::OpenGL Qt5::Xml)
 
-target_link_libraries(dustrac_lib ${COMMON_LIBS} Qt5::OpenGL Qt5::Xml)
+# installation rule
+install(TARGETS ${GAME_LIBRARY_NAME}
+  RUNTIME DESTINATION "${BIN_PATH}" COMPONENT bin
+  LIBRARY DESTINATION "${LIB_PATH}" COMPONENT shlib
+)
 
 # The main game executable
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
-add_executable(${GAME_BINARY_NAME} WIN32 main.cpp)                                  
-target_link_libraries(${GAME_BINARY_NAME} dustrac_lib ${COMMON_LIBS} Qt5::OpenGL Qt5::Xml)
+add_executable(${GAME_BINARY_NAME} WIN32 main.cpp)                    
+target_link_libraries(${GAME_BINARY_NAME} ${GAME_LIBRARY_NAME} ${COMMON_LIBS} Qt5::OpenGL Qt5::Xml)
+
+# installation rule
+install(TARGETS ${GAME_BINARY_NAME}
+  RUNTIME DESTINATION "${BIN_PATH}" COMPONENT bin
+  LIBRARY DESTINATION "${LIB_PATH}" COMPONENT shlib
+)
 
 foreach(TS_FILE ${TS})
     # Make targets to copy generated qm files to data dir. This is done the hard
