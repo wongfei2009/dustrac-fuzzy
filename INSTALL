@@ -64,7 +64,7 @@ Building in the command line on Linux (tested on Ubuntu 14.04)
 Development build (the game can be run without installing anything):
 -------------------------------------------------------------------
 
-1) Install Qt5 development files (qt5-default, qttools5-dev on Ubuntu 14.04).
+1) Install Qt5 development files (qt5-default, qttools5-dev, qttools5-dev-tools on Ubuntu 14.04).
 2) Install OpenAL development files (libopenal-dev on Debian/Ubuntu).
 3) Install Vorbis development files (libvorbis-dev on Debian/Ubuntu).
 4) Install CMake (cmake on Debian/Ubuntu).
