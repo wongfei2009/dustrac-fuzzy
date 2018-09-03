@@ -86,9 +86,10 @@ $ make
 
 This will build the editor and the game binaries.
 
-Run the game:
+Run the game with fuzzy controller:
 
-$ ./dustrac-game
+$ ./dustrac-game -d -c fuzzy -w --vres=900 --hres=1200 --FuzzyController "-p controller.fis"
+
 
 Optionally run the track editor:
 
