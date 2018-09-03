@@ -18,7 +18,7 @@ include_directories("${GAME_DIR}/MTFH")
 include_directories("${GAME_DIR}/STFH")
 
 macro(add_plugin NAME)
-	option("BUILD_${NAME}" "Enable support for plugin ${NAME}." OFF)
+	option("BUILD_${NAME}" "Enable support for plugin ${NAME}." ON)
 
 	if(BUILD_${NAME})
 		add_library(${NAME} MODULE ${ARGN})
@@ -35,6 +35,6 @@ endmacro(add_plugin)
 
 # The individual plugins:
 add_subdirectory(fuzzy_controller)
-add_subdirectory(python_controller)
+#add_subdirectory(python_controller)
 #add_subdirectory(rl_controller)
 
